@@ -1,0 +1,46 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <j:set var="browser" value="${it.build.parent.scm.effectiveBrowser}"/>
+  
+  <h2>${%Summary}</h2>
+  <ol>
+    <j:forEach var="cs" items="${it.items}">
+      <li><st:out value="${cs.msg}"/></li>
+    </j:forEach>
+  </ol>
+  <table class="pane" style="border:none">
+    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+      <tr class="pane">
+        <td colspan="2" class="changeset">
+          <a name="detail${loop.index}"></a>
+          <div class="changeset-message">
+            <b>
+              ${%Version} 
+              <a href="${browser.getChangeSetLink(cs)}">${cs.version}</a> 
+              by <a href="${rootURL}/${cs.author.url}/">${cs.user}</a>
+              <j:if test="${cs.checkedInBy!=null}">
+              	 (<i>checked in by <a href="${rootURL}/${cs.checkedInByUser.url}/">${cs.checkedInBy}</a></i>)
+              </j:if>
+              <j:if test="${cs.domain!=null}">
+              	@${cs.domain}
+              </j:if>:
+            </b><br/>
+            ${cs.msgAnnotated}
+          </div>
+        </td>
+      </tr>
+      <j:forEach var="item" items="${cs.items}">
+        <tr>
+          <td><t:editTypeIcon type="${item.editType}" /></td>
+          <td>
+          	<a href="${browser.getFileLink(item)}">${item.path}</a>
+          	<j:set var="diff" value="${browser.getDiffLink(item)}"/>
+            <j:if test="${diff!=null}">
+              <st:nbsp/>
+              <a href="${diff}">(diff)</a>
+            </j:if>
+          </td>
+        </tr>
+      </j:forEach>
+    </j:forEach>
+  </table>
+</j:jelly>

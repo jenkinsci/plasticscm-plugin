@@ -3,28 +3,50 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.343</version><!-- which version of Hudson is this plugin built against? -->
+    <version>1.343</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>com.codicesoftware.plugins.hudson</groupId>
-  <artifactId>plasticscm</artifactId>
+  <artifactId>plasticscm-plugin</artifactId>
   <name>PlasticSCM Plugin</name>
   <version>1.0</version>
   <packaging>hpi</packaging>
+  <description>Integrates Jenkins to Plastic SCM</description>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>
 
-  <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
-  <repositories>
-    <repository>
-      <id>m.g.o-public</id>
-      <url>http://maven.glassfish.org/content/groups/public/</url>
-    </repository>
-  </repositories>
+  <scm>
+      <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
+      <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>
+      <url>https://github.com/jenkinsci/plasticscm-plugin</url>
+  </scm>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>m.g.o-public</id>
-      <url>http://maven.glassfish.org/content/groups/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
+  <developers>
+      <developer>
+          <id>dickp</id>
+          <name>Dick Porter</name>
+          <email>dporter@codicesoftware.com</email>
+          <organization>Codice Software</organization>
+          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      </developer>
+  </developers>
+
+  <!-- Override the maven release plugin configuration (1.387 and earlier) -->
+  <build>
+      <plugins>
+          <plugin>
+              <artifactId>maven-release-plugin</artifactId>
+              <configuration>
+                  <goals>deploy</goals>
+              </configuration>
+          </plugin>
+      </plugins>
+  </build>
+
+  <!-- Override the Maven repository location (1.395 and before) -->
+  <distributionManagement>
+      <repository>
+          <id>maven.jenkins-ci.org</id>
+          <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+      </repository>
+  </distributionManagement>
 </project>

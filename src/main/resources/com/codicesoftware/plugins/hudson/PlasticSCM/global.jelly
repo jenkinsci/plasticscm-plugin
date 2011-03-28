@@ -2,7 +2,7 @@
   <f:section title="PlasticSCM">
     <f:entry title="Plastic command line executable"
       description="The location of the cm executable"
-      help="/plugin/plasticscm/cmExecutable.html">
+      help="/plugin/plasticscm-plugin/cmExecutable.html">
       <f:textbox name="plastic.cmExecutable" value="${descriptor.cmExecutable}" checkUrl="'${rootURL}/scm/PlasticSCM/executableCheck?value='+escape(this.value)" />
     </f:entry>
   </f:section>

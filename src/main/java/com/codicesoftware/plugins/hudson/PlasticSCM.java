@@ -55,7 +55,7 @@ public class PlasticSCM extends SCM {
 
     @DataBoundConstructor
     public PlasticSCM(String workspaceName, String selector, boolean useUpdate) {
-        this.workspaceName = (Util.fixEmptyAndTrim(workspaceName) == null ? "Hudson-${JOB_NAME}-${NODE_NAME}" : workspaceName);
+        this.workspaceName = (Util.fixEmptyAndTrim(workspaceName) == null ? "Jenkins-${JOB_NAME}-${NODE_NAME}" : workspaceName);
         this.useUpdate = useUpdate;
         this.selector = selector;
     }

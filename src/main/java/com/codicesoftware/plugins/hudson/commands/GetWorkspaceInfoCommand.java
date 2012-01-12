@@ -13,6 +13,8 @@ public class GetWorkspaceInfoCommand extends AbstractCommand implements Parseabl
     private static final Pattern repoRegex = Pattern.compile("^Repository:\\s*(.+)$");
     private static final Pattern branchRegex = Pattern.compile("^Branch:\\s*(.+)$");
     private static final Pattern labelRegex = Pattern.compile("^Label:\\s*(.+)$");
+    private static final String DEFAULT_SEPARATOR = "def#_#sep";
+    private static final String ERROR_MSG_PREFIX = "ERROR";
 
     public GetWorkspaceInfoCommand(ServerConfigurationProvider provider) {
         super(provider);
@@ -22,34 +24,43 @@ public class GetWorkspaceInfoCommand extends AbstractCommand implements Parseabl
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("wi");
+        arguments.add("--machinereadable");
+        arguments.add("--fieldseparator=" + DEFAULT_SEPARATOR);
 
         return arguments;
     }
 
     public WorkspaceInfo parse(Reader r) throws IOException, ParseException {
-        BufferedReader reader = new BufferedReader(r);
+        
+    	BufferedReader reader = new BufferedReader(r);
+        
         String line = reader.readLine();
-        String repoName = "";
-        String branch = "";
-        String label = "";
-        while (line != null) {
-            Matcher matcher = repoRegex.matcher(line);
-            if (matcher.find()) {
-                repoName = matcher.group(1);
-            } else {
-                matcher = branchRegex.matcher(line);
-                if (matcher.find()) {
-                    branch = matcher.group(1);
-                } else {
-                    matcher = labelRegex.matcher(line);
-                    if (matcher.find()) {
-                        label = matcher.group(1);
-                    }
-                }
-            }
-            line = reader.readLine();
+        String[] fields = null;
+        if (line != null) {
+        	
+        	fields = line.split(DEFAULT_SEPARATOR, -1);
+        }
+        
+        if (fields == null || fields.length == 0) {
+            return null;
         }
 
-        return new WorkspaceInfo(repoName, branch, label);
+        if (ERROR_MSG_PREFIX.equals(fields[0])) {
+            return null;
+        }
+
+        String branch = "";
+        String label = "";
+        
+        if (fields[0].equals("BR"))
+        {
+        	branch = fields[1];
+        }
+        else //suppose that fields[0].equals("LB")
+        {
+        	label = fields[1];
+        }        
+        
+        return new WorkspaceInfo(fields[2], branch, label);
     }
 }

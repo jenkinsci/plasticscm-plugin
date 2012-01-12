@@ -19,7 +19,6 @@ public class SetSelectorCommand extends AbstractCommand {
 
         arguments.add("sts");
         arguments.add("--file=" + selectorFile.getName());
-        arguments.add("--noupdate");
         arguments.add("wk:" + workspaceName);
 
         return arguments;

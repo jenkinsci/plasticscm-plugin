@@ -38,15 +38,18 @@ public class CheckoutAction {
                 workspacePath.deleteContents();
             }
             workspace = workspaces.newWorkspace(workspacePath, workspaceName, ".", selector);
+            server.getFiles(".");
         } else {
             workspace = workspaces.getWorkspace(workspaceName);
             if (!workspace.getSelector().equals(selector)) {
                 workspace.setSelector(selector);
                 workspaces.setWorkspaceSelector(workspacePath, workspace);
             }
+            else {
+            	server.getFiles(".");
+            }
         }
 
-        server.getFiles(".");
 
         if (lastBuildTimestamp != null) {
             return server.getDetailedHistory(lastBuildTimestamp, currentBuildTimestamp);

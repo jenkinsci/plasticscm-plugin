@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.commands;
 
+import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class GetBranchForChangesetCommand extends AbstractCommand implements Par
         arguments.add("repositories");
         arguments.add("'" + repoName + "'");
         arguments.add("--xml");
+        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
         return arguments;
     }

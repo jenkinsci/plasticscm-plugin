@@ -24,8 +24,6 @@ public class ChangeSet extends ChangeLogSet.Entry {
     private List<Item> items;
     private String workspaceDir;
 
-    private final SimpleDateFormat plasticChangesetDateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-
     public ChangeSet() {
         this("", "", "", null, "", "");
     }
@@ -122,7 +120,7 @@ public class ChangeSet extends ChangeLogSet.Entry {
     }
 
     public void setChangesetDateStr(String dateStr) throws ParseException {
-        date = plasticChangesetDateFormatter.parse(dateStr);
+        date = DateUtil.PLASTICSCM_DATETIME_FORMATTER.get().parse(dateStr);
     }
 
     public void setDateStr(String dateStr) throws ParseException {

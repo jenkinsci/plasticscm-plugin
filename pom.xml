@@ -4,21 +4,15 @@
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.343</version>
-     <executions>
-                    <execution>
-                        <id>enforce-versions</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireJavaVersion>
-                                    <version>1.6</version>
-                                </requireJavaVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-      </executions>
+    <configuration>
+              <source>1.6</source>
+              <target>1.6</target>
+              <showDeprecation>true</showDeprecation>
+              <showWarnings>true</showWarnings>
+              <encoding>UTF-8</encoding>
+              <executable>/opt/jdk/jdk1.6.0/bin/javac</executable>
+              <fork>true</fork>
+            </configuration>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

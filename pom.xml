@@ -42,6 +42,13 @@
                                 </requireJavaVersion>
                             </rules>
                   <goals>deploy</goals>
+               <source>1.7</source>
+              <target>1.7</target>
+              <showDeprecation>true</showDeprecation>
+              <showWarnings>true</showWarnings>
+              <encoding>UTF-8</encoding>
+              <executable>/opt/jdk/jdk1.7.0/bin/javac</executable>
+              <fork>true</fork>
               </configuration>
           </plugin>
       </plugins>

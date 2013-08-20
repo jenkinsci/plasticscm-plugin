@@ -4,15 +4,6 @@
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.343</version>
-    <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-              <showDeprecation>true</showDeprecation>
-              <showWarnings>true</showWarnings>
-              <encoding>UTF-8</encoding>
-              <executable>/opt/jdk/jdk1.6.0/bin/javac</executable>
-              <fork>true</fork>
-            </configuration>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -45,6 +36,11 @@
           <plugin>
               <artifactId>maven-release-plugin</artifactId>
               <configuration>
+			 <rules>
+                               <requireJavaVersion>
+                                <version>1.6</version>
+                                </requireJavaVersion>
+                            </rules>
                   <goals>deploy</goals>
               </configuration>
           </plugin>

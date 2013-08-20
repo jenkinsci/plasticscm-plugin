@@ -43,7 +43,7 @@ public class DateUtil {
 
         if (date != null)
             return date;
-        
+
         // The old fashioned way did not work. Let's try it using a more
         // complex alternative.
         DateFormat[] formats = createDateFormatsForLocaleAndTimeZone(locale, timezone);
@@ -52,11 +52,10 @@ public class DateUtil {
 
     static Date tryParseDefaultFormat(String dateString)
     {
-    	DateFormat df = new SimpleDateFormat(DEFAULT_SORTABLE_FORMAT);
         try
         {
             return PLASTICSCM_DATETIME_FORMATTER.get().parse(dateString);
-        } 
+        }
         catch (ParseException e)
         {
             return null;

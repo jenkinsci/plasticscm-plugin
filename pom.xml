@@ -14,6 +14,7 @@
   <description>Integrates Jenkins to Plastic SCM</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>
 
+  
   <scm>
       <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
       <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>

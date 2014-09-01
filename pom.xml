@@ -8,7 +8,7 @@
 
   <artifactId>plasticscm-plugin</artifactId>
   <name>PlasticSCM Plugin</name>
-  <version>2.0</version>
+  <version>2.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <description>Integrates Jenkins to Plastic SCM</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>

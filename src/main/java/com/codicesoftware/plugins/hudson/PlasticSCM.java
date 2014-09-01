@@ -24,7 +24,6 @@ import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
-import hudson.scm.PollingResult.Change;
 import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import java.io.File;
@@ -108,14 +107,14 @@ public class PlasticSCM extends SCM {
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?,?> project,Launcher launcher,FilePath workspace,TaskListener listener,SCMRevisionState baseline)
         throws IOException, InterruptedException {
         //deprecated
-        return PollingResult.Change.NONE;
+        return null;
     }
 
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?,?> build, Launcher launcher, TaskListener listener)
         throws IOException, InterruptedException {
             //deprecated
-            return new SCMRevisionState();
+            return null;
         }
 
     @Override

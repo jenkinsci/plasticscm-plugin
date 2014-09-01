@@ -25,7 +25,7 @@ import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
 import hudson.scm.PollingResult.Change;
-import hudson.scm.SCMRevisionState
+import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import java.io.File;
 import java.io.IOException;

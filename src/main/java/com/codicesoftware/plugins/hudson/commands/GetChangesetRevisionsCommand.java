@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.util.Digester2;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class GetChangesetRevisionsCommand extends AbstractCommand {
         arguments.add("repositories");
         arguments.add("'" + repoName + "'");
         arguments.add("--xml");
+        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
         return arguments;
     }

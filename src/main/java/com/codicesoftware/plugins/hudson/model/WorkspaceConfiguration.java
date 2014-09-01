@@ -55,7 +55,9 @@ public class WorkspaceConfiguration extends InvisibleAction implements Serializa
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if ((obj == null) || (getClass() != obj.getClass()))
+        if (obj == null)
+            return false;
+        if (!(obj instanceof WorkspaceConfiguration))
             return false;
         final WorkspaceConfiguration other = (WorkspaceConfiguration)obj;
         EqualsBuilder builder = new EqualsBuilder();

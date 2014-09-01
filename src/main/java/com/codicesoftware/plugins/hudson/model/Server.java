@@ -1,14 +1,7 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
-import com.codicesoftware.plugins.hudson.commands.DetailedHistoryCommand;
-import com.codicesoftware.plugins.hudson.commands.GetBranchForChangesetCommand;
-import com.codicesoftware.plugins.hudson.commands.GetChangesetRevisionsCommand;
-import com.codicesoftware.plugins.hudson.commands.GetFilesToWorkFolderCommand;
-import com.codicesoftware.plugins.hudson.commands.GetWorkspaceFromPathCommand;
-import com.codicesoftware.plugins.hudson.commands.GetWorkspaceInfoCommand;
-import com.codicesoftware.plugins.hudson.commands.GetWorkspaceStatusCommand;
-import com.codicesoftware.plugins.hudson.commands.ServerConfigurationProvider;
+import com.codicesoftware.plugins.hudson.commands.*;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import java.io.IOException;
 import java.io.Reader;
@@ -52,9 +45,10 @@ public class Server implements ServerConfigurationProvider {
             IOUtils.closeQuietly(reader);
         }
 
+        String branch;
+
         if (wi.getBranch().equals("Multiple")) {
             List<ChangesetID> cslist;
-            String branch;
             GetWorkspaceStatusCommand statusCommand = new GetWorkspaceStatusCommand(this);
             try {
                 reader = execute(statusCommand.getArguments());
@@ -64,14 +58,7 @@ public class Server implements ServerConfigurationProvider {
             }
 
             for (ChangesetID cs : cslist) {
-                GetBranchForChangesetCommand brCommand = new GetBranchForChangesetCommand(this,
-                            cs.getId(), cs.getRepository());
-                try {
-                    reader = execute(brCommand.getArguments());
-                    branch = brCommand.parse(reader);
-                } finally {
-                    IOUtils.closeQuietly(reader);
-                }
+                branch = GetBranchFromChangeset(cs.getId(), cs.getRepoName());
 
                 DetailedHistoryCommand histCommand = new DetailedHistoryCommand(this, fromTimestamp, toTimestamp, branch, cs.getRepository());
                 try {
@@ -82,8 +69,9 @@ public class Server implements ServerConfigurationProvider {
                 }
             }
         } else {
+            branch = GetBranchFromWorkspaceInfo(wi);
             DetailedHistoryCommand histCommand = new DetailedHistoryCommand(this,
-                    fromTimestamp, toTimestamp, wi.getBranch(), wi.getRepoName());
+                    fromTimestamp, toTimestamp, branch, wi.getRepoName());
             try {
                 reader = execute(histCommand.getArguments());
                 list = histCommand.parse(reader);
@@ -139,5 +127,45 @@ public class Server implements ServerConfigurationProvider {
     public void getFiles(String localPath) throws IOException, InterruptedException {
         GetFilesToWorkFolderCommand command = new GetFilesToWorkFolderCommand(this, localPath);
         execute(command.getArguments()).close();
+    }
+
+    private String GetBranchFromWorkspaceInfo(WorkspaceInfo wi) throws InterruptedException, ParseException, IOException {
+        String branch = wi.getBranch();
+        if (branch != null && !branch.isEmpty())
+            return branch;
+
+        String label = wi.getLabel();
+        if (label != null && !label.isEmpty())
+            return GetBranchFromLabel(label, wi.getRepoName());
+
+        String changeset = wi.getChangeset();
+        if (changeset != null && !changeset.isEmpty())
+            return GetBranchFromChangeset(changeset, wi.getRepoName());
+
+        return "";
+    }
+
+    private String GetBranchFromLabel(String label, String repositoryName) throws InterruptedException, ParseException, IOException {
+        GetBranchForLabelCommand brCommand = new GetBranchForLabelCommand(this,
+                label, repositoryName);
+        Reader reader = null;
+        try {
+            reader = execute(brCommand.getArguments());
+            return brCommand.parse(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
+    }
+
+    private String GetBranchFromChangeset(String id, String repositoryName) throws InterruptedException, ParseException, IOException {
+        GetBranchForChangesetCommand brCommand = new GetBranchForChangesetCommand(this,
+                id, repositoryName);
+        Reader reader = null;
+        try {
+            reader = execute(brCommand.getArguments());
+            return brCommand.parse(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
     }
 }

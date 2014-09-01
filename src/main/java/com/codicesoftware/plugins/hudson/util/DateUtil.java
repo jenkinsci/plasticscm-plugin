@@ -15,41 +15,64 @@ import java.util.TimeZone;
  */
 public class DateUtil {
 
-    private DateUtil() {        
+    public static final String DEFAULT_SORTABLE_FORMAT = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
+
+    private DateUtil() {
     }
 
     public static final ThreadLocal<SimpleDateFormat> PLASTICSCM_DATETIME_FORMATTER = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_SORTABLE_FORMAT);
             dateFormat.setTimeZone(new SimpleTimeZone(0,"GMT"));
             return dateFormat;
         }
     };
-    
+
     public static Date parseDate(String dateString) throws ParseException {
         return parseDate(dateString, Locale.getDefault(), TimeZone.getDefault());
     }
-    
-    @SuppressWarnings("deprecation")
+
     public static Date parseDate(String dateString, Locale locale, TimeZone timezone) throws ParseException {
-        Date date = null;
+        Date date = tryParseDefaultFormat(dateString);
+        
+        if (date != null)
+            return date;
+
+        date = tryParseUnknownFormat(dateString);
+
+        if (date != null)
+            return date;
+
+        // The old fashioned way did not work. Let's try it using a more
+        // complex alternative.
+        DateFormat[] formats = createDateFormatsForLocaleAndTimeZone(locale, timezone);
+        return parseWithFormats(dateString, formats);
+    }
+
+    static Date tryParseDefaultFormat(String dateString)
+    {
+        try
+        {
+            return PLASTICSCM_DATETIME_FORMATTER.get().parse(dateString);
+        }
+        catch (ParseException e)
+        {
+            return null;
+        }
+    }
+    
+    static Date tryParseUnknownFormat(String dateString) {
         dateString = dateString.replaceAll("(p|P)\\.(m|M)\\.", "PM").replaceAll("(a|A)\\.(m|M)\\.", "AM");
         try {
             // Use the deprecated Date.parse method as this is very good at detecting
             // dates commonly output by the US and UK standard locales of dotnet that
             // are output by the Microsoft command line client.
-            date = new Date(Date.parse(dateString));
+            return new Date(Date.parse(dateString));
         } catch (IllegalArgumentException e) {
             // ignore - parse failed.
+            return null;
         }
-        if (date == null) {
-            // The old fashioned way did not work. Let's try it using a more
-            // complex alternative.
-            DateFormat[] formats = createDateFormatsForLocaleAndTimeZone(locale, timezone);
-            return parseWithFormats(dateString, formats);
-        }
-        return date;
     }
 
     static Date parseWithFormats(String input, DateFormat[] formats) throws ParseException {

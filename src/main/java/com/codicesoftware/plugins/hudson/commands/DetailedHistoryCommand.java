@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.util.Digester2;
 import java.io.IOException;
@@ -19,7 +20,8 @@ public class DetailedHistoryCommand extends AbstractCommand implements Parseable
     private final String branch;
     private final String repository;
 
-    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final SimpleDateFormat dateFormatter =
+    		new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
 
     public DetailedHistoryCommand(ServerConfigurationProvider configurationProvider,
             Calendar fromTimestamp, Calendar toTimestamp, String branch, String repository) {
@@ -48,6 +50,8 @@ public class DetailedHistoryCommand extends AbstractCommand implements Parseable
         arguments.add("'" + repository + "'");
         
         arguments.add("--xml");
+        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
+        
 
         return arguments;
     }

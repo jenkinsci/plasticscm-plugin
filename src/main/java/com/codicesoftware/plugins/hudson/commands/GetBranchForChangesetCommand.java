@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.commands;
 
+import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,13 +26,14 @@ public class GetBranchForChangesetCommand extends AbstractCommand implements Par
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("find");
-        arguments.add("revision");
+        arguments.add("changeset");
         arguments.add("where");
-        arguments.add("changeset=" + cs);
+        arguments.add("changesetid=" + cs);
         arguments.add("on");
         arguments.add("repositories");
         arguments.add("'" + repoName + "'");
         arguments.add("--xml");
+        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
         return arguments;
     }
@@ -47,6 +49,6 @@ public class GetBranchForChangesetCommand extends AbstractCommand implements Par
             line = reader.readLine();
         }
 
-        return "/main"; // This shouldn't fail, but if it does then fail gracefully
+        throw new ParseException("Could not find branch in query results", 0);
     }
 }

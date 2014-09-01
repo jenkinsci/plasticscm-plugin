@@ -112,8 +112,9 @@ public class PlasticSCM extends SCM {
             if ((nodeConfiguration != null) &&
                     nodeConfiguration.workspaceExists() &&
                     (!workspaceConfiguration.equals(nodeConfiguration))) {
-                listener.getLogger().println("Deleting workspace as the configuration has changed since a build was performed on this computer.");
+                listener.getLogger().println("Deleting workspace as the configuration has changed since the last build on this computer.");
                 new RemoveWorkspaceAction(workspaceConfiguration.getWorkspaceName()).remove(server);
+                workspaceFilePath.deleteContents();
                 nodeConfiguration.setWorkspaceWasRemoved();
                 nodeConfiguration.save();
             }

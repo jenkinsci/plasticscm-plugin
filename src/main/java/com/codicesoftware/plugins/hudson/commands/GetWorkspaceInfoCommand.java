@@ -10,9 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetWorkspaceInfoCommand extends AbstractCommand implements ParseableCommand<WorkspaceInfo> {
-    private static final Pattern repoRegex = Pattern.compile("^Repository:\\s*(.+)$");
-    private static final Pattern branchRegex = Pattern.compile("^Branch:\\s*(.+)$");
-    private static final Pattern labelRegex = Pattern.compile("^Label:\\s*(.+)$");
     private static final String DEFAULT_SEPARATOR = "def#_#sep";
     private static final String ERROR_MSG_PREFIX = "ERROR";
 
@@ -51,16 +48,21 @@ public class GetWorkspaceInfoCommand extends AbstractCommand implements Parseabl
 
         String branch = "";
         String label = "";
+        String changeset = "";
         
         if (fields[0].equals("BR"))
         {
         	branch = fields[1];
         }
-        else //suppose that fields[0].equals("LB")
+        else if (fields[0].equals("LB"))
         {
         	label = fields[1];
-        }        
+        }
+        else if (fields[0].equals("CS"))
+        {
+            changeset = fields[1];
+        }
         
-        return new WorkspaceInfo(fields[2], branch, label);
+        return new WorkspaceInfo(fields[2], branch, label, changeset);
     }
 }

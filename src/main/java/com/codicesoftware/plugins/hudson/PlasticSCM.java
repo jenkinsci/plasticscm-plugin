@@ -112,6 +112,13 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?,?> build, Launcher launcher, TaskListener listener)
+        throws IOException, InterruptedException {
+            //deprecated
+            return new SCMRevisionState();
+        }
+
+    @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspaceFilePath,
             BuildListener listener, File changelogFile) throws IOException, InterruptedException {
         Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspaceFilePath));

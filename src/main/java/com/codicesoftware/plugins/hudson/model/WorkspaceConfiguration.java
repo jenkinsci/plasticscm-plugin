@@ -37,7 +37,7 @@ public class WorkspaceConfiguration extends InvisibleAction implements Serializa
         return workspaceName;
     }
     
-    public String getWorkFolder() {
+    public String getWorkfolder() {
         return workfolder;
     }
 

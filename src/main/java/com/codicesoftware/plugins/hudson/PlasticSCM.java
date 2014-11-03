@@ -148,7 +148,7 @@ public class PlasticSCM extends SCM {
         if (lastRun == null) {
             return true;
         } else {
-            Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspace));
+            Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspace + File.separator + workfolder));
             try {
                 return (server.getBriefHistory(lastRun.getTimestamp(), Calendar.getInstance()).size() > 0);
             } catch (ParseException e) {

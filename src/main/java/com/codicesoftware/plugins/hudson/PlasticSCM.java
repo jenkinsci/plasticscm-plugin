@@ -72,6 +72,10 @@ public class PlasticSCM extends SCM {
         return selector;
     }
 
+    public String getWorkfolder() {
+        return workfolder;
+    }
+
     public boolean isUseUpdate() {
         return useUpdate;
     }

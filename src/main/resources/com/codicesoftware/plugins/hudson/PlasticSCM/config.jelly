@@ -6,7 +6,7 @@
   </f:entry>
   
   <f:entry title="Workspace Path" help="/plugin/plasticscm-plugin/workfolder.html">
-      <f:textarea name="plastic.workfolder" value="${h.defaulted(scm.workfolder, '.')}"/>
+      <f:textbox name="plastic.workfolder" value="${h.defaulted(scm.workfolder, '.')}"/>
   </f:entry>
 
   <f:advanced>

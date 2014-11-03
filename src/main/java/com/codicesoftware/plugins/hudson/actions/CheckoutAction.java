@@ -14,17 +14,19 @@ import java.util.List;
 public class CheckoutAction {
     private final String workspaceName;
     private final String selector;
+    private final String workfolder;
     private final boolean useUpdate;
 
-    public CheckoutAction(String workspaceName, String selector, boolean useUpdate) {
+    public CheckoutAction(String workspaceName, String selector, String workfolder, boolean useUpdate) {
         this.workspaceName = workspaceName;
         this.selector = selector;
+        this.workfolder = workfolder;
         this.useUpdate = useUpdate;
     }
 
-    public List<ChangeSet> checkout(Server server, FilePath workspacePath,
-            Calendar lastBuildTimestamp, Calendar currentBuildTimestamp)
-            throws IOException, InterruptedException, ParseException {
+    public List<ChangeSet> checkout(Server server, FilePath workspacePath, Calendar lastBuildTimestamp, Calendar currentBuildTimestamp)
+        throws IOException, InterruptedException, ParseException {
+        
         Workspaces workspaces = server.getWorkspaces();
 
         if (workspaces.exists(workspaceName) && !useUpdate) {
@@ -37,8 +39,8 @@ public class CheckoutAction {
             if (!useUpdate && workspacePath.exists()) {
                 workspacePath.deleteContents();
             }
-            workspace = workspaces.newWorkspace(workspacePath, workspaceName, ".", selector);
-            server.getFiles(".");
+            workspace = workspaces.newWorkspace(workspacePath, workspaceName, workfolder, selector);
+            server.getFiles(workfolder);
         } else {
             workspace = workspaces.getWorkspace(workspaceName);
             if (!workspace.getSelector().equals(selector)) {
@@ -46,7 +48,7 @@ public class CheckoutAction {
                 workspaces.setWorkspaceSelector(workspacePath, workspace);
             }
             else {
-            	server.getFiles(".");
+            	server.getFiles(workfolder);
             }
         }
 

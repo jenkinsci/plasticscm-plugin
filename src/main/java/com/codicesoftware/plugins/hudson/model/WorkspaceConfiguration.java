@@ -16,22 +16,29 @@ public class WorkspaceConfiguration extends InvisibleAction implements Serializa
 
     private final String workspaceName;
     private final String selector;
+    private final String workfolder;
     private boolean workspaceExists;
 
-    public WorkspaceConfiguration(String workspaceName, String selector) {
+    public WorkspaceConfiguration(String workspaceName, String selector, String workfolder) {
         this.workspaceName = workspaceName;
         this.selector = selector;
+        this.workfolder = workfolder;
         this.workspaceExists = true;
     }
 
     public WorkspaceConfiguration(WorkspaceConfiguration configuration) {
         this.workspaceName = configuration.workspaceName;
         this.selector = configuration.selector;
+        this.workfolder = configuration.workfolder;
         this.workspaceExists = configuration.workspaceExists;
     }
 
     public String getWorkspaceName() {
         return workspaceName;
+    }
+    
+    public String getWorkfolder() {
+        return workfolder;
     }
 
     public String getSelector() {
@@ -63,6 +70,7 @@ public class WorkspaceConfiguration extends InvisibleAction implements Serializa
         EqualsBuilder builder = new EqualsBuilder();
         builder.append(this.workspaceName, other.workspaceName);
         builder.append(this.selector, other.selector);
+        builder.append(this.workfolder, other.workfolder);
         builder.append(this.workspaceExists, other.workspaceExists);
         return builder.isEquals();
     }

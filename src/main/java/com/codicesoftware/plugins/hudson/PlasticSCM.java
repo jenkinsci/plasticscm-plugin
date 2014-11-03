@@ -108,7 +108,7 @@ public class PlasticSCM extends SCM {
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspaceFilePath,
             BuildListener listener, File changelogFile) throws IOException, InterruptedException {
-        Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspaceFilePath + workfolder));
+        Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspaceFilePath));
         WorkspaceConfiguration workspaceConfiguration = new WorkspaceConfiguration(getWorkspace(build, Computer.currentComputer()), selector, workfolder);
 
         if (build.getPreviousBuild() != null) {

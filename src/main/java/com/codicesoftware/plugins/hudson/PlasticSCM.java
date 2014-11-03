@@ -47,6 +47,7 @@ import org.kohsuke.stapler.StaplerRequest;
 public class PlasticSCM extends SCM {
     private final String workspaceName;
     private final String selector;
+    private final String workfolder;
     private final boolean useUpdate;
 
     private transient String normalizedWorkspace;
@@ -54,10 +55,13 @@ public class PlasticSCM extends SCM {
     private static final Logger logger = Logger.getLogger(PlasticSCM.class.getName());
 
     @DataBoundConstructor
-    public PlasticSCM(String workspaceName, String selector, boolean useUpdate) {
+    public PlasticSCM(String workspaceName, String selector, String workfolder, boolean useUpdate) {
         this.workspaceName = (Util.fixEmptyAndTrim(workspaceName) == null ? "Jenkins-${JOB_NAME}-${NODE_NAME}" : workspaceName);
-        this.useUpdate = useUpdate;
+        
         this.selector = selector;
+        this.workfolder = workfolder;
+        
+        this.useUpdate = useUpdate;
     }
 
     public String getWorkspaceName() {
@@ -104,8 +108,8 @@ public class PlasticSCM extends SCM {
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspaceFilePath,
             BuildListener listener, File changelogFile) throws IOException, InterruptedException {
-        Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspaceFilePath));
-        WorkspaceConfiguration workspaceConfiguration = new WorkspaceConfiguration(getWorkspace(build, Computer.currentComputer()), selector);
+        Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspaceFilePath + workfolder));
+        WorkspaceConfiguration workspaceConfiguration = new WorkspaceConfiguration(getWorkspace(build, Computer.currentComputer()), selector, workfolder);
 
         if (build.getPreviousBuild() != null) {
             BuildWorkspaceConfiguration nodeConfiguration = new BuildWorkspaceConfigurationRetriever().getLatestForNode(build.getBuiltOn(), build.getPreviousBuild());
@@ -121,7 +125,7 @@ public class PlasticSCM extends SCM {
         }
 
         build.addAction(workspaceConfiguration);
-        CheckoutAction action = new CheckoutAction(workspaceConfiguration.getWorkspaceName(), workspaceConfiguration.getSelector(), isUseUpdate());
+        CheckoutAction action = new CheckoutAction(workspaceConfiguration.getWorkspaceName(), workspaceConfiguration.getSelector(), workspaceConfiguration.getWorkfolder(), isUseUpdate());
         try {
             List<ChangeSet> list = action.checkout(server, workspaceFilePath, (build.getPreviousBuild() != null? build.getPreviousBuild().getTimestamp(): null), build.getTimestamp());
             ChangeSetWriter writer = new ChangeSetWriter();

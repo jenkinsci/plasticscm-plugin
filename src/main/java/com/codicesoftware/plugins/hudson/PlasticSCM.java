@@ -142,13 +142,12 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
-    public boolean pollChanges(AbstractProject hudsonProject, Launcher launcher,
-            FilePath workspace, TaskListener listener) throws IOException, InterruptedException {
+    public boolean pollChanges(AbstractProject hudsonProject, Launcher launcher, FilePath workspaceFilePath, TaskListener listener) throws IOException, InterruptedException {
         Run<?,?> lastRun = hudsonProject.getLastBuild();
         if (lastRun == null) {
             return true;
         } else {
-            Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspace + File.separator + workfolder));
+            Server server = new Server(new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, workspace.child(workfolder)));
             try {
                 return (server.getBriefHistory(lastRun.getTimestamp(), Calendar.getInstance()).size() > 0);
             } catch (ParseException e) {

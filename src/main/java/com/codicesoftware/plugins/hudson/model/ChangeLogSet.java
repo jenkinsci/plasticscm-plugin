@@ -15,7 +15,7 @@ import java.util.List;
 public class ChangeLogSet extends hudson.scm.ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;
 
-    public ChangeLogSet(AbstractBuild build, List<ChangeSet> changesets) {
+    public ChangeLogSet(AbstractBuild<?, ?> build, List<ChangeSet> changesets) {
         super(build);
         this.changesets = changesets;
         for (ChangeSet changeset : changesets) {
@@ -23,7 +23,7 @@ public class ChangeLogSet extends hudson.scm.ChangeLogSet<ChangeSet> {
         }
     }
 
-    public ChangeLogSet(AbstractBuild build, ChangeSet[] changesetArray) {
+    public ChangeLogSet(AbstractBuild<?, ?> build, ChangeSet[] changesetArray) {
         super(build);
         changesets = new ArrayList<ChangeSet>();
         for (ChangeSet changeset : changesetArray) {

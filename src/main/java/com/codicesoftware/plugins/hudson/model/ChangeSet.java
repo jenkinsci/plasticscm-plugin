@@ -1,15 +1,17 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.util.DateUtil;
+
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
+
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 

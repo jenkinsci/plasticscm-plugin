@@ -16,7 +16,7 @@ import hudson.model.Run;
  */
 public class BuildWorkspaceConfigurationRetriever {
 
-    public BuildWorkspaceConfiguration getLatestForNode(Node needleNode, Run<?,?> latestRun) {
+    public static BuildWorkspaceConfiguration getLatestForNode(String workspaceName, Node needleNode, Run<?,?> latestRun) {
         if ((latestRun == null) || !(latestRun instanceof AbstractBuild<?, ?>)) {
             return null;
         }
@@ -27,9 +27,10 @@ public class BuildWorkspaceConfigurationRetriever {
         }
         
         if (build != null) {
-            WorkspaceConfiguration configuration = build.getAction(WorkspaceConfiguration.class);
-            if (configuration != null) {
-                return new BuildWorkspaceConfiguration(configuration, build);
+            for (WorkspaceConfiguration configuration : build.getActions(WorkspaceConfiguration.class)) {
+                if (workspaceName.equals(configuration.getWorkspaceName())) {
+                    return new BuildWorkspaceConfiguration(configuration, build);
+                }
             }
         }
 

@@ -6,8 +6,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class GetWorkspaceInfoCommand extends AbstractCommand implements ParseableCommand<WorkspaceInfo> {
     private static final String DEFAULT_SEPARATOR = "def#_#sep";

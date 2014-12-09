@@ -2,12 +2,14 @@ package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.ChangeLogSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.digester.Digester;
 import org.apache.commons.io.IOUtils;
@@ -45,13 +47,15 @@ public class ChangeSetReader extends ChangeLogParser {
         digester.addBeanPropertySetter("*/changeset/date", "dateStr");
         digester.addBeanPropertySetter("*/changeset/user");
         digester.addBeanPropertySetter("*/changeset/comment");
+        digester.addBeanPropertySetter("*/changeset/repname", "repoName");
+        digester.addBeanPropertySetter("*/changeset/repserver", "repoServer");
         digester.addSetNext("*/changeset", "add");
 
         digester.addObjectCreate("*/changeset/items/item", ChangeSet.Item.class);
         digester.addSetProperties("*/changeset/items/item");
         digester.addBeanPropertySetter("*/changeset/items/item", "path");
         digester.addSetNext("*/changeset/items/item", "add");
-        
+
         digester.parse(reader);
 
         return new ChangeLogSet(build, changesetList);

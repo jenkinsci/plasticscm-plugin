@@ -11,6 +11,7 @@ import com.codicesoftware.plugins.hudson.model.WorkspaceConfiguration;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.BuildWorkspaceConfigurationRetriever;
 import com.codicesoftware.plugins.hudson.util.BuildWorkspaceConfigurationRetriever.BuildWorkspaceConfiguration;
+import com.codicesoftware.plugins.hudson.util.FormChecker;
 
 import hudson.AbortException;
 import hudson.Extension;
@@ -24,6 +25,7 @@ import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.ParametersAction;
+import hudson.model.Project;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
@@ -44,6 +46,8 @@ import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -60,17 +64,36 @@ import org.kohsuke.stapler.export.ExportedBean;
  * @author Dick Porter
  */
 public class PlasticSCM extends SCM {
-    private final List<WorkspaceInfo> workspaceInfos;
+    public final String selector;
+    public final String workspaceName;
+    public final boolean useUpdate;
 
-    private transient String normalizedWorkspace;
+    private List<WorkspaceInfo> additionalWorkspaces = new ArrayList<WorkspaceInfo>();
+    private WorkspaceInfo firstWorkspace;
 
     private static final Logger logger = Logger.getLogger(PlasticSCM.class.getName());
+    
+    private PlasticSCM() {
+        selector = FormChecker.getDefaultSelector();
+        workspaceName = "jenkins-default";
+        useUpdate = true;
+    }
 
     @DataBoundConstructor
-    public PlasticSCM(List<WorkspaceInfo> workspaceInfos) {
+    public PlasticSCM(
+            String selector,
+            String workspaceName,
+            boolean useUpdate,
+            List<WorkspaceInfo> additionalWorkspaces) {
         logger.info("Initializing PlasticSCM plugin");
-        this.workspaceInfos = (workspaceInfos == null)
-            ? new ArrayList<WorkspaceInfo>() : workspaceInfos;
+        this.selector = selector;
+        this.workspaceName = workspaceName;
+        this.useUpdate = useUpdate;
+        this.firstWorkspace = new WorkspaceInfo(selector, workspaceName, useUpdate);
+
+        this.additionalWorkspaces = new ArrayList<WorkspaceInfo>();
+        if (additionalWorkspaces != null)
+            this.additionalWorkspaces.addAll(additionalWorkspaces);
     }
 
     @Override
@@ -79,13 +102,20 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
-    public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher,
-        FilePath workspace, BuildListener listener, File changelogFile)
-        throws IOException, InterruptedException  {
+    public boolean checkout(
+            AbstractBuild<?, ?> build,
+            Launcher launcher,
+            FilePath workspace,
+            BuildListener listener,
+            File changelogFile) throws IOException, InterruptedException  {
+        List<ChangeSet> result = new ArrayList<ChangeSet>();
 
-        for (WorkspaceInfo workspaceInfo : getWorkspaceInfos()) {
+        for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+            String normalizedWorkspaceName = normalizeWorkspace(
+                workspaceInfo.getWorkspaceName(), build.getProject(), build);
+
             FilePath plasticWorkspace = new FilePath(workspace,
-                workspaceInfo.getWorkspaceName());
+                normalizedWorkspaceName);
 
             if (!plasticWorkspace.exists())
                 plasticWorkspace.mkdirs();
@@ -93,45 +123,26 @@ public class PlasticSCM extends SCM {
             Server server = new Server(new PlasticTool(
                 getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspace));
 
-            WorkspaceConfiguration workspaceConfiguration = new WorkspaceConfiguration(
-                normalizeWorkspace(workspaceInfo.getWorkspaceName(),
-                build, Computer.currentComputer()), workspaceInfo.getSelector());
+            WorkspaceConfiguration workspaceConfiguration = createWorkspaceConfiguration(
+                    build, normalizedWorkspaceName, workspaceInfo.getSelector());
 
             if (build.getPreviousBuild() != null) {
                 BuildWorkspaceConfiguration nodeConfiguration =
-                    BuildWorkspaceConfigurationRetriever.getLatestForNode(
-                    workspaceInfo.getWorkspaceName(), build.getBuiltOn(), build.getPreviousBuild());
+                    createBuildWorkspaceConfiguration(normalizedWorkspaceName, build);
 
-                if ((nodeConfiguration != null)
-                    && nodeConfiguration.workspaceExists()
-                    && (!workspaceConfiguration.equals(nodeConfiguration))) {
-                        listener.getLogger().println(
-                            "Deleting workspace as the configuration has changed since the last build on this computer.");
-                        new RemoveWorkspaceAction(workspaceConfiguration.getWorkspaceName()).remove(server);
-                        plasticWorkspace.deleteContents();
-                        nodeConfiguration.setWorkspaceWasRemoved();
-                        nodeConfiguration.save();
+                if (isWorkspaceDeleteNeeded(workspaceConfiguration, nodeConfiguration)) {
+                    listener.getLogger().println(
+                        "Deleting workspace as the configuration has changed since the last build on this computer.");
+                    removeWorkspace(plasticWorkspace, server,
+                        workspaceConfiguration, nodeConfiguration);
                 }
             }
 
-            build.addAction(workspaceConfiguration);
-            CheckoutAction action = new CheckoutAction(
-                    workspaceConfiguration.getWorkspaceName(),
-                    workspaceConfiguration.getSelector(),
-                    workspaceInfo.isUseUpdate());
-            try {
-                List<ChangeSet> list = action.checkout(
-                    server, plasticWorkspace,
-                    (build.getPreviousBuild() != null? build.getPreviousBuild().getTimestamp(): null),
-                    build.getTimestamp());
-                
-                ChangeSetWriter writer = new ChangeSetWriter();
-                writer.write(list, changelogFile);
-            } catch (ParseException e) {
-                listener.fatalError(e.getMessage());
-                throw new AbortException();
-            }
+            result.addAll(checkoutWorkspace(build, plasticWorkspace, server, listener,
+                workspaceConfiguration, workspaceInfo));
         }
+
+        writeChangeLog(listener, changelogFile, result);
         return true;
     }
 
@@ -142,31 +153,23 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
-    public PollingResult compareRemoteRevisionWith(AbstractProject<?,?> project,
-            Launcher launcher, FilePath workspacePath, TaskListener listener, SCMRevisionState state) {
-
+    public PollingResult compareRemoteRevisionWith(
+            AbstractProject<?,?> project,
+            Launcher launcher,
+            FilePath workspacePath,
+            TaskListener listener,
+            SCMRevisionState state) {
         if (project.getLastBuild() == null) {
             listener.getLogger().println("No builds detected yet!");
             return BUILD_NOW;
         }
 
         Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
-        for (WorkspaceInfo workspaceInfo : getWorkspaceInfos()) {    
-            FilePath plasticWorkspace = new FilePath(
-                    workspacePath, workspaceInfo.getWorkspaceName());
-
-            Server server = new Server(new PlasticTool(
-                    getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspace));
-            try {
-                List<ChangeSet> changesetsFromBuild = server.getBriefHistory(
-                    lastCompletedBuild.getTimestamp(), Calendar.getInstance());
-                if (changesetsFromBuild.size() > 0)
-                    return BUILD_NOW;
-            } catch (Exception e) {
-                e.printStackTrace(listener.error(workspaceInfo.getWorkspaceName()
-                    + ": Unable to retrieve workspace status."));
+        for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+            FilePath plasticWorkspace = new FilePath(workspacePath, normalizeWorkspace(
+                workspaceInfo.getWorkspaceName(), project, lastCompletedBuild));
+            if (HasChanges(launcher, plasticWorkspace, listener, workspaceInfo, lastCompletedBuild))
                 return BUILD_NOW;
-            }
         }
         return NO_CHANGES;
     }
@@ -176,21 +179,42 @@ public class PlasticSCM extends SCM {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    String normalizeWorkspace(String workspaceName, AbstractBuild<?,?> build, Computer computer) {
-        normalizedWorkspace = workspaceName;
+    String normalizeWorkspace(
+            String workspaceName,
+            AbstractProject<?,?> project,
+            Run<?,?> build) {
+        String result = workspaceName;
 
         if (build != null) {
-            normalizedWorkspace = replaceBuildParameter(build, normalizedWorkspace);
-            normalizedWorkspace = Util.replaceMacro(normalizedWorkspace, new BuildVariableResolver(build.getProject(), computer));
+            result = replaceBuildParameter(build, result);
+            BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
+                project, Computer.currentComputer());
+            result = Util.replaceMacro(result, buildVariableResolver);
         }
-        normalizedWorkspace = normalizedWorkspace.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
-        normalizedWorkspace = normalizedWorkspace.replaceAll("[\\.\\s]+$", "_");
+        result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
+        result = result.replaceAll("[\\.\\s]+$", "_");
 
-        return normalizedWorkspace;
+        return result;
     }
 
-    public List<WorkspaceInfo> getWorkspaceInfos() {
-        return workspaceInfos;
+    public List<WorkspaceInfo> getAdditionalWorkspaces() {
+        if (additionalWorkspaces == null)
+            additionalWorkspaces = new ArrayList<WorkspaceInfo>();
+        return additionalWorkspaces;
+    }
+
+    private List<WorkspaceInfo> getAllWorkspaces() {
+        List<WorkspaceInfo> result =  new ArrayList<WorkspaceInfo>();
+        result.add(getFirstWorkspace());
+        result.addAll(getAdditionalWorkspaces());
+        return result;
+    }
+    
+    private WorkspaceInfo getFirstWorkspace() {
+        if (firstWorkspace == null) {
+            firstWorkspace =  new WorkspaceInfo(selector, workspaceName, useUpdate);
+        }
+        return firstWorkspace;
     }
 
     private String replaceBuildParameter(Run<?,?> run, String text) {
@@ -202,6 +226,110 @@ public class PlasticSCM extends SCM {
         }
 
         return text;
+    }
+
+    private WorkspaceConfiguration createWorkspaceConfiguration(
+            AbstractBuild<?, ?> build,
+            String normalizedWorkspaceName,
+            String selector) {
+        return new WorkspaceConfiguration(normalizedWorkspaceName, selector);
+    }
+
+    private BuildWorkspaceConfiguration createBuildWorkspaceConfiguration(
+            String normalizedWorkspaceName,
+            AbstractBuild<?, ?> build) {
+        return BuildWorkspaceConfigurationRetriever.getLatestForNode(
+            normalizedWorkspaceName, build.getBuiltOn(), build.getPreviousBuild());
+    }
+
+    private boolean isWorkspaceDeleteNeeded(
+            WorkspaceConfiguration workspaceConfiguration,
+            BuildWorkspaceConfiguration nodeConfiguration) {
+        return (nodeConfiguration != null) && nodeConfiguration.workspaceExists()
+            && (!workspaceConfiguration.equals(nodeConfiguration));
+    }
+
+    private void removeWorkspace(
+            FilePath plasticWorkspace,
+            Server server,
+            WorkspaceConfiguration workspaceConfiguration,
+            BuildWorkspaceConfiguration nodeConfiguration) throws IOException, InterruptedException {
+        RemoveWorkspaceAction removeAction = new RemoveWorkspaceAction(
+            workspaceConfiguration.getWorkspaceName());
+        removeAction.remove(server);
+        plasticWorkspace.deleteContents();
+
+        nodeConfiguration.setWorkspaceWasRemoved();
+        nodeConfiguration.save();
+    }
+    
+    private List<ChangeSet> checkoutWorkspace(
+            AbstractBuild<?, ?> build,
+            FilePath plasticWorkspace,
+            Server server,
+            TaskListener listener,
+            WorkspaceConfiguration workspaceConfiguration,
+            WorkspaceInfo workspaceInfo) throws IOException, InterruptedException{
+        build.addAction(workspaceConfiguration);
+        CheckoutAction action = new CheckoutAction(
+            workspaceConfiguration.getWorkspaceName(),
+            workspaceConfiguration.getSelector(),
+            workspaceInfo.getUseUpdate());
+        try {
+            Calendar previousBuildDate = null;
+            if (build.getPreviousBuild() != null)
+                previousBuildDate = build.getPreviousBuild().getTimestamp();
+
+            return action.checkout(
+                server, plasticWorkspace, previousBuildDate, build.getTimestamp());
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        } catch (IOException e) {
+            throw buildAbortException(listener, e);
+        }
+    }
+
+    private AbortException buildAbortException(TaskListener listener, Exception e)
+    {
+        listener.fatalError(e.getMessage());
+        logger.severe(e.getMessage());
+        return new AbortException();
+    }
+
+    private void writeChangeLog(
+            BuildListener listener,
+            File changelogFile,
+            List<ChangeSet> result) throws AbortException {
+        try {
+            ChangeSetWriter writer = new ChangeSetWriter();
+            writer.write(result, changelogFile);
+        } catch (Exception e) {
+            listener.fatalError(e.getMessage());
+            logger.severe(e.getMessage());
+            throw new AbortException();
+        }
+    }
+
+    private boolean HasChanges(
+            Launcher launcher,
+            FilePath workspacePath,
+            TaskListener listener,
+            WorkspaceInfo workspaceInfo,
+            Run<?, ?> lastCompletedBuild) {
+        PlasticTool plasticTool = new PlasticTool(getDescriptor().getCmExecutable(),
+            launcher, listener, workspacePath); 
+        Server server = new Server(plasticTool);
+        try {
+            List<ChangeSet> changesetsFromBuild = server.getBriefHistory(
+                lastCompletedBuild.getTimestamp(), Calendar.getInstance());
+            if (changesetsFromBuild.size() > 0)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace(listener.error(workspaceInfo.getWorkspaceName()
+                + ": Unable to retrieve workspace status."));
+            return true;
+        }
+        return false;
     }
 
     @Extension
@@ -234,6 +362,18 @@ public class PlasticSCM extends SCM {
 
         public String getDisplayName() {
             return "Plastic SCM";
+        }
+
+        public static FormValidation doCheckWorkspaceName(@QueryParameter final String value) {
+            return FormChecker.doCheckWorkspaceName(value);
+        }
+
+        public static FormValidation doCheckSelector(@QueryParameter final String value) {
+            return FormChecker.doCheckSelector(value);
+        }
+
+        public String getDefaultSelector() {
+            return FormChecker.getDefaultSelector();
         }
     }
 
@@ -270,49 +410,28 @@ public class PlasticSCM extends SCM {
             return selector;
         }
 
-        public boolean isUseUpdate() {
+        public boolean getUseUpdate() {
             return useUpdate;
         }
 
         @Extension
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
-            private static final Pattern workspaceRegex = Pattern.compile("^[^@#/:]+$");
-            private static final Pattern selectorRegex = Pattern.compile("^(\\s*(rep|repository)\\s+\"(.*)\"(\\s+mount\\s+\"(.*)\")?(\\s+path\\s+\"(.*)\"(\\s+norecursive)?(\\s+((((((branch|br)\\s+\"(.*)\")(\\s+(revno\\s+(\"\\d+\"|LAST|FIRST)|changeset\\s+\"\\S+\"))?(\\s+(label|lb)\\s+\"(.*)\")?)|(label|lb)\\s+\"(.*)\")(\\s+(checkout|co)\\s+\"(.*\"))?)|(branchpertask\\s+\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$", Pattern.MULTILINE|Pattern.CASE_INSENSITIVE);
-            private static final String DEFAULT_SELECTOR = "repository \"jenkins2\"\n  path \"/\"\n    br \"/main\"\n    co \"/main\"";
 
             @Override
             public String getDisplayName() {
                 return "Workspace Info";
             }
 
-            private FormValidation doRegexCheck(final Pattern regex, final String noMatchText,
-                    final String nullText, String value) {
-                value = Util.fixEmpty(value);
-                if (value == null)
-                    return FormValidation.error(nullText);
-
-                if (regex.matcher(value).matches())
-                    return FormValidation.ok();
-
-                return FormValidation.error(noMatchText);
+            public static FormValidation doCheckWorkspaceName(@QueryParameter final String value) {
+                return FormChecker.doCheckWorkspaceName(value);
             }
 
-            public FormValidation doCheckWorkspaceName(@QueryParameter final String value) {
-                return doRegexCheck(workspaceRegex, "Workspace name should not include @, #, / or :",
-                    "Workspace name is mandatory", value);
-            }
-
-            public FormValidation doCheckSelector(@QueryParameter final String value) {
-                return doRegexCheck(selectorRegex, "Selector is not in valid format",
-                    "Selector is mandatory", value);
+            public static FormValidation doCheckSelector(@QueryParameter final String value) {
+                return FormChecker.doCheckSelector(value);
             }
 
             public String getDefaultSelector() {
-                return DEFAULT_SELECTOR;
-            }
-
-            public String nextId() {
-                return String.format("PlasticSCM-Jenkins-%s", UUID.randomUUID());
+                return FormChecker.getDefaultSelector();
             }
         }
     }

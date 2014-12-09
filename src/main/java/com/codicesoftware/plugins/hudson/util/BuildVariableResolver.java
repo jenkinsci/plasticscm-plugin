@@ -59,11 +59,15 @@ public class BuildVariableResolver implements VariableResolver<String> {
         });
         lazyResolvers.put("NODE_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) {
-                return (Util.fixEmpty(computer.getName()) == null ? "MASTER" : computer.getName());
+                if (computer ==  null || Util.fixEmpty(computer.getName()) == null)
+                    return "MASTER";
+                return computer.getName();
             }            
         });
         lazyResolvers.put("USER_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) throws IOException, InterruptedException {
+                if (computer == null)
+                    return "DEFAULT";
                 return (String) computer.getSystemProperties().get("user.name");
             }            
         });

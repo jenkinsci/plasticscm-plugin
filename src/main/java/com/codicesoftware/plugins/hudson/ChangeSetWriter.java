@@ -58,6 +58,8 @@ public class ChangeSetWriter {
         writer.println(String.format("\t\t<date>%s</date>", DateUtil.PLASTICSCM_DATETIME_FORMATTER.get().format(changeSet.getDate())));
         writer.println(String.format("\t\t<user>%s</user>", escapeForXml(changeSet.getUser())));
         writer.println(String.format("\t\t<comment>%s</comment>", escapeForXml(changeSet.getComment())));
+        writer.println(String.format("\t\t<repname>%s</repname>", escapeForXml(changeSet.getRepoName())));
+        writer.println(String.format("\t\t<repserver>%s</repserver>", escapeForXml(changeSet.getRepoServer())));
         if (changeSet.getItems().size() > 0) {
             writer.println("\t\t<items>");
             for (ChangeSet.Item item : changeSet.getItems()) {

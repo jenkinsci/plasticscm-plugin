@@ -4,7 +4,10 @@ import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.Server;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.model.Workspaces;
+
 import hudson.FilePath;
+
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -27,9 +30,10 @@ public class CheckoutAction {
             throws IOException, InterruptedException, ParseException {
         Workspaces workspaces = server.getWorkspaces();
 
-        if (workspaces.exists(workspaceName) && !useUpdate) {
+        if (mustDeleteWorkspace(workspaces, workspacePath)) {
             Workspace workspace = workspaces.getWorkspace(workspaceName);
             workspaces.deleteWorkspace(workspace);
+            new FilePath(new File(workspace.getPath())).deleteContents();
         }
 
         Workspace workspace;
@@ -55,5 +59,16 @@ public class CheckoutAction {
             return server.getDetailedHistory(lastBuildTimestamp, currentBuildTimestamp);
         }
         return new ArrayList<ChangeSet>();
+    }
+
+    private boolean mustDeleteWorkspace(
+            Workspaces workspaces, FilePath expectedWorkspacePath)
+            throws IOException, InterruptedException {
+        if (!workspaces.exists(workspaceName))
+            return false;
+        if (!useUpdate)
+            return true;
+        String currentWorkspacePath = workspaces.getWorkspace(workspaceName).getPath();
+        return !currentWorkspacePath.equals(expectedWorkspacePath.toString());
     }
 }

@@ -1,10 +1,10 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <j:set var="browser" value="${it.build.parent.scm.effectiveBrowser}"/>
   
-  <h2>${%Summary}</h2>
+  <h2><a name="top">${%Summary}</a></h2>
   <ol>
-    <j:forEach var="cs" items="${it.items}">
-      <li><st:out value="${cs.msg}"/></li>
+    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+      <li><a href="#detail${loop.index}"><st:out value="[cs:${cs.version}@${cs.repository}] ${cs.msg}"/></a></li>
     </j:forEach>
   </ol>
   <table class="pane" style="border:none">
@@ -15,7 +15,7 @@
           <div class="changeset-message">
             <b>
               ${%Version} 
-              <a href="${browser.getChangeSetLink(cs)}">${cs.version}</a> 
+              <a href="${browser.getChangeSetLink(cs)}">cs:${cs.version}@${cs.repository}</a> 
               by <a href="${rootURL}/${cs.author.url}/">${cs.user}</a>
               <j:if test="${cs.checkedInBy!=null}">
               	 (<i>checked in by <a href="${rootURL}/${cs.checkedInByUser.url}/">${cs.checkedInBy}</a></i>)
@@ -41,6 +41,9 @@
           </td>
         </tr>
       </j:forEach>
+      <tr>
+        <td><a href="#top">▲ Back to top ▲</a></td>
+      </tr>
     </j:forEach>
   </table>
 </j:jelly>

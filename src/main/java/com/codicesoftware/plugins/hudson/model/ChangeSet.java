@@ -95,7 +95,7 @@ public class ChangeSet extends ChangeLogSet.Entry {
 
     @Exported
     public String getRepository() {
-        return "rep:" + repoName + "@repserver:" + repoServer;
+        return repoName + "@" + repoServer;
     }
 
     @Exported

@@ -4,6 +4,8 @@ import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.util.Digester2;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
@@ -24,33 +26,33 @@ public class GetChangesetRevisionsCommand extends AbstractCommand {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("find");
-        arguments.add("revisions");
-        arguments.add("where");
-        arguments.add("changeset=" + csVersion);
-        arguments.add("on");
-        arguments.add("repositories");
-        arguments.add("'" + repoName + "'");
-        arguments.add("--xml");
-        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
+        arguments.add("diff");
+        arguments.add("cs:" + csVersion + "@" + repoName);
+        arguments.add("--format={path}" + SEPARATOR + "{revid}" + SEPARATOR + "{parentrevid}");
+        arguments.add("--repositorypaths");
 
         return arguments;
     }
 
     public void parse(Reader reader, ChangeSet cs) throws IOException, ParseException {
-        Digester digester = new Digester2();
-        digester.push(cs);
-
-        digester.addObjectCreate("*/REVISION", ChangeSet.Item.class);
-        digester.addBeanPropertySetter("*/REVISION/ITEM", "path");
-        digester.addBeanPropertySetter("*/REVISION/REVNO", "revno");
-        digester.addBeanPropertySetter("*/REVISION/PARENT", "parentRevno");
-        digester.addSetNext("*/REVISION", "add");
-
+        BufferedReader bReader = new BufferedReader(reader);
+        String line = null;
         try {
-            digester.parse(reader);
-        } catch (SAXException e) {
+            while ((line = bReader.readLine()) != null) {
+                String[] chunks = line.split(SEPARATOR);
+                cs.add(new ChangeSet.Item(trimQuotes(chunks[0]), chunks[1], chunks[2]));
+            }
+        } catch (Exception e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }
+        finally {
+            bReader.close();
+        }
     }
+
+    String trimQuotes(String str) {
+        return str.replaceAll("^\"|\"$", "");
+    }
+
+    static final String SEPARATOR = "#@_sep_@#";
 }

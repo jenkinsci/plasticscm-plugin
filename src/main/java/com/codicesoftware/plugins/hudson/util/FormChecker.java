@@ -15,7 +15,7 @@ public class FormChecker {
         + "\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$",
         Pattern.MULTILINE|Pattern.CASE_INSENSITIVE);
     private static final String DEFAULT_SELECTOR =
-        "repository \"default\"\n  path \"/\"\n    br \"/main\"\n    co \"/main\"";
+        "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
 
     private static FormValidation doRegexCheck(final Pattern regex, final String noMatchText,
             final String nullText, String value) {

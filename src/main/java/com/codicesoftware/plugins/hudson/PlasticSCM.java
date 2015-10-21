@@ -18,16 +18,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-import hudson.model.Descriptor;
-import hudson.model.ParametersAction;
-import hudson.model.Project;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMRevisionState;
@@ -110,7 +101,7 @@ public class PlasticSCM extends SCM {
             File changelogFile) throws IOException, InterruptedException  {
         List<ChangeSet> result = new ArrayList<ChangeSet>();
 
-        for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+        for (WorkspaceInfo workspaceInfo : getAllWorkspaces(build.getAction(ParametersAction.class))) {
             String normalizedWorkspaceName = normalizeWorkspace(
                 workspaceInfo.getWorkspaceName(), build.getProject(), build);
 
@@ -165,7 +156,7 @@ public class PlasticSCM extends SCM {
         }
 
         Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
-        for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+        for (WorkspaceInfo workspaceInfo : getAllWorkspaces(project.getAction(ParametersAction.class))) {
             FilePath plasticWorkspace = new FilePath(workspacePath, normalizeWorkspace(
                 workspaceInfo.getWorkspaceName(), project, lastCompletedBuild));
             if (HasChanges(launcher, plasticWorkspace, listener, workspaceInfo, lastCompletedBuild))
@@ -203,18 +194,53 @@ public class PlasticSCM extends SCM {
         return additionalWorkspaces;
     }
 
-    private List<WorkspaceInfo> getAllWorkspaces() {
+    private List<WorkspaceInfo> getAllWorkspaces(ParametersAction parameters) {
         List<WorkspaceInfo> result =  new ArrayList<WorkspaceInfo>();
         result.add(getFirstWorkspace());
         result.addAll(getAdditionalWorkspaces());
+        return replaceBuildParameters(result, parameters);
+    }
+
+    private List<WorkspaceInfo> replaceBuildParameters(List<WorkspaceInfo> workspaces, ParametersAction parameters) {
+        List<WorkspaceInfo> result = new ArrayList<WorkspaceInfo>();
+        for (WorkspaceInfo wkInfo : workspaces) {
+            if (wkInfo == null)
+                continue;
+
+            result.add(new WorkspaceInfo(
+                    replaceParameters(wkInfo.getSelector(), parameters),
+                    wkInfo.getWorkspaceName(),
+                    wkInfo.getUseUpdate()));
+        }
         return result;
     }
-    
+
     private WorkspaceInfo getFirstWorkspace() {
         if (firstWorkspace == null) {
             firstWorkspace =  new WorkspaceInfo(selector, workspaceName, useUpdate);
         }
         return firstWorkspace;
+    }
+
+    private String replaceParameters(String selector, ParametersAction parameters) {
+        if (parameters == null)
+            return selector;
+
+        logger.info("Replacing build parameters in selector...");
+
+        String result = selector;
+        for (ParameterValue parameter : parameters) {
+            if (!(parameter instanceof StringParameterValue))
+                continue;
+
+            StringParameterValue stringParameter = (StringParameterValue)parameter;
+            String variable = "%" + stringParameter.getName() + "%";
+            String value = stringParameter.value;
+            logger.info("Replacing [" + variable + "]->[" + value + "]");
+            result = result.replace(variable, value);
+        }
+
+        return result;
     }
 
     private String replaceBuildParameter(Run<?,?> run, String text) {

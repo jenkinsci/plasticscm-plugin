@@ -68,7 +68,16 @@ public class CheckoutAction {
             return false;
         if (!useUpdate)
             return true;
+
         String currentWorkspacePath = workspaces.getWorkspace(workspaceName).getPath();
+        if (IsWindows()) {
+            return !currentWorkspacePath.equalsIgnoreCase(expectedWorkspacePath.toString());
+        }
         return !currentWorkspacePath.equals(expectedWorkspacePath.toString());
+    }
+
+    private boolean IsWindows() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        return osName.contains("win");
     }
 }

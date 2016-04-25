@@ -13,11 +13,15 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CheckoutAction {
     private final String workspaceName;
     private final String selector;
     private final boolean useUpdate;
+
+    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:\\\\.*$");
 
     public CheckoutAction(String workspaceName, String selector, boolean useUpdate) {
         this.workspaceName = workspaceName;
@@ -70,14 +74,14 @@ public class CheckoutAction {
             return true;
 
         String currentWorkspacePath = workspaces.getWorkspace(workspaceName).getPath();
-        if (IsWindows()) {
-            return !currentWorkspacePath.equalsIgnoreCase(expectedWorkspacePath.toString());
-        }
-        return !currentWorkspacePath.equals(expectedWorkspacePath.toString());
+        return !IsSamePath(expectedWorkspacePath.toString(), currentWorkspacePath);
     }
 
-    private boolean IsWindows() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        return osName.contains("win");
+    private boolean IsSamePath(String expected, String actual) {
+        Matcher windowsPathMatcher = windowsPathPattern.matcher(actual);
+        if (windowsPathMatcher.matches()) {
+            return actual.equalsIgnoreCase(expected);
+        }
+        return actual.equals(expected);
     }
 }

@@ -25,7 +25,7 @@ public class CheckoutAction {
 
     public CheckoutAction(String workspaceName, String selector, boolean useUpdate) {
         this.workspaceName = workspaceName;
-        this.selector = selector;
+        this.selector = removeNewLinesFromSelector(selector);
         this.useUpdate = useUpdate;
     }
 
@@ -45,24 +45,32 @@ public class CheckoutAction {
             if (!useUpdate && workspacePath.exists()) {
                 workspacePath.deleteContents();
             }
-            workspace = workspaces.newWorkspace(workspacePath, workspaceName, ".", selector);
-            server.getFiles(".");
+            workspace = workspaces.newWorkspace(workspacePath, workspaceName, selector);
+            server.getFiles(workspace.getPath());
         } else {
             workspace = workspaces.getWorkspace(workspaceName);
-            if (!workspace.getSelector().equals(selector)) {
+            if (mustUpdateSelector(workspace)) {
                 workspace.setSelector(selector);
                 workspaces.setWorkspaceSelector(workspacePath, workspace);
-            }
-            else {
-            	server.getFiles(".");
+            } else {
+            	server.getFiles(workspace.getPath());
             }
         }
-
 
         if (lastBuildTimestamp != null) {
-            return server.getDetailedHistory(lastBuildTimestamp, currentBuildTimestamp);
+            return server.getDetailedHistory(
+                workspace.getPath(), lastBuildTimestamp, currentBuildTimestamp);
         }
         return new ArrayList<ChangeSet>();
+    }
+
+    private boolean mustUpdateSelector(Workspace workspace) {
+        String wkSelector = removeNewLinesFromSelector(workspace.getSelector());
+        return !wkSelector.equals(selector);
+    }
+
+    private String removeNewLinesFromSelector(String selector) {
+        return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
     private boolean mustDeleteWorkspace(
@@ -74,7 +82,7 @@ public class CheckoutAction {
             return true;
 
         String currentWorkspacePath = workspaces.getWorkspace(workspaceName).getPath();
-        return !IsSamePath(expectedWorkspacePath.toString(), currentWorkspacePath);
+        return !IsSamePath(expectedWorkspacePath.getRemote(), currentWorkspacePath);
     }
 
     private boolean IsSamePath(String expected, String actual) {

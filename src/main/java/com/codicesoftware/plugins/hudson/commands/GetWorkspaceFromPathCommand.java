@@ -7,15 +7,18 @@ import java.io.Reader;
 import java.text.ParseException;
 
 public class GetWorkspaceFromPathCommand extends AbstractCommand implements ParseableCommand<String> {
-    public GetWorkspaceFromPathCommand(ServerConfigurationProvider provider) {
+    private String mWkPath;
+
+    public GetWorkspaceFromPathCommand(ServerConfigurationProvider provider, String wkPath) {
         super(provider);
+        mWkPath = wkPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("gwp");
-        arguments.add(".");
+        arguments.add(mWkPath);
         arguments.add("--format={1}");
 
         return arguments;

@@ -18,7 +18,7 @@ public class SetSelectorCommand extends AbstractCommand {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("sts");
-        arguments.add("--file=" + selectorFile.getName());
+        arguments.add("--file=" + selectorFile.getRemote());
         arguments.add("wk:" + workspaceName);
 
         return arguments;

@@ -347,7 +347,9 @@ public class PlasticSCM extends SCM {
         Server server = new Server(plasticTool);
         try {
             List<ChangeSet> changesetsFromBuild = server.getBriefHistory(
-                lastCompletedBuild.getTimestamp(), Calendar.getInstance());
+                workspacePath.getRemote(),
+                lastCompletedBuild.getTimestamp(),
+                Calendar.getInstance());
             if (changesetsFromBuild.size() > 0)
                 return true;
         } catch (Exception e) {

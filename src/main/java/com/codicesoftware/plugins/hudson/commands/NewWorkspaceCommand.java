@@ -5,11 +5,14 @@ import hudson.FilePath;
 
 public class NewWorkspaceCommand extends AbstractCommand {
     private final String workspaceName;
-    private final String workspacePath;
+    private final FilePath workspacePath;
     private final FilePath selectorPath;
 
-    public NewWorkspaceCommand(ServerConfigurationProvider provider, String workspaceName,
-            String workspacePath, FilePath selectorPath) {
+    public NewWorkspaceCommand(
+            ServerConfigurationProvider provider,
+            String workspaceName,
+            FilePath workspacePath,
+            FilePath selectorPath) {
         super(provider);
         this.workspaceName = workspaceName;
         this.workspacePath = workspacePath;
@@ -21,8 +24,8 @@ public class NewWorkspaceCommand extends AbstractCommand {
 
         arguments.add("mkwk");
         arguments.add(workspaceName);
-        arguments.add(workspacePath);
-        arguments.add("--selector=" + selectorPath.getName());
+        arguments.add(workspacePath.getRemote());
+        arguments.add("--selector=" + selectorPath.getRemote());
 
         return arguments;
     }

@@ -11,14 +11,18 @@ public class GetWorkspaceInfoCommand extends AbstractCommand implements Parseabl
     private static final String DEFAULT_SEPARATOR = "def#_#sep";
     private static final String ERROR_MSG_PREFIX = "ERROR";
 
-    public GetWorkspaceInfoCommand(ServerConfigurationProvider provider) {
+    private String mWkPath;
+
+    public GetWorkspaceInfoCommand(ServerConfigurationProvider provider, String wkPath) {
         super(provider);
+        mWkPath = wkPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("wi");
+        arguments.add(mWkPath);
         arguments.add("--machinereadable");
         arguments.add("--fieldseparator=" + DEFAULT_SEPARATOR);
 

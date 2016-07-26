@@ -18,7 +18,7 @@
       <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
       <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>
       <url>https://github.com/jenkinsci/plasticscm-plugin</url>
-    <tag>HEAD</tag>
+      <tag>HEAD</tag>
   </scm>
 
   <build>

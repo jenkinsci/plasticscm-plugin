@@ -104,18 +104,18 @@ public class Workspaces implements ListWorkspacesCommand.WorkspaceFactory {
      * Create workspace on server and return a workspace object with the specified name
      * @param workspacePath the base path of the workspace on the filesystem
      * @param name the name of the new workspace
-     * @param path the path of the workspace on the filesystem, under workspacePath
      * @param selector the initial selector of the new workspace
      * @return a workspace
      * @throws IOException
      * @throws InterruptedException
      */
-    public Workspace newWorkspace(FilePath workspacePath, String name, String path, String selector) throws IOException, InterruptedException {
+    public Workspace newWorkspace(FilePath workspacePath, String name, String selector) throws IOException, InterruptedException {
         FilePath selectorPath = workspacePath.createTextTempFile("selector", ".txt", selector);
-        NewWorkspaceCommand command = new NewWorkspaceCommand(server, name, path, selectorPath);
+
+        NewWorkspaceCommand command = new NewWorkspaceCommand(server, name, workspacePath, selectorPath);
         server.execute(command.getArguments()).close();
         selectorPath.delete();
-        Workspace workspace = new Workspace(server, name, path, selector);
+        Workspace workspace = new Workspace(server, name, workspacePath.getRemote(), selector);
         workspaces.put(name, workspace);
         return workspace;
     }

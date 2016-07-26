@@ -14,14 +14,18 @@ import java.util.regex.Pattern;
 public class GetWorkspaceStatusCommand extends AbstractCommand implements ParseableCommand<List<ChangesetID>> {
     private static final Pattern statusRegex = Pattern.compile("^cs:(\\d+)@rep:(.+)@repserver:(.+):(\\d+)$");
 
-    public GetWorkspaceStatusCommand(ServerConfigurationProvider provider) {
+    private String mWkPath;
+
+    public GetWorkspaceStatusCommand(ServerConfigurationProvider provider, String wkPath) {
         super(provider);
+        mWkPath = wkPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("status");
+        arguments.add(mWkPath);
 
         return arguments;
     }

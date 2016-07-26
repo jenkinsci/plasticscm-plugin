@@ -31,13 +31,13 @@ public class Server implements ServerConfigurationProvider {
         return tool.execute(arguments.toCommandArray(), arguments.toMaskArray());
     }
 
-    private List<ChangeSet> getChangesets(Calendar fromTimestamp, Calendar toTimestamp)
+    private List<ChangeSet> getChangesets(String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
             throws IOException, InterruptedException, ParseException {
         List<ChangeSet> list = new ArrayList<ChangeSet>();
         Reader reader = null;
 
         WorkspaceInfo wi;
-        GetWorkspaceInfoCommand wiCommand = new GetWorkspaceInfoCommand(this);
+        GetWorkspaceInfoCommand wiCommand = new GetWorkspaceInfoCommand(this, wkPath);
         try {
             reader = execute(wiCommand.getArguments());
             wi = wiCommand.parse(reader);
@@ -49,7 +49,7 @@ public class Server implements ServerConfigurationProvider {
 
         if (wi.getBranch().equals("Multiple")) {
             List<ChangesetID> cslist;
-            GetWorkspaceStatusCommand statusCommand = new GetWorkspaceStatusCommand(this);
+            GetWorkspaceStatusCommand statusCommand = new GetWorkspaceStatusCommand(this, wkPath);
             try {
                 reader = execute(statusCommand.getArguments());
                 cslist = statusCommand.parse(reader);
@@ -60,7 +60,8 @@ public class Server implements ServerConfigurationProvider {
             for (ChangesetID cs : cslist) {
                 branch = GetBranchFromChangeset(cs.getId(), cs.getRepoName());
 
-                DetailedHistoryCommand histCommand = new DetailedHistoryCommand(this, fromTimestamp, toTimestamp, branch, cs.getRepository());
+                DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
+                        this, fromTimestamp, toTimestamp, branch, cs.getRepository());
                 try {
                     reader = execute(histCommand.getArguments());
                     list.addAll(histCommand.parse(reader));
@@ -83,13 +84,14 @@ public class Server implements ServerConfigurationProvider {
         return list;
     }
 
-    public List<ChangeSet> getDetailedHistory(Calendar fromTimestamp, Calendar toTimestamp)
+    public List<ChangeSet> getDetailedHistory(
+            String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
             throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(wkPath, fromTimestamp, toTimestamp);
         String workspaceDir;
 
         Reader reader = null;
-        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(this);
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(this, wkPath);
         try {
             reader = execute(gwpCommand.getArguments());
             workspaceDir = gwpCommand.parse(reader);
@@ -117,9 +119,9 @@ public class Server implements ServerConfigurationProvider {
     /*
      * Same as getDetailedHistory, but doesn't fill in the list of revisions in each changeset
      */
-    public List<ChangeSet> getBriefHistory(Calendar fromTimestamp, Calendar toTimestamp)
+    public List<ChangeSet> getBriefHistory(String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
             throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(wkPath, fromTimestamp, toTimestamp);
 
         return list;
     }

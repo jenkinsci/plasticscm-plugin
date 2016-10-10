@@ -31,8 +31,11 @@ public class Server implements ServerConfigurationProvider {
         return tool.execute(arguments.toCommandArray(), arguments.toMaskArray());
     }
 
-    private List<ChangeSet> getChangesets(String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
-            throws IOException, InterruptedException, ParseException {
+    private List<ChangeSet> getChangesets(
+            String wkPath,
+            String branchName,
+            Calendar fromTimestamp,
+            Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
         List<ChangeSet> list = new ArrayList<ChangeSet>();
         Reader reader = null;
 
@@ -45,8 +48,6 @@ public class Server implements ServerConfigurationProvider {
             IOUtils.closeQuietly(reader);
         }
 
-        String branch;
-
         if (wi.getBranch().equals("Multiple")) {
             List<ChangesetID> cslist;
             GetWorkspaceStatusCommand statusCommand = new GetWorkspaceStatusCommand(this, wkPath);
@@ -58,10 +59,10 @@ public class Server implements ServerConfigurationProvider {
             }
 
             for (ChangesetID cs : cslist) {
-                branch = GetBranchFromChangeset(cs.getId(), cs.getRepoName());
+                branchName = GetBranchFromChangeset(cs.getId(), cs.getRepoName());
 
                 DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
-                        this, fromTimestamp, toTimestamp, branch, cs.getRepository());
+                        this, fromTimestamp, toTimestamp, branchName, cs.getRepository());
                 try {
                     reader = execute(histCommand.getArguments());
                     list.addAll(histCommand.parse(reader));
@@ -70,9 +71,9 @@ public class Server implements ServerConfigurationProvider {
                 }
             }
         } else {
-            branch = GetBranchFromWorkspaceInfo(wi);
+            branchName = branchName == null ? GetBranchFromWorkspaceInfo(wi) : branchName;
             DetailedHistoryCommand histCommand = new DetailedHistoryCommand(this,
-                    fromTimestamp, toTimestamp, branch, wi.getRepoName());
+                    fromTimestamp, toTimestamp, branchName, wi.getRepoName());
             try {
                 reader = execute(histCommand.getArguments());
                 list = histCommand.parse(reader);
@@ -87,7 +88,7 @@ public class Server implements ServerConfigurationProvider {
     public List<ChangeSet> getDetailedHistory(
             String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
             throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(wkPath, fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(wkPath, null, fromTimestamp, toTimestamp);
         String workspaceDir;
 
         Reader reader = null;
@@ -119,9 +120,12 @@ public class Server implements ServerConfigurationProvider {
     /*
      * Same as getDetailedHistory, but doesn't fill in the list of revisions in each changeset
      */
-    public List<ChangeSet> getBriefHistory(String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
-            throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(wkPath, fromTimestamp, toTimestamp);
+    public List<ChangeSet> getBriefHistory(
+            String wkPath,
+            String branchName,
+            Calendar fromTimestamp,
+            Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
+        List<ChangeSet> list = getChangesets(wkPath, branchName, fromTimestamp, toTimestamp);
 
         return list;
     }

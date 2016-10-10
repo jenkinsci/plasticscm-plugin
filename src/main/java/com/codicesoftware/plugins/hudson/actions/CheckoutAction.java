@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.actions;
 
+import com.codicesoftware.plugins.hudson.PlasticSCM;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.Server;
 import com.codicesoftware.plugins.hudson.model.Workspace;
@@ -34,7 +35,7 @@ public class CheckoutAction {
             throws IOException, InterruptedException, ParseException {
         Workspaces workspaces = server.getWorkspaces();
 
-        if (mustDeleteWorkspace(workspaces, workspacePath)) {
+        if (mustDeleteWorkspace(workspaces, workspaceName, workspacePath, useUpdate)) {
             Workspace workspace = workspaces.getWorkspace(workspaceName);
             workspaces.deleteWorkspace(workspace);
             new FilePath(new File(workspace.getPath())).deleteContents();
@@ -66,26 +67,30 @@ public class CheckoutAction {
 
     private boolean mustUpdateSelector(Workspace workspace) {
         String wkSelector = removeNewLinesFromSelector(workspace.getSelector());
-        return !wkSelector.equals(selector);
+        String currentSelector = removeNewLinesFromSelector(selector);
+
+        return !wkSelector.equals(currentSelector);
     }
 
     private String removeNewLinesFromSelector(String selector) {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
-    private boolean mustDeleteWorkspace(
-            Workspaces workspaces, FilePath expectedWorkspacePath)
-            throws IOException, InterruptedException {
-        if (!workspaces.exists(workspaceName))
+    private static boolean mustDeleteWorkspace(
+            Workspaces workspaces,
+            String currentWorkspaceName,
+            FilePath expectedWorkspacePath,
+            boolean shouldUseUpdate) throws IOException, InterruptedException {
+        if (!workspaces.exists(currentWorkspaceName))
             return false;
-        if (!useUpdate)
+        if (!shouldUseUpdate)
             return true;
 
-        String currentWorkspacePath = workspaces.getWorkspace(workspaceName).getPath();
-        return !IsSamePath(expectedWorkspacePath.getRemote(), currentWorkspacePath);
+        String currentWorkspacePath = workspaces.getWorkspace(currentWorkspaceName).getPath();
+        return !isSamePath(expectedWorkspacePath.getRemote(), currentWorkspacePath);
     }
 
-    private boolean IsSamePath(String expected, String actual) {
+    private static boolean isSamePath(String expected, String actual) {
         Matcher windowsPathMatcher = windowsPathPattern.matcher(actual);
         if (windowsPathMatcher.matches()) {
             return actual.equalsIgnoreCase(expected);

@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.420</version>
+    <version>1.580.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -38,13 +38,6 @@
 
   <developers>
       <developer>
-          <id>ravelus</id>
-          <name>Luis Rodriguez</name>
-          <email>lrodriguez@codicesoftware.com</email>
-          <organization>Codice Software</organization>
-          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
-      </developer>
-      <developer>
           <id>mig42</id>
           <name>Miguel Gonzalez</name>
           <email>mgonzalez@codicesoftware.com</email>
@@ -64,4 +57,11 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <dependencies>
+    <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-scm-step</artifactId>
+        <version>1.6</version>
+    </dependency>
+  </dependencies>
 </project>

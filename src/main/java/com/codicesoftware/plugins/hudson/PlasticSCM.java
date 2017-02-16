@@ -16,11 +16,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.*;
-import hudson.scm.ChangeLogParser;
-import hudson.scm.PollingResult;
-import hudson.scm.SCMRevisionState;
-import hudson.scm.SCM;
-import hudson.scm.SCMDescriptor;
+import hudson.scm.*;
 import hudson.util.FormValidation;
 
 import java.io.File;
@@ -41,6 +37,10 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * SCM for Plastic SCM
@@ -86,22 +86,34 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
+    public String getKey() {
+        return selector;
+    }
+
+    @Override
+    @CheckForNull
+    public RepositoryBrowser<?> guessBrowser() {
+        return null;
+    }
+
+    @Override
     public ChangeLogParser createChangeLogParser() {
         return new ChangeSetReader();
     }
 
     @Override
-    public boolean checkout(
-            AbstractBuild<?, ?> build,
-            Launcher launcher,
-            FilePath workspace,
-            BuildListener listener,
-            File changelogFile) throws IOException, InterruptedException  {
+    public void checkout(
+            @Nonnull final Run<?, ?> run,
+            @Nonnull final Launcher launcher,
+            @Nonnull final FilePath workspace,
+            @Nonnull final TaskListener listener,
+            @CheckForNull final File changelogFile,
+            @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException  {
         List<ChangeSet> result = new ArrayList<ChangeSet>();
 
-        for (WorkspaceInfo workspaceInfo : getAllWorkspaces(build.getAction(ParametersAction.class))) {
+        for (WorkspaceInfo workspaceInfo : getAllWorkspaces(run.getAction(ParametersAction.class))) {
             String normalizedWorkspaceName = normalizeWorkspace(
-                workspaceInfo.getWorkspaceName(), build.getProject(), build);
+                workspaceInfo.getWorkspaceName(), run.getParent(), run);
 
             FilePath plasticWorkspace = new FilePath(workspace,
                 normalizedWorkspaceName);
@@ -115,27 +127,36 @@ public class PlasticSCM extends SCM {
             WorkspaceConfiguration workspaceConfiguration = createWorkspaceConfiguration(
                 normalizedWorkspaceName, workspaceInfo.getSelector());
 
-            result.addAll(checkoutWorkspace(build, plasticWorkspace, server, listener,
-                workspaceConfiguration, workspaceInfo));
+            result.addAll(checkoutWorkspace(
+                run,
+                plasticWorkspace,
+                server,
+                listener,
+                workspaceConfiguration,
+                workspaceInfo));
         }
 
-        writeChangeLog(listener, changelogFile, result);
-        return true;
+        if (changelogFile != null)
+            writeChangeLog(listener, changelogFile, result);
     }
 
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build,
-            Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    public SCMRevisionState calcRevisionsFromBuild(
+            @Nonnull final Run<?, ?> run,
+            @Nullable final FilePath wkPath,
+            @Nullable final Launcher launcher,
+            @Nonnull final TaskListener listener)
+            throws IOException, InterruptedException {
         return SCMRevisionState.NONE;
     }
 
     @Override
     public PollingResult compareRemoteRevisionWith(
-            AbstractProject<?,?> project,
-            Launcher launcher,
-            FilePath workspacePath,
-            TaskListener listener,
-            SCMRevisionState state) {
+            @Nonnull final  Job<?,?> project,
+            @Nullable final Launcher launcher,
+            @Nullable final FilePath workspacePath,
+            @Nonnull final TaskListener listener,
+            @Nonnull final SCMRevisionState baseline) {
         if (project.getLastBuild() == null) {
             listener.getLogger().println("No builds detected yet!");
             return BUILD_NOW;
@@ -168,7 +189,7 @@ public class PlasticSCM extends SCM {
 
     String normalizeWorkspace(
             String workspaceName,
-            AbstractProject<?,?> project,
+            Job<?,?> project,
             Run<?,?> build) {
         String result = workspaceName;
 
@@ -259,7 +280,7 @@ public class PlasticSCM extends SCM {
     }
     
     private List<ChangeSet> checkoutWorkspace(
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             FilePath plasticWorkspace,
             Server server,
             TaskListener listener,
@@ -292,7 +313,7 @@ public class PlasticSCM extends SCM {
     }
 
     private void writeChangeLog(
-            BuildListener listener,
+            TaskListener listener,
             File changelogFile,
             List<ChangeSet> result) throws AbortException {
         try {
@@ -320,21 +341,20 @@ public class PlasticSCM extends SCM {
                 branchName,
                 lastCompletedBuildTimestamp,
                 Calendar.getInstance());
-            if (changesetsFromBuild.size() > 0)
-                return true;
+            return changesetsFromBuild.size() > 0;
         } catch (Exception e) {
             e.printStackTrace(listener.error(workspacePath.getRemote()
                 + ": Unable to retrieve workspace status."));
-            return true;
+            return false;
         }
-        return false;
     }
 
-    private List<ParameterValue> getDefaultParameterValues(AbstractProject<?, ?> project) {
-        if (!project.isParameterized())
+    private List<ParameterValue> getDefaultParameterValues(Job<?, ?> project) {
+        ParametersDefinitionProperty paramDefProp = project.getProperty(
+            ParametersDefinitionProperty.class);
+        if (paramDefProp == null)
             return null;
 
-        ParametersDefinitionProperty paramDefProp = project.getProperty(ParametersDefinitionProperty.class);
         ArrayList<ParameterValue> result = new ArrayList<ParameterValue>();
 
         for(ParameterDefinition paramDefinition : paramDefProp.getParameterDefinitions()) {

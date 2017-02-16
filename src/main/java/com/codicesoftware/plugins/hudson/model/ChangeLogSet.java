@@ -1,6 +1,9 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.scm.RepositoryBrowser;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,16 +18,18 @@ import java.util.List;
 public class ChangeLogSet extends hudson.scm.ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;
 
-    public ChangeLogSet(AbstractBuild<?, ?> build, List<ChangeSet> changesets) {
-        super(build);
+    public ChangeLogSet(
+            Run<?, ?> run, RepositoryBrowser<?> browser, List<ChangeSet> changesets) {
+        super(run, browser);
         this.changesets = changesets;
         for (ChangeSet changeset : changesets) {
             changeset.setParent(this);
         }
     }
 
-    public ChangeLogSet(AbstractBuild<?, ?> build, ChangeSet[] changesetArray) {
-        super(build);
+    public ChangeLogSet(
+            Run<?, ?> run, RepositoryBrowser<?> browser, ChangeSet[] changesetArray) {
+        super(run, browser);
         changesets = new ArrayList<ChangeSet>();
         for (ChangeSet changeset : changesetArray) {
             changeset.setParent(this);

@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Job;
 import hudson.model.TaskListener;
@@ -50,7 +49,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
         });
     }
     
-    public BuildVariableResolver(final AbstractProject<?, ?> project, final Computer computer) {
+    public BuildVariableResolver(final Job<?, ?> project, final Computer computer) {
         this.computer = computer;
         lazyResolvers.put("JOB_NAME", new LazyResolver() {
             public String getValue() {

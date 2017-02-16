@@ -28,7 +28,7 @@ public class Server implements ServerConfigurationProvider {
     }
 
     public Reader execute(MaskedArgumentListBuilder arguments) throws IOException, InterruptedException {
-        return tool.execute(arguments.toCommandArray(), arguments.toMaskArray());
+        return tool.execute(arguments.toCommandArray());
     }
 
     private List<ChangeSet> getChangesets(
@@ -125,9 +125,7 @@ public class Server implements ServerConfigurationProvider {
             String branchName,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(wkPath, branchName, fromTimestamp, toTimestamp);
-
-        return list;
+        return getChangesets(wkPath, branchName, fromTimestamp, toTimestamp);
     }
 
     public void getFiles(String localPath) throws IOException, InterruptedException {

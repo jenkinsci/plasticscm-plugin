@@ -25,18 +25,17 @@ public class PlasticTool {
     private TaskListener listener;
     private FilePath workspace;
 
+    private static final int MAX_RETRIES = 3;
+    private static final int TIME_BETWEEN_RETRIES = 500;
+
     private static final Logger logger = Logger.getLogger(PlasticTool.class.getName());
 
-    public PlasticTool(String executable, Launcher launcher, TaskListener listener,
+    PlasticTool(String executable, Launcher launcher, TaskListener listener,
             FilePath workspace) {
         this.executable = executable;
         this.launcher = launcher;
         this.listener = listener;
         this.workspace = workspace;
-    }
-
-    public TaskListener getListener() {
-        return listener;
     }
 
     /**
@@ -47,46 +46,41 @@ public class PlasticTool {
      * @throws InterruptedException
      */
     public Reader execute(String[] arguments) throws IOException, InterruptedException {
-        return execute(arguments, null);
+        String[] cmdArgs = getToolArguments(arguments);
+
+        int retries = 0;
+        while (retries < MAX_RETRIES) {
+            Reader result = tryExecute(cmdArgs);
+            if (result != null)
+                return result;
+
+            retries++;
+            logger.warning(String.format(
+                "The cm command '%s' failed. Retrying after %d ms... (%d)",
+                arguments[0], TIME_BETWEEN_RETRIES, retries));
+            Thread.sleep(TIME_BETWEEN_RETRIES);
+        }
+        listener.fatalError(String.format(
+            "The cm command '%s' failed after %d retries", arguments[0], MAX_RETRIES));
+        throw new AbortException();
     }
 
-    /**
-     * Execute the arguments, and return the console output as a Reader
-     * @param arguments arguments to send to the command-line client.
-     * @param masks which of the commands that should be masked from the console.
-     * @return a Reader containing the console output
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public Reader execute(String[] arguments, boolean[] masks) throws IOException, InterruptedException {
-        String[] toolArguments = new String[arguments.length + 1];
-        toolArguments[0] = executable;
-        for (int i = 0; i < arguments.length; i++) {
-            toolArguments[i + 1] = arguments[i];
-        }
+    private String[] getToolArguments(String[] cmArgs) {
+        String[] result = new String[cmArgs.length + 1];
+        result[0] = executable;
+        System.arraycopy(cmArgs, 0, result, 1, cmArgs.length);
+        return result;
+    }
 
-        boolean[] toolMasks = new boolean[arguments.length + 1];
-        if (masks != null) {
-            toolMasks = new boolean[masks.length + 1];
-            toolMasks[0] = false;
-            for (int i = 0; i < masks.length; i++) {
-                toolMasks[i + 1] = masks[i];
-            }
-        }
-
+    private Reader tryExecute(String[] cmdArgs) throws IOException, InterruptedException {
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
-        Proc proc = launcher.launch().cmds(toolArguments).masks(toolMasks)
+        Proc proc = launcher.launch().cmds(cmdArgs)
                 .stdout(new ForkOutputStream(consoleStream, listener.getLogger()))
                 .pwd(workspace).start();
         consoleStream.close();
 
-        int result = proc.join();
-        logger.fine(String.format("The cm command '%s' returned with an error code of %d", toolArguments[1], result));
-        if (result == 0) {
+        if (proc.join() == 0)
             return new InputStreamReader(new ByteArrayInputStream(consoleStream.toByteArray()));
-        } else {
-            listener.fatalError(String.format("Executable returned an unexpected result code [%d]", result));
-            throw new AbortException();
-        }
+        return null;
     }
 }

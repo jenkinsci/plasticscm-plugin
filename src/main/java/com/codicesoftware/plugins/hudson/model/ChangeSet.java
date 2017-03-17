@@ -21,22 +21,27 @@ public class ChangeSet extends ChangeLogSet.Entry {
     private String repoName;
     private String repoServer;
     private String user;
+    private String branch;
     private Date date;
     private String comment;
+    private String guid;
     private List<Item> items;
     private String workspaceDir;
 
     public ChangeSet() {
-        this("", "", "", null, "", "");
+        this("", "", "", null, "", "", "", "");
     }
 
-    public ChangeSet(String version, String repoName, String repoServer, Date date,
-            String user, String comment) {
+    public ChangeSet(
+            String version, String repoName, String repoServer, Date date,
+            String branch, String user, String comment, String guid) {
         this.version = version;
         this.repoName = repoName;
         this.repoServer = repoServer;
         this.date = date;
         this.comment = comment;
+        this.branch = branch;
+        this.guid = guid;
         items = new ArrayList<Item>();
         setUser(user);
         this.workspaceDir = "/";
@@ -127,6 +132,24 @@ public class ChangeSet extends ChangeLogSet.Entry {
 
     public void setDateStr(String dateStr) throws ParseException {
         date = DateUtil.PLASTICSCM_DATETIME_FORMATTER.get().parse(dateStr);
+    }
+
+    @Exported
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    @Exported
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
     }
 
     @Exported

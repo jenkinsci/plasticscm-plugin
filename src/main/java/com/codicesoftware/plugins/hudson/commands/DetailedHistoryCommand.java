@@ -66,9 +66,11 @@ public class DetailedHistoryCommand extends AbstractCommand implements Parseable
         digester.addBeanPropertySetter("*/CHANGESET/CHANGESETID", "version");
         digester.addBeanPropertySetter("*/CHANGESET/COMMENT", "comment");
         digester.addBeanPropertySetter("*/CHANGESET/DATE", "changesetDateStr");
+        digester.addBeanPropertySetter("*/CHANGESET/BRANCH", "branch");
         digester.addBeanPropertySetter("*/CHANGESET/OWNER", "user");
         digester.addBeanPropertySetter("*/CHANGESET/REPNAME", "repoName");
         digester.addBeanPropertySetter("*/CHANGESET/REPSERVER", "repoServer");
+        digester.addBeanPropertySetter("*/CHANGESET/GUID", "guid");
         digester.addSetNext("*/CHANGESET", "add");
 
         try {

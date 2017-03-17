@@ -4,17 +4,11 @@ import static hudson.scm.PollingResult.BUILD_NOW;
 import static hudson.scm.PollingResult.NO_CHANGES;
 
 import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
-import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.model.Server;
-import com.codicesoftware.plugins.hudson.model.WorkspaceConfiguration;
+import com.codicesoftware.plugins.hudson.model.*;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 
-import hudson.AbortException;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.*;
 import hudson.scm.*;
 import hudson.util.FormValidation;
@@ -26,6 +20,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -127,13 +122,17 @@ public class PlasticSCM extends SCM {
             WorkspaceConfiguration workspaceConfiguration = createWorkspaceConfiguration(
                 normalizedWorkspaceName, workspaceInfo.getSelector());
 
-            result.addAll(checkoutWorkspace(
+            List<ChangeSet> csets = checkoutWorkspace(
                 run,
                 plasticWorkspace,
                 server,
                 listener,
                 workspaceConfiguration,
-                workspaceInfo));
+                workspaceInfo);
+            result.addAll(csets);
+
+            run.addAction(new BuildData(
+                workspaceInfo.getWorkspaceName(), getLastChangeSet(csets)));
         }
 
         if (changelogFile != null)
@@ -141,12 +140,29 @@ public class PlasticSCM extends SCM {
     }
 
     @Override
+    public void buildEnvVars(
+            @Nonnull final AbstractBuild<?, ?> build, @Nonnull final Map<String, String> env) {
+        super.buildEnvVars(build, env);
+
+        List<WorkspaceInfo> wkInfos = getAllWorkspaces(
+            build.getAction(ParametersAction.class));
+
+        for (BuildData buildData : build.getActions(BuildData.class)) {
+            if (buildData.getBuiltCset() == null)
+                continue;
+            publishCsetToEnvironment(
+                buildData.getBuiltCset(),
+                findWorkspaceInfoFromName(buildData.getWkName(), wkInfos),
+                env);
+        }
+    }
+
+    @Override
     public SCMRevisionState calcRevisionsFromBuild(
             @Nonnull final Run<?, ?> run,
             @Nullable final FilePath wkPath,
             @Nullable final Launcher launcher,
-            @Nonnull final TaskListener listener)
-            throws IOException, InterruptedException {
+            @Nonnull final TaskListener listener) throws IOException, InterruptedException {
         return SCMRevisionState.NONE;
     }
 
@@ -169,7 +185,7 @@ public class PlasticSCM extends SCM {
 
             String resolvedSelector = replaceParameters(
                     selector, getDefaultParameterValues(project));
-            boolean hasChanges = HasChanges(
+            boolean hasChanges = hasChanges(
                     launcher,
                     plasticWorkspace,
                     listener,
@@ -187,7 +203,7 @@ public class PlasticSCM extends SCM {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    String normalizeWorkspace(
+    private String normalizeWorkspace(
             String workspaceName,
             Job<?,?> project,
             Run<?,?> build) {
@@ -211,6 +227,7 @@ public class PlasticSCM extends SCM {
         return additionalWorkspaces;
     }
 
+    @Nonnull
     private List<WorkspaceInfo> getAllWorkspaces(ParametersAction parameters) {
         List<WorkspaceInfo> result =  new ArrayList<WorkspaceInfo>();
         result.add(getFirstWorkspace());
@@ -218,7 +235,8 @@ public class PlasticSCM extends SCM {
         return replaceBuildParameters(result, parameters);
     }
 
-    private List<WorkspaceInfo> replaceBuildParameters(List<WorkspaceInfo> workspaces, ParametersAction parameters) {
+    private List<WorkspaceInfo> replaceBuildParameters(
+            List<WorkspaceInfo> workspaces, ParametersAction parameters) {
         List<WorkspaceInfo> result = new ArrayList<WorkspaceInfo>();
 
         List<ParameterValue> parameterValues = parameters == null ? null : parameters.getParameters();
@@ -326,7 +344,7 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private boolean HasChanges(
+    private boolean hasChanges(
             Launcher launcher,
             FilePath workspacePath,
             TaskListener listener,
@@ -358,7 +376,7 @@ public class PlasticSCM extends SCM {
         ArrayList<ParameterValue> result = new ArrayList<ParameterValue>();
 
         for(ParameterDefinition paramDefinition : paramDefProp.getParameterDefinitions()) {
-            ParameterValue defaultValue  = paramDefinition.getDefaultParameterValue();
+            ParameterValue defaultValue = paramDefinition.getDefaultParameterValue();
 
             if(defaultValue != null)
                 result.add(defaultValue);
@@ -373,6 +391,70 @@ public class PlasticSCM extends SCM {
             return smartbranchMatcher.group(3);
         return null;
     }
+
+    @Nullable
+    private ChangeSet getLastChangeSet(@Nonnull final List<ChangeSet> csets) {
+        ChangeSet result = null;
+        for (ChangeSet cset : csets) {
+            if (result == null || result.getDate().before(cset.getDate()))
+                result = cset;
+        }
+        return result;
+    }
+
+    @CheckForNull
+    private WorkspaceInfo findWorkspaceInfoFromName(
+            @CheckForNull final String wkName, @Nonnull final List<WorkspaceInfo> wkInfos) {
+        if (wkName == null)
+            return null;
+
+        for (WorkspaceInfo wkInfo : wkInfos) {
+            if (wkName.equals(wkInfo.getWorkspaceName()))
+                return wkInfo;
+        }
+        return null;
+    }
+
+    private void publishCsetToEnvironment(
+            @Nonnull final ChangeSet cset,
+            @CheckForNull final WorkspaceInfo wkInfo,
+            @Nonnull final Map<String, String> environment) {
+        String variablePrefix = getEnvironmentVariablePrefix(wkInfo);
+
+        environment.put(variablePrefix + CHANGESET_ID, cset.getVersion());
+        environment.put(variablePrefix + CHANGESET_GUID, cset.getGuid());
+        environment.put(variablePrefix + BRANCH, cset.getBranch());
+        environment.put(variablePrefix + AUTHOR, cset.getUser());
+        environment.put(variablePrefix + REPSPEC, cset.getRepository());
+    }
+
+    @Nonnull
+    private String getEnvironmentVariablePrefix(@CheckForNull final WorkspaceInfo wkInfo) {
+        if (wkInfo == null)
+            return PLASTIC_ENV_UNKNOWN_PREFIX;
+
+        String wkName = wkInfo.getWorkspaceName();
+        if (wkName.equals(wkInfo.getWorkspaceName()))
+            return PLASTIC_ENV_PREFIX;
+
+        List<WorkspaceInfo> additionalWorkspaces = getAdditionalWorkspaces();
+        for (int i = 0; i < additionalWorkspaces.size(); i++) {
+            if (wkName.equals(additionalWorkspaces.get(i).getWorkspaceName())) {
+                return String.format("%s%d_", PLASTIC_ENV_PREFIX, i);
+            }
+        }
+        return PLASTIC_ENV_UNKNOWN_PREFIX;
+    }
+
+    private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
+    private static final String PLASTIC_ENV_UNKNOWN_PREFIX =
+        PLASTIC_ENV_PREFIX + "UNKNOWN";
+
+    private static final String CHANGESET_ID = "CHANGESET_ID";
+    private static final String CHANGESET_GUID = "CHANGESET_GUID";
+    private static final String BRANCH = "BRANCH";
+    private static final String AUTHOR = "AUTHOR";
+    private static final String REPSPEC = "REPSPEC";
 
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {

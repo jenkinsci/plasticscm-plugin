@@ -84,7 +84,7 @@ public class PlasticSCMStep extends SCMStep {
     private static final String SELECTOR_FORMAT =
             "rep \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";
 
-    @Extension(optional = true)
+    @Extension
     public static final class PlasticStepDescriptor extends SCMStepDescriptor {
         public static final String defaultBranch = "/main";
         public static final String defaultRepository = "default";

@@ -474,6 +474,11 @@ public class PlasticSCM extends SCM {
         }
 
         @Override
+        public boolean isApplicable(Job project) {
+            return true;
+        }
+
+        @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             cmExecutable = Util.fixEmpty(req.getParameter("plastic.cmExecutable").trim());
             save();
@@ -498,6 +503,10 @@ public class PlasticSCM extends SCM {
 
         public String getDefaultSelector() {
             return FormChecker.getDefaultSelector();
+        }
+
+        public String getDefaultWorkspaceName() {
+            return PlasticSCMStep.PlasticStepDescriptor.defaultWorkspaceName;
         }
     }
 

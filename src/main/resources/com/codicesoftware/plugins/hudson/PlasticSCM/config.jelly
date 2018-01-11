@@ -9,7 +9,7 @@
   </f:entry>
   
   <f:entry title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html" field="workspaceName">
-    <f:textbox />
+    <f:textbox default="${descriptor.getDefaultWorkspaceName()}" />
   </f:entry>
 
   <f:entry title="Additional workspaces" field="additionalWorkspaces">

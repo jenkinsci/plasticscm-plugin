@@ -178,10 +178,10 @@ public class PlasticSCM extends SCM {
             return BUILD_NOW;
         }
 
-        Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
+        Run<?, ?> lastBuild = project.getLastBuild();
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces(project.getAction(ParametersAction.class))) {
             FilePath plasticWorkspace = new FilePath(workspacePath, normalizeWorkspace(
-                workspaceInfo.getWorkspaceName(), project, lastCompletedBuild));
+                workspaceInfo.getWorkspaceName(), project, lastBuild));
 
             String resolvedSelector = replaceParameters(
                     selector, getDefaultParameterValues(project));
@@ -189,7 +189,7 @@ public class PlasticSCM extends SCM {
                     launcher,
                     plasticWorkspace,
                     listener,
-                    lastCompletedBuild.getTimestamp(),
+                    lastBuild.getTimestamp(),
                     getSelectorBranch(resolvedSelector));
 
             if (hasChanges)

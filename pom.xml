@@ -44,6 +44,27 @@
           <organization>Codice Software</organization>
           <organizationUrl>http://www.codicesoftware.com</organizationUrl>
       </developer>
+      <developer>
+          <id>miryamgsm</id>
+          <name>Miryam Gomez</name>
+          <email>mgomez@codicesoftware.com</email>
+          <organization>Codice Software</organization>
+          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      </developer>
+      <developer>
+          <id>rubarax</id>
+          <name>Ruben de Alba</name>
+          <email>rdealba@codicesoftware.com</email>
+          <organization>Codice Software</organization>
+          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      </developer>
+      <developer>
+          <id>jemagoga</id>
+          <name>Jesus Manuel Gonzalez</name>
+          <email>jgonzalez@codicesoftware.com</email>
+          <organization>Codice Software</organization>
+          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      </developer>
   </developers>
 
   <distributionManagement>

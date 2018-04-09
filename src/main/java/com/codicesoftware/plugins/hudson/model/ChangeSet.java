@@ -71,6 +71,16 @@ public class ChangeSet extends ChangeLogSet.Entry {
         return comment;
     }
 
+    @Override
+    public String getCommitId() {
+        return version;
+    }
+
+    @Override
+    public long getTimestamp() {
+        return date.getTime();
+    }
+
     @Exported
     public String getVersion() {
         return version;

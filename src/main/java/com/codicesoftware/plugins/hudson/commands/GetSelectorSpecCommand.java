@@ -2,27 +2,25 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
-public class GetWorkspaceInfoCommand extends AbstractCommand implements ParseableCommand<WorkspaceInfo> {
-    private String mWkPath;
-
-    public GetWorkspaceInfoCommand(ServerConfigurationProvider provider, String wkPath) {
+public class GetSelectorSpecCommand extends AbstractCommand implements ParseableCommand<WorkspaceInfo> {
+    public GetSelectorSpecCommand(ServerConfigurationProvider provider, String filePath) {
         super(provider);
-        mWkPath = wkPath;
+        this.filePath = filePath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
-
-        arguments.add("wi");
-        arguments.add(mWkPath);
+        arguments.add("checkselectorsyntax");
+        arguments.add("--file=" + filePath);
+        arguments.add("--spec");
         arguments.add("--machinereadable");
         arguments.add("--fieldseparator=" + WorkspaceInfoParser.DEFAULT_SEPARATOR);
-
         return arguments;
     }
 
@@ -38,4 +36,6 @@ public class GetWorkspaceInfoCommand extends AbstractCommand implements Parseabl
             reader.close();
         }
     }
+
+    private final String filePath;
 }

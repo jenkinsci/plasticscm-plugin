@@ -26,4 +26,28 @@ public class WorkspaceInfo {
     }
 
     public String getChangeset() { return changeset; }
+
+    public String getRepObjectSpec(){
+        return String.format("%s@%s", getObjectSpec(), repoName);
+    }
+
+    private String getObjectSpec(){
+        if (!isNullOrEmpty(branch))
+            return "br:" + branch;
+
+        if (!isNullOrEmpty(changeset))
+            return "cs:" + changeset;
+
+        if (!isNullOrEmpty(label))
+            return "lb:" + label;
+
+        return null;
+    }
+
+    private static boolean isNullOrEmpty(String value) {
+        if (value == null)
+            return true;
+
+        return value.isEmpty();
+    }
 }

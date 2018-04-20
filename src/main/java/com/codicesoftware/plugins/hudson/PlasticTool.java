@@ -30,7 +30,7 @@ public class PlasticTool {
 
     private static final Logger logger = Logger.getLogger(PlasticTool.class.getName());
 
-    PlasticTool(String executable, Launcher launcher, TaskListener listener,
+    public PlasticTool(String executable, Launcher launcher, TaskListener listener,
             FilePath workspace) {
         this.executable = executable;
         this.launcher = launcher;

@@ -1,5 +1,7 @@
 package com.codicesoftware.plugins.hudson.model;
 
+import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
+import com.codicesoftware.plugins.hudson.PlasticSCM;
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.commands.*;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
@@ -131,6 +133,22 @@ public class Server implements ServerConfigurationProvider {
     public void getFiles(String localPath) throws IOException, InterruptedException {
         GetFilesToWorkFolderCommand command = new GetFilesToWorkFolderCommand(this, localPath);
         execute(command.getArguments()).close();
+    }
+
+    public void getFile(String revSpec, String filePath) throws IOException, InterruptedException {
+        GetFileCommand command = new GetFileCommand(this, revSpec, filePath);
+        execute(command.getArguments()).close();
+    }
+
+    public WorkspaceInfo getSelectorSpec(String filePath) throws IOException, ParseException, InterruptedException {
+        GetSelectorSpecCommand command = new GetSelectorSpecCommand(this, filePath);
+        Reader reader = null;
+        try {
+            reader = execute(command.getArguments());
+            return command.parse(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
     }
 
     private String GetBranchFromWorkspaceInfo(WorkspaceInfo wi) throws InterruptedException, ParseException, IOException {

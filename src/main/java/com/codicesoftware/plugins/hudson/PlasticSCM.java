@@ -148,12 +148,14 @@ public class PlasticSCM extends SCM {
             build.getAction(ParametersAction.class));
 
         for (BuildData buildData : build.getActions(BuildData.class)) {
-            if (buildData.getBuiltCset() == null)
+            String wkName = buildData.getWkName();
+            ChangeSet builtCset = getBuildChangeSet(build, wkName);
+
+            if (builtCset == null)
                 continue;
+
             publishCsetToEnvironment(
-                buildData.getBuiltCset(),
-                findWorkspaceInfoFromName(buildData.getWkName(), wkInfos),
-                env);
+                builtCset, findWorkspaceInfoFromName(wkName, wkInfos), env);
         }
     }
 
@@ -221,6 +223,12 @@ public class PlasticSCM extends SCM {
         return result;
     }
 
+    public WorkspaceInfo getFirstWorkspace() {
+        if (firstWorkspace == null)
+            firstWorkspace =  new WorkspaceInfo(selector, workspaceName, useUpdate);
+        return firstWorkspace;
+    }
+
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
         if (additionalWorkspaces == null)
             additionalWorkspaces = new ArrayList<WorkspaceInfo>();
@@ -250,13 +258,6 @@ public class PlasticSCM extends SCM {
                     wkInfo.getUseUpdate()));
         }
         return result;
-    }
-
-    private WorkspaceInfo getFirstWorkspace() {
-        if (firstWorkspace == null) {
-            firstWorkspace =  new WorkspaceInfo(selector, workspaceName, useUpdate);
-        }
-        return firstWorkspace;
     }
 
     private String replaceParameters(String selector, List<ParameterValue> parameters) {
@@ -434,16 +435,37 @@ public class PlasticSCM extends SCM {
             return PLASTIC_ENV_UNKNOWN_PREFIX;
 
         String wkName = wkInfo.getWorkspaceName();
-        if (wkName.equals(wkInfo.getWorkspaceName()))
+        if (wkName.equals(getFirstWorkspace().getWorkspaceName()))
             return PLASTIC_ENV_PREFIX;
 
         List<WorkspaceInfo> additionalWorkspaces = getAdditionalWorkspaces();
         for (int i = 0; i < additionalWorkspaces.size(); i++) {
-            if (wkName.equals(additionalWorkspaces.get(i).getWorkspaceName())) {
-                return String.format("%s%d_", PLASTIC_ENV_PREFIX, i);
-            }
+            if (wkName.equals(additionalWorkspaces.get(i).getWorkspaceName()))
+                return PLASTIC_ENV_PREFIX + (i + 1) + "_";
         }
+
         return PLASTIC_ENV_UNKNOWN_PREFIX;
+    }
+
+    private static ChangeSet getBuildChangeSet(Run build, String wkName){
+        while (build != null) {
+            for (BuildData buildData : build.getActions(BuildData.class)) {
+                if (buildData == null)
+                    continue;
+
+                if (!wkName.equals(buildData.getWkName()))
+                    continue;
+
+                if (buildData.getBuiltCset() == null)
+                    continue;
+
+                return buildData.getBuiltCset();
+            }
+
+            build = build.getPreviousBuild();
+        }
+
+        return null;
     }
 
     private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";

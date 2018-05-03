@@ -1,12 +1,12 @@
 package com.codicesoftware.plugins.hudson.actions;
 
-import com.codicesoftware.plugins.hudson.PlasticSCM;
+import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.model.Server;
+import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
 import com.codicesoftware.plugins.hudson.model.Workspace;
-import com.codicesoftware.plugins.hudson.model.Workspaces;
 
 import hudson.FilePath;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,77 +17,103 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CheckoutAction {
-    private final String workspaceName;
-    private final String selector;
-    private final boolean useUpdate;
-
-    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:\\\\.*$");
-
-    public CheckoutAction(String workspaceName, String selector, boolean useUpdate) {
-        this.workspaceName = workspaceName;
-        this.selector = removeNewLinesFromSelector(selector);
-        this.useUpdate = useUpdate;
+public final class CheckoutAction {
+    private CheckoutAction() {
     }
 
-    public List<ChangeSet> checkout(Server server, FilePath workspacePath,
-            Calendar lastBuildTimestamp, Calendar currentBuildTimestamp)
+    public static List<ChangeSet> checkout(
+            PlasticTool tool,
+            String workspaceName,
+            FilePath workspacePath,
+            String selector,
+            boolean useUpdate,
+            Calendar lastBuildTimestamp,
+            Calendar currentBuildTimestamp)
             throws IOException, InterruptedException, ParseException {
-        Workspaces workspaces = server.getWorkspaces();
+        List<Workspace> workspaces = Workspaces.loadWorkspaces(tool);
 
-        if (mustDeleteWorkspace(workspaces, workspaceName, workspacePath, useUpdate)) {
-            Workspace workspace = workspaces.getWorkspace(workspaceName);
-            workspaces.deleteWorkspace(workspace);
-            new FilePath(new File(workspace.getPath())).deleteContents();
-        }
+        cleanOldWorkspacesIfNeeded(
+                tool, workspaces, workspaceName, workspacePath, useUpdate);
 
-        Workspace workspace;
-        if (!workspaces.exists(workspaceName)) {
-            if (!useUpdate && workspacePath.exists()) {
-                workspacePath.deleteContents();
-            }
-            workspace = workspaces.newWorkspace(workspacePath, workspaceName, selector);
-            server.getFiles(workspace.getPath());
-        } else {
-            workspace = workspaces.getWorkspace(workspaceName);
-            if (mustUpdateSelector(workspace)) {
-                workspace.setSelector(selector);
-                workspaces.setWorkspaceSelector(workspacePath, workspace);
-            } else {
-            	server.getFiles(workspace.getPath());
-            }
-        }
+        Workspace workspace = checkoutWorkspace(
+                tool, workspaceName, workspacePath, selector, useUpdate, workspaces);
 
         if (lastBuildTimestamp != null) {
-            return server.getDetailedHistory(
-                workspace.getPath(), lastBuildTimestamp, currentBuildTimestamp);
+            return ChangesetsRetriever.getDetailedHistory(
+                tool, workspace.getPath(), lastBuildTimestamp, currentBuildTimestamp);
         }
         return new ArrayList<ChangeSet>();
     }
 
-    private boolean mustUpdateSelector(Workspace workspace) {
-        String wkSelector = removeNewLinesFromSelector(workspace.getSelector());
+    private static Workspace checkoutWorkspace(
+            PlasticTool tool,
+            String workspaceName,
+            FilePath workspacePath,
+            String selector,
+            boolean useUpdate,
+            List<Workspace> workspaces) throws IOException, InterruptedException {
+        Workspace workspace = findWorkspaceByName(workspaces, workspaceName);
+
+        if (workspace != null) {
+            if (mustUpdateSelector(tool, workspaceName, selector)) {
+                Workspaces.setWorkspaceSelector(tool, workspacePath, workspaceName, selector);
+                return workspace;
+            }
+
+            Workspaces.updateWorkspace(tool, workspace.getPath());
+            return workspace;
+        }
+
+        if (!useUpdate && workspacePath.exists()) {
+            workspacePath.deleteContents();
+        }
+
+        workspace = Workspaces.newWorkspace(tool, workspacePath, workspaceName, selector);
+        Workspaces.updateWorkspace(tool, workspace.getPath());
+        return workspace;
+    }
+
+    private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
+        String wkSelector = removeNewLinesFromSelector(
+                Workspaces.loadSelector(tool, name));
         String currentSelector = removeNewLinesFromSelector(selector);
 
         return !wkSelector.equals(currentSelector);
     }
 
-    private String removeNewLinesFromSelector(String selector) {
+    private static String removeNewLinesFromSelector(String selector) {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
-    private static boolean mustDeleteWorkspace(
-            Workspaces workspaces,
-            String currentWorkspaceName,
-            FilePath expectedWorkspacePath,
+    private static void cleanOldWorkspacesIfNeeded(
+            PlasticTool tool,
+            List<Workspace> workspaces,
+            String workspaceName,
+            FilePath workspacePath,
             boolean shouldUseUpdate) throws IOException, InterruptedException {
-        if (!workspaces.exists(currentWorkspaceName))
-            return false;
-        if (!shouldUseUpdate)
-            return true;
 
-        String currentWorkspacePath = workspaces.getWorkspace(currentWorkspaceName).getPath();
-        return !isSamePath(expectedWorkspacePath.getRemote(), currentWorkspacePath);
+        // handles from single workspace to additional workspace support
+        Workspace parentWorkspace = findWorkspaceByPath(workspaces, workspacePath.getParent());
+        if(parentWorkspace != null)
+            deleteWorkspace(tool, parentWorkspace, workspaces);
+
+        // handle from additional workspaces to single workspace support
+        List<Workspace> nestedWorkspaces = findWorkspacesInsidePath(workspaces, workspacePath);
+        for (Workspace workspace : nestedWorkspaces) {
+            deleteWorkspace(tool, workspace, workspaces);
+        }
+
+        Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
+        if(workspace == null)
+            return;
+
+        boolean bHasSameName = workspace.getName().equals(workspaceName);
+        boolean bHasSamePath = isSamePath(workspacePath.getRemote(), workspacePath.getRemote());
+
+        if (shouldUseUpdate && bHasSameName && bHasSamePath)
+            return;
+
+        deleteWorkspace(tool, workspace, workspaces);
     }
 
     private static boolean isSamePath(String expected, String actual) {
@@ -97,4 +123,50 @@ public class CheckoutAction {
         }
         return actual.equals(expected);
     }
+
+    private static void deleteWorkspace(
+            PlasticTool tool, Workspace workspace, List<Workspace> workspaces)
+            throws IOException, InterruptedException {
+        Workspaces.deleteWorkspace(tool, workspace.getName());
+        new FilePath(new File(workspace.getPath())).deleteContents();
+
+        for(int i = workspaces.size() - 1; i >= 0; i--) {
+            if(!workspace.getName().equals(workspaces.get(i).getName()))
+                continue;
+            workspaces.remove(i);
+            break;
+        }
+    }
+
+    private static Workspace findWorkspaceByName(List<Workspace> workspaces, String name)
+    {
+        for (Workspace workspace : workspaces) {
+            if(workspace.getName().equals(name))
+                return workspace;
+        }
+        return null;
+    }
+
+    private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath wkPath)
+    {
+        for (Workspace workspace : workspaces) {
+            if(isSamePath(workspace.getPath(), wkPath.getRemote()))
+                return workspace;
+        }
+        return null;
+    }
+
+    private static List<Workspace> findWorkspacesInsidePath(List<Workspace> workspaces, FilePath wkPath)
+    {
+        List<Workspace> result = new ArrayList<Workspace>();
+
+        for (Workspace workspace : workspaces) {
+            String parentPath = FilenameUtils.getFullPathNoEndSeparator(workspace.getPath());
+            if(isSamePath(parentPath, wkPath.getRemote()))
+                result.add(workspace);
+        }
+        return result;
+    }
+
+    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:\\\\.*$");
 }

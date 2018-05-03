@@ -8,9 +8,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
-public class GetSelectorSpecCommand extends AbstractCommand implements ParseableCommand<WorkspaceInfo> {
-    public GetSelectorSpecCommand(ServerConfigurationProvider provider, String filePath) {
-        super(provider);
+public class GetSelectorSpecCommand implements ParseableCommand<WorkspaceInfo>, Command {
+    public GetSelectorSpecCommand(String filePath) {
         this.filePath = filePath;
     }
 

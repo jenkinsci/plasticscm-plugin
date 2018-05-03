@@ -11,13 +11,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetWorkspaceStatusCommand extends AbstractCommand implements ParseableCommand<List<ChangesetID>> {
+public class GetWorkspaceStatusCommand implements ParseableCommand<List<ChangesetID>>, Command {
     private static final Pattern statusRegex = Pattern.compile("^cs:(\\d+)@rep:(.+)@repserver:(.+):(\\d+)$");
 
     private String mWkPath;
 
-    public GetWorkspaceStatusCommand(ServerConfigurationProvider provider, String wkPath) {
-        super(provider);
+    public GetWorkspaceStatusCommand(String wkPath) {
         mWkPath = wkPath;
     }
 

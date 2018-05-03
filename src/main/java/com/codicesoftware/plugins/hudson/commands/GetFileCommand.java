@@ -2,11 +2,8 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 
-public class GetFileCommand extends AbstractCommand {
-    public GetFileCommand(
-        ServerConfigurationProvider provider,
-        String revSpec, String filePath) {
-        super(provider);
+public class GetFileCommand implements Command {
+    public GetFileCommand(String revSpec, String filePath) {
         this.revSpec = revSpec;
         this.filePath = filePath;
     }

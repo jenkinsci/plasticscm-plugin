@@ -10,15 +10,13 @@ import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetBranchForLabelCommand extends AbstractCommand implements ParseableCommand<String> {
+public class GetBranchForLabelCommand implements ParseableCommand<String>, Command {
     private final String label;
     private final String repoName;
 
     private static final Pattern branchRegex = Pattern.compile("^\\s*<BRANCH>(.+)</BRANCH>$");
 
-    public GetBranchForLabelCommand(ServerConfigurationProvider provider,
-                                    String label, String repoName) {
-        super(provider);
+    public GetBranchForLabelCommand(String label, String repoName) {
         this.label = label;
         this.repoName = repoName;
     }

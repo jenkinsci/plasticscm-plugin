@@ -12,12 +12,15 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import javafx.scene.control.TextFormatter;
 import jenkins.scm.api.SCMFile;
 import hudson.AbortException;
 
 import com.codicesoftware.plugins.hudson.PlasticSCM;
+import com.codicesoftware.plugins.hudson.commands.GetFileCommand;
+import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
 import com.codicesoftware.plugins.hudson.PlasticTool;
-import com.codicesoftware.plugins.hudson.model.Server;
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import com.codicesoftware.plugins.hudson.util.DeleteOnCloseFileInputStream;
 
@@ -59,41 +62,49 @@ public class PlasticSCMFile extends SCMFile {
     @Nonnull
     @Override
     public InputStream content() throws IOException, InterruptedException {
-        String workspaceName = getWorkspaceNameFromScriptPath(getPath());
-        String serverFile = getServerFileFromScriptPath(getPath());
+        PlasticSCM.WorkspaceInfo workspaceInfo = fs.getSCM().getFirstWorkspace();
+        String serverFile = getPath();
 
-        if (workspaceName == null || serverFile == null)
-            throw new FileNotFoundException("The pipeline script path is not valid.");
+        if(fs.getSCM().isUseMultipleWorkspaces()) {
+            String workspaceName = getWorkspaceNameFromScriptPath(getPath());
+            serverFile = getServerFileFromScriptPath(getPath());
 
-        PlasticSCM.WorkspaceInfo workspaceInfo = getWorkspaceInfo(fs.getSCM(), workspaceName);
+            if (workspaceName == null || serverFile == null)
+                throw new FileNotFoundException("The pipeline script path is not valid. " +
+                    "Maybe you didn't use '/' as directory separator.");
 
-        if (workspaceInfo == null) {
-            throw new FileNotFoundException(String.format(
-               "The pipeline script path must start by a valid workspace name. " +
-                "The workspace '%s' was not found.", workspaceName));
+            workspaceInfo = getWorkspaceInfo(fs.getSCM(), workspaceName);
+
+            if (workspaceInfo == null) {
+                throw new FileNotFoundException(String.format(
+                    "The pipeline script path must start by a valid workspace name. " +
+                    "The workspace '%s' was not found.", workspaceName));
+            }
         }
 
-        Server server = new Server(new PlasticTool(
+        PlasticTool tool = new PlasticTool(
             fs.getSCM().getDescriptor().getCmExecutable(),
-            fs.getLauncher(), fs.getLauncher().getListener(), null));
+            fs.getLauncher(), fs.getLauncher().getListener(), null);
 
-        String repObjectSpec = getRepObjectSpecFromSelector(server, workspaceInfo.getSelector());
+        String repObjectSpec = getRepObjectSpecFromSelector(tool, workspaceInfo.getSelector());
 
-        return getFileContent(server, serverFile, repObjectSpec);
+        serverFile = ensureScripPathStartsBySlash(serverFile);
+
+        return getFileContent(tool, serverFile, repObjectSpec);
     }
 
     private static DeleteOnCloseFileInputStream getFileContent(
-        Server server, String serverFile, String repObjectSpec) throws IOException, InterruptedException {
+        PlasticTool tool, String serverFile, String repObjectSpec) throws IOException, InterruptedException {
         File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp");
 
         String serverPathRevSpec = "serverpath:" + serverFile + "#" + repObjectSpec;
-        server.getFile(serverPathRevSpec, tempFile.getPath());
+        getFile(tool, serverPathRevSpec, tempFile.getPath());
 
         return new DeleteOnCloseFileInputStream(tempFile);
     }
 
     private static String getRepObjectSpecFromSelector(
-        Server server, String selectorText) throws IOException, InterruptedException {
+        PlasticTool tool, String selectorText) throws IOException, InterruptedException {
         File tempFile = null;
         BufferedWriter out = null;
         try {
@@ -104,7 +115,7 @@ public class PlasticSCMFile extends SCMFile {
             out.close();
             out = null;
 
-            WorkspaceInfo workspaceInfo = server.getSelectorSpec(tempFile.getPath());
+            WorkspaceInfo workspaceInfo = getSelectorSpec(tool, tempFile.getPath());
             return workspaceInfo.getRepObjectSpec();
         } catch (AbortException e) {
             logger.severe(e.getMessage());
@@ -126,14 +137,10 @@ public class PlasticSCMFile extends SCMFile {
     }
 
     private static PlasticSCM.WorkspaceInfo getWorkspaceInfo(PlasticSCM scm, String workspaceName){
-        if (workspaceName.equals(scm.getFirstWorkspace().getWorkspaceName()))
-            return scm.getFirstWorkspace();
-
-        for (PlasticSCM.WorkspaceInfo additionalWorkspace : scm.getAdditionalWorkspaces()) {
-            if (workspaceName.equals(additionalWorkspace.getWorkspaceName()))
-                return additionalWorkspace;
+        for (PlasticSCM.WorkspaceInfo workspace : scm.getAllWorkspaces()) {
+            if (workspaceName.equals(workspace.getWorkspaceName()))
+                return workspace;
         }
-
         return null;
     }
 
@@ -153,6 +160,20 @@ public class PlasticSCMFile extends SCMFile {
             return null;
 
         return scriptPath.substring(separatorIndex).trim();
+    }
+
+    private static String ensureScripPathStartsBySlash(String scriptPath){
+        return scriptPath.startsWith(SEPARATOR) ? scriptPath : SEPARATOR + scriptPath;
+    }
+
+    private static void getFile(PlasticTool tool, String revSpec, String filePath) throws IOException, InterruptedException {
+        GetFileCommand command = new GetFileCommand(revSpec, filePath);
+        CommandRunner.execute(tool, command).close();
+    }
+
+    private static WorkspaceInfo getSelectorSpec(PlasticTool tool, String filePath) throws IOException, ParseException, InterruptedException {
+        GetSelectorSpecCommand command = new GetSelectorSpecCommand(filePath);
+        return CommandRunner.executeAndRead(tool, command, command);
     }
 
     private final PlasticSCMFileSystem fs;

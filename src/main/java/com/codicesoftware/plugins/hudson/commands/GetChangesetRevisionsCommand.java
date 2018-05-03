@@ -1,24 +1,19 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
-import hudson.util.Digester2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
-import org.apache.commons.digester.Digester;
-import org.xml.sax.SAXException;
 
-public class GetChangesetRevisionsCommand extends AbstractCommand {
+public class GetChangesetRevisionsCommand implements Command {
     private final String csVersion;
     private final String repoName;
 
-    public GetChangesetRevisionsCommand(ServerConfigurationProvider configurationProvider,
+    public GetChangesetRevisionsCommand(
             String csVersion, String repoName) {
-        super(configurationProvider);
         this.csVersion = csVersion;
         this.repoName = repoName;
     }

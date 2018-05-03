@@ -2,11 +2,10 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 
-public class DeleteWorkspaceCommand extends AbstractCommand {
+public class DeleteWorkspaceCommand implements Command {
     private final String workspaceName;
 
-    public DeleteWorkspaceCommand(ServerConfigurationProvider provider, String workspaceName) {
-        super(provider);
+    public DeleteWorkspaceCommand(String workspaceName) {
         this.workspaceName = workspaceName;
     }
 

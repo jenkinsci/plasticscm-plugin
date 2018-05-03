@@ -6,11 +6,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
-public class GetSelectorCommand extends AbstractCommand implements ParseableCommand<String> {
+public class GetSelectorCommand implements ParseableCommand<String>, Command {
     private final String workspaceName;
 
-    public GetSelectorCommand(ServerConfigurationProvider provider, String workspaceName) {
-        super(provider);
+    public GetSelectorCommand(String workspaceName) {
         this.workspaceName = workspaceName;
     }
 

@@ -3,13 +3,12 @@ package com.codicesoftware.plugins.hudson.commands;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.FilePath;
 
-public class SetSelectorCommand extends AbstractCommand {
+public class SetSelectorCommand implements Command {
     private final String workspaceName;
     private final FilePath selectorFile;
 
-    public SetSelectorCommand(ServerConfigurationProvider provider, String workspaceName,
+    public SetSelectorCommand(String workspaceName,
             FilePath selectorFile) {
-        super(provider);
         this.workspaceName = workspaceName;
         this.selectorFile = selectorFile;
     }

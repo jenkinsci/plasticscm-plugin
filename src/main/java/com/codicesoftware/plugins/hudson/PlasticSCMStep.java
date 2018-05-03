@@ -55,7 +55,7 @@ public class PlasticSCMStep extends SCMStep {
     }
 
     public String getWorkspaceName() {
-        return workspaceName;
+        return useMultipleWorkspaces ? workspaceName : "";
     }
 
     @DataBoundSetter
@@ -63,11 +63,20 @@ public class PlasticSCMStep extends SCMStep {
         this.workspaceName = workspaceName;
     }
 
+    public boolean isUseMultipleWorkspaces() {
+        return useMultipleWorkspaces;
+    }
+
+    @DataBoundSetter
+    public void setUseMultipleWorkspaces(boolean useMultipleWorkspaces) {
+        this.useMultipleWorkspaces = useMultipleWorkspaces;
+    }
+
     @Nonnull
     @Override
     protected SCM createSCM() {
         return new PlasticSCM(
-            buildSelector(), workspaceName, useUpdate, new ArrayList<PlasticSCM.WorkspaceInfo>());
+            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null);
     }
 
     String buildSelector() {
@@ -79,7 +88,8 @@ public class PlasticSCMStep extends SCMStep {
     private String server = PlasticStepDescriptor.defaultServer;
 
     private boolean useUpdate = true;
-    private String workspaceName = PlasticStepDescriptor.defaultWorkspaceName;
+    private boolean useMultipleWorkspaces = false;
+    private String workspaceName = "";
 
     private static final String SELECTOR_FORMAT =
             "rep \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";

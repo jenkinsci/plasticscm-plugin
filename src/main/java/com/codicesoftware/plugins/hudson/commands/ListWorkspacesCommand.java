@@ -10,19 +10,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ListWorkspacesCommand extends AbstractCommand implements ParseableCommand<List<Workspace>> {
-    private final WorkspaceFactory factory;
-
+public class ListWorkspacesCommand implements ParseableCommand<List<Workspace>>, Command {
     private static final Pattern parserPattern = Pattern.compile("^(.*)#(.*)#(.*)$");
-
-    public interface WorkspaceFactory {
-        Workspace createWorkspace(String name, String path, String selector);
-    }
-
-    public ListWorkspacesCommand(WorkspaceFactory factory, ServerConfigurationProvider provider) {
-        super(provider);
-        this.factory = factory;
-    }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
@@ -40,7 +29,7 @@ public class ListWorkspacesCommand extends AbstractCommand implements ParseableC
         while (line != null) {
             Matcher matcher = parserPattern.matcher(line);
             if (matcher.find()) {
-                Workspace workspace = factory.createWorkspace(matcher.group(1), matcher.group(3), null);
+                Workspace workspace = new Workspace(matcher.group(1), matcher.group(3));
                 list.add(workspace);
             }
             line = reader.readLine();

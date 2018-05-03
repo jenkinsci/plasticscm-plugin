@@ -2,12 +2,10 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 
-public class GetFilesToWorkFolderCommand extends AbstractCommand {
+public class UpdateWorkspaceCommand implements Command {
     private final String workFolder;
 
-    public GetFilesToWorkFolderCommand(ServerConfigurationProvider configurationProvider,
-            String workFolder) {
-        super(configurationProvider);
+    public UpdateWorkspaceCommand(String workFolder) {
         this.workFolder = workFolder;
     }
 

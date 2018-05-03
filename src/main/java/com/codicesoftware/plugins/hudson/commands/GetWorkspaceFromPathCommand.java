@@ -6,11 +6,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
-public class GetWorkspaceFromPathCommand extends AbstractCommand implements ParseableCommand<String> {
+public class GetWorkspaceFromPathCommand implements ParseableCommand<String>, Command {
     private String mWkPath;
 
-    public GetWorkspaceFromPathCommand(ServerConfigurationProvider provider, String wkPath) {
-        super(provider);
+    public GetWorkspaceFromPathCommand(String wkPath) {
         mWkPath = wkPath;
     }
 

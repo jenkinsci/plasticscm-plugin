@@ -14,7 +14,7 @@ import java.util.List;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
 
-public class DetailedHistoryCommand extends AbstractCommand implements ParseableCommand<List<ChangeSet>> {
+public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>, Command {
     private final Calendar fromTimestamp;
     private final Calendar toTimestamp;
     private final String branch;
@@ -23,9 +23,8 @@ public class DetailedHistoryCommand extends AbstractCommand implements Parseable
     private final SimpleDateFormat dateFormatter =
     		new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
 
-    public DetailedHistoryCommand(ServerConfigurationProvider configurationProvider,
+    public DetailedHistoryCommand(
             Calendar fromTimestamp, Calendar toTimestamp, String branch, String repository) {
-        super(configurationProvider);
         this.fromTimestamp = fromTimestamp;
         this.toTimestamp = toTimestamp;
         this.branch = branch;

@@ -46,11 +46,14 @@ public class PlasticTool {
      * @throws InterruptedException
      */
     public Reader execute(String[] arguments) throws IOException, InterruptedException {
+        return execute(arguments, null);
+    }
+    public Reader execute(String[] arguments, FilePath executionPath) throws IOException, InterruptedException {
         String[] cmdArgs = getToolArguments(arguments);
 
         int retries = 0;
         while (retries < MAX_RETRIES) {
-            Reader result = tryExecute(cmdArgs);
+            Reader result = tryExecute(cmdArgs, executionPath);
             if (result != null)
                 return result;
 
@@ -72,11 +75,13 @@ public class PlasticTool {
         return result;
     }
 
-    private Reader tryExecute(String[] cmdArgs) throws IOException, InterruptedException {
+    private Reader tryExecute(String[] cmdArgs, FilePath executionPath) throws IOException, InterruptedException {
+        if(executionPath == null)
+            executionPath = workspace;
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
         Proc proc = launcher.launch().cmds(cmdArgs)
                 .stdout(new ForkOutputStream(consoleStream, listener.getLogger()))
-                .pwd(workspace).start();
+                .pwd(executionPath).start();
         consoleStream.close();
 
         if (proc.join() == 0)

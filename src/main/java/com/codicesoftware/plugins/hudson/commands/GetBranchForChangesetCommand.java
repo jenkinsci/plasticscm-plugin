@@ -9,15 +9,13 @@ import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetBranchForChangesetCommand extends AbstractCommand implements ParseableCommand<String> {
+public class GetBranchForChangesetCommand implements ParseableCommand<String>, Command {
     private final String cs;
     private final String repoName;
 
     private static final Pattern branchRegex = Pattern.compile("^\\s*<BRANCH>(.+)</BRANCH>$");
 
-    public GetBranchForChangesetCommand(ServerConfigurationProvider provider,
-            String cs, String repoName) {
-        super(provider);
+    public GetBranchForChangesetCommand(String cs, String repoName) {
         this.cs = cs;
         this.repoName = repoName;
     }

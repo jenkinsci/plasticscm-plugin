@@ -131,16 +131,22 @@ public class PlasticSCM extends SCM {
                 parameters == null ? null : parameters.getParameters();
 
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+            String resolvedWorkspaceName = resolveWorkspaceNameParameters(
+                    workspaceInfo.getWorkspaceName(), run.getParent(), run);
             FilePath plasticWorkspacePath = getPlasticWorkspacePath(
-                    workspace,  workspaceInfo.getWorkspaceName(), run.getParent(), run);
+                    workspace, resolvedWorkspaceName);
+            String resolvedSelector = resolveSelectorParameters(
+                    workspaceInfo.getSelector(), parameterValues);
             result.addAll(
                 SetUpWorkspace(
                     run,
                     launcher,
                     listener,
+                    workspaceInfo.getWorkspaceName(),
+                    resolvedWorkspaceName,
                     plasticWorkspacePath,
-                    workspaceInfo,
-                    parameterValues)
+                    resolvedSelector,
+                    workspaceInfo.getUseUpdate())
             );
         }
 
@@ -152,18 +158,18 @@ public class PlasticSCM extends SCM {
             @Nonnull final Run<?, ?> run,
             @Nonnull final Launcher launcher,
             @Nonnull final TaskListener listener,
+            @Nonnull final String originalWorkspaceName,
+            @Nonnull final String plasticWorkspaceName,
             @Nonnull final FilePath plasticWorkspacePath,
-            @Nonnull final WorkspaceInfo wkInfo,
-            List<ParameterValue> parameterValues) throws IOException, InterruptedException {
+            @Nonnull final String resolvedSelector,
+            @Nonnull final boolean useUpdate) throws IOException, InterruptedException {
         if (!plasticWorkspacePath.exists())
                 plasticWorkspacePath.mkdirs();
 
         PlasticTool tool = new PlasticTool(
                 getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
 
-        String resolvedSelector = resolveSelectorParameters(wkInfo.selector, parameterValues);
-
-        String wkName = wkInfo.workspaceName != null ?  wkInfo.workspaceName :
+        String wkName = plasticWorkspaceName != null ?  plasticWorkspaceName :
                 WorkspaceInfo.cleanWorkspaceName(plasticWorkspacePath.getName());
         List<ChangeSet> result = checkoutWorkspace(
                 run,
@@ -172,9 +178,9 @@ public class PlasticSCM extends SCM {
                 listener,
                 wkName,
                 resolvedSelector,
-                wkInfo.getUseUpdate());
+                useUpdate);
 
-        run.addAction(new BuildData(wkInfo.getWorkspaceName(), getLastChangeSet(result)));
+        run.addAction(new BuildData(originalWorkspaceName, getLastChangeSet(result)));
 
         return result;
     }
@@ -223,7 +229,8 @@ public class PlasticSCM extends SCM {
         Run<?, ?> lastBuild = project.getLastBuild();
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspace = getPlasticWorkspacePath(
-                    workspacePath, workspaceInfo.getWorkspaceName(), project, lastBuild);
+                    workspacePath, resolveWorkspaceNameParameters(
+                            workspaceInfo.getWorkspaceName(), project, lastBuild));
 
             String resolvedSelector = resolveSelectorParameters(workspaceInfo.selector, parameters);
             boolean hasChanges = hasChanges(
@@ -255,11 +262,19 @@ public class PlasticSCM extends SCM {
 
     private FilePath getPlasticWorkspacePath(
             FilePath jenkinsPath,
+            String resolvedWorkspaceName) {
+        if(resolvedWorkspaceName == null)
+            return jenkinsPath;
+
+        return new FilePath(jenkinsPath, resolvedWorkspaceName);
+    }
+
+    private String resolveWorkspaceNameParameters(
             String workspaceName,
             Job<?,?> project,
             Run<?,?> build) {
-        if(workspaceName == null)
-            return jenkinsPath;
+        if (workspaceName == null)
+            return null;
 
         String result = workspaceName;
 
@@ -270,9 +285,7 @@ public class PlasticSCM extends SCM {
             result = Util.replaceMacro(result, buildVariableResolver);
         }
         result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
-        result = result.replaceAll("[\\.\\s]+$", "_");
-
-        return new FilePath(jenkinsPath, result);
+        return result.replaceAll("[\\.\\s]+$", "_");
     }
 
     private String resolveSelectorParameters(String selector, List<ParameterValue> parameters) {

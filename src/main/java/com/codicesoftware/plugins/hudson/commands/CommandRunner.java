@@ -2,6 +2,8 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import hudson.FilePath;
+import hudson.model.Computer;
+import hudson.remoting.VirtualChannel;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -17,7 +19,7 @@ public class CommandRunner {
     public static Reader execute(PlasticTool tool, Command cmd, String executionPath) throws IOException, InterruptedException {
         return tool.execute(
                 cmd.getArguments().toCommandArray(),
-                executionPath == null ? null : new FilePath(new File(executionPath)));
+                executionPath==null ? null : new FilePath(Computer.currentComputer().getChannel(),executionPath));
     }
 
     public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser)

@@ -1,8 +1,8 @@
 package com.codicesoftware.plugins.hudson.actions;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
-import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
+import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.commands.UndoCheckoutCommand;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 
 import hudson.FilePath;
@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,28 +20,20 @@ public final class CheckoutAction {
     private CheckoutAction() {
     }
 
-    public static List<ChangeSet> checkout(
+    public static void checkout(
             PlasticTool tool,
             String workspaceName,
             FilePath workspacePath,
             String selector,
-            boolean useUpdate,
-            Calendar lastBuildTimestamp,
-            Calendar currentBuildTimestamp)
+            boolean useUpdate)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = Workspaces.loadWorkspaces(tool);
 
         cleanOldWorkspacesIfNeeded(
-                tool, workspaces, workspaceName, workspacePath, useUpdate);
+            tool, workspaces, workspaceName, workspacePath, useUpdate);
 
-        Workspace workspace = checkoutWorkspace(
-                tool, workspaceName, workspacePath, selector, useUpdate, workspaces);
-
-        if (lastBuildTimestamp != null) {
-            return ChangesetsRetriever.getDetailedHistory(
-                tool, workspace.getPath(), lastBuildTimestamp, currentBuildTimestamp);
-        }
-        return new ArrayList<ChangeSet>();
+        checkoutWorkspace(
+            tool, workspaceName, workspacePath, selector, useUpdate, workspaces);
     }
 
     private static Workspace checkoutWorkspace(
@@ -54,7 +45,11 @@ public final class CheckoutAction {
             List<Workspace> workspaces) throws IOException, InterruptedException {
         Workspace workspace = findWorkspaceByName(workspaces, workspaceName);
 
+        UndoCheckoutCommand undoCommand = new UndoCheckoutCommand(workspacePath);
+
         if (workspace != null) {
+            CommandRunner.execute(tool, undoCommand);
+
             if (mustUpdateSelector(tool, workspaceName, selector)) {
                 Workspaces.setWorkspaceSelector(tool, workspacePath, workspaceName, selector);
                 return workspace;
@@ -69,13 +64,16 @@ public final class CheckoutAction {
         }
 
         workspace = Workspaces.newWorkspace(tool, workspacePath, workspaceName, selector);
+
+        CommandRunner.execute(tool, undoCommand);
         Workspaces.updateWorkspace(tool, workspace.getPath());
+
         return workspace;
     }
 
     private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
         String wkSelector = removeNewLinesFromSelector(
-                Workspaces.loadSelector(tool, name));
+            Workspaces.loadSelector(tool, name));
         String currentSelector = removeNewLinesFromSelector(selector);
 
         return !wkSelector.equals(currentSelector);
@@ -130,7 +128,7 @@ public final class CheckoutAction {
         Workspaces.deleteWorkspace(tool, workspace.getName());
         new FilePath(new File(workspace.getPath())).deleteContents();
 
-        for(int i = workspaces.size() - 1; i >= 0; i--) {
+        for (int i = workspaces.size() - 1; i >= 0; i--) {
             if(!workspace.getName().equals(workspaces.get(i).getName()))
                 continue;
             workspaces.remove(i);

@@ -171,18 +171,21 @@ public class PlasticSCM extends SCM {
 
         String wkName = plasticWorkspaceName != null ?  plasticWorkspaceName :
                 WorkspaceInfo.cleanWorkspaceName(plasticWorkspacePath.getName());
-        List<ChangeSet> result = checkoutWorkspace(
-                run,
-                plasticWorkspacePath,
-                tool,
-                listener,
-                wkName,
-                resolvedSelector,
-                useUpdate);
 
-        run.addAction(new BuildData(originalWorkspaceName, getLastChangeSet(result)));
+        List<ChangeSet> csetsInBuild = FindCsets(
+                run, tool, listener, plasticWorkspacePath.getRemote());
+        run.addAction(new BuildData(
+            originalWorkspaceName, getLastChangeSet(csetsInBuild)));
 
-        return result;
+        checkoutWorkspace(
+            plasticWorkspacePath,
+            tool,
+            listener,
+            wkName,
+            resolvedSelector,
+            useUpdate);
+
+        return csetsInBuild;
     }
 
     @Override
@@ -320,22 +323,16 @@ public class PlasticSCM extends SCM {
         return text;
     }
 
-    private List<ChangeSet> checkoutWorkspace(
-            Run<?, ?> build,
+    private static void checkoutWorkspace(
             FilePath plasticWorkspace,
             PlasticTool tool,
             TaskListener listener,
             String workspaceName,
             String selector,
-            boolean useUpdate) throws IOException, InterruptedException{
+            boolean useUpdate) throws IOException, InterruptedException {
         try {
-            Calendar previousBuildDate = null;
-            if (build.getPreviousBuild() != null)
-                previousBuildDate = build.getPreviousBuild().getTimestamp();
-
-            return CheckoutAction.checkout(
-                tool, workspaceName, plasticWorkspace, selector,
-                useUpdate, previousBuildDate, build.getTimestamp());
+            CheckoutAction.checkout(
+                tool, workspaceName, plasticWorkspace, selector, useUpdate);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         } catch (IOException e) {
@@ -343,7 +340,31 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private AbortException buildAbortException(TaskListener listener, Exception e)
+    private static List<ChangeSet> FindCsets(
+            Run<?, ?> build,
+            PlasticTool tool,
+            TaskListener listener,
+            String wkPath)
+            throws IOException, InterruptedException {
+        Calendar previousBuildDate = getPreviousBuildDate(build);
+        if (previousBuildDate == null)
+            return new ArrayList<ChangeSet>();
+
+        try {
+            return ChangesetsRetriever.getDetailedHistory(
+                    tool, wkPath, previousBuildDate, build.getTimestamp());
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        }
+    }
+
+    private static Calendar getPreviousBuildDate(Run<?, ?> build) {
+        Run<?, ?> previousBuild = build.getPreviousBuild();
+        return previousBuild == null ? null : previousBuild.getTimestamp();
+    }
+
+    private static AbortException buildAbortException(
+            TaskListener listener, Exception e)
     {
         listener.fatalError(e.getMessage());
         logger.severe(e.getMessage());

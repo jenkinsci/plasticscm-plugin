@@ -10,13 +10,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import hudson.FilePath;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 public class ChangesetsRetriever {
     public static List<ChangeSet> getChangesets(
             PlasticTool tool,
-            String wkPath,
+            FilePath wkPath,
             String branchName,
             String repoSpec,
             Calendar fromTimestamp,
@@ -24,7 +25,7 @@ public class ChangesetsRetriever {
         List<ChangeSet> list = new ArrayList<ChangeSet>();
 
         if(branchName == null || repoSpec == null) {
-            GetWorkspaceInfoCommand wiCommand = new GetWorkspaceInfoCommand(wkPath);
+            GetWorkspaceInfoCommand wiCommand = new GetWorkspaceInfoCommand(wkPath.getRemote());
             WorkspaceInfo wi = CommandRunner.executeAndRead(tool, wiCommand, wiCommand);
             branchName = GetBranchFromWorkspaceInfo(tool, wi);
             repoSpec = wi.getRepoName();
@@ -42,11 +43,11 @@ public class ChangesetsRetriever {
     }
 
     public static List<ChangeSet> getDetailedHistory(
-            PlasticTool tool, String wkPath, Calendar fromTimestamp, Calendar toTimestamp)
+            PlasticTool tool, FilePath wkPath, Calendar fromTimestamp, Calendar toTimestamp)
             throws IOException, InterruptedException, ParseException {
         List<ChangeSet> list = getChangesets(tool, wkPath, null, null, fromTimestamp, toTimestamp);
 
-        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath);
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath.getRemote());
         String workspaceDir = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
 
         for(ChangeSet cs : list) {

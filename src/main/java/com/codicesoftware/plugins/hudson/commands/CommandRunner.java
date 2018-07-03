@@ -16,10 +16,8 @@ public class CommandRunner {
         return execute(tool, cmd, null);
     }
 
-    public static Reader execute(PlasticTool tool, Command cmd, String executionPath) throws IOException, InterruptedException {
-        return tool.execute(
-                cmd.getArguments().toCommandArray(),
-                executionPath==null ? null : new FilePath(Computer.currentComputer().getChannel(),executionPath));
+    public static Reader execute(PlasticTool tool, Command cmd, FilePath executionPath) throws IOException, InterruptedException {
+        return tool.execute(cmd.getArguments().toCommandArray(), executionPath);
     }
 
     public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser)
@@ -31,7 +29,7 @@ public class CommandRunner {
             PlasticTool tool,
             Command command,
             ParseableCommand<T> parser,
-            String executionPath)
+            FilePath executionPath)
             throws IOException, InterruptedException, ParseException {
         Reader reader = null;
         try {

@@ -173,7 +173,9 @@ public class PlasticSCM extends SCM {
                 WorkspaceInfo.cleanWorkspaceName(plasticWorkspacePath.getName());
 
         List<ChangeSet> csetsInBuild = FindCsets(
-                run, tool, listener, plasticWorkspacePath);
+            run, tool, listener, plasticWorkspacePath,
+            getSelectorBranch(resolvedSelector),
+            getSelectorRepository(resolvedSelector));
         run.addAction(new BuildData(
             originalWorkspaceName, getLastChangeSet(csetsInBuild)));
 
@@ -344,7 +346,9 @@ public class PlasticSCM extends SCM {
             Run<?, ?> build,
             PlasticTool tool,
             TaskListener listener,
-            FilePath workspacePath)
+            FilePath workspacePath,
+            String branchName,
+            String repository)
             throws IOException, InterruptedException {
         Calendar previousBuildDate = getPreviousBuildDate(build);
         if (previousBuildDate == null)
@@ -352,7 +356,8 @@ public class PlasticSCM extends SCM {
 
         try {
             return ChangesetsRetriever.getDetailedHistory(
-                    tool, workspacePath, previousBuildDate, build.getTimestamp());
+                tool, workspacePath, branchName, repository,
+                previousBuildDate, build.getTimestamp());
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }
@@ -397,7 +402,6 @@ public class PlasticSCM extends SCM {
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
                 plasticTool,
-                workspacePath,
                 branchName,
                 repository,
                 lastCompletedBuildTimestamp,

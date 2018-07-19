@@ -17,35 +17,24 @@ import org.apache.commons.io.IOUtils;
 public class ChangesetsRetriever {
     public static List<ChangeSet> getChangesets(
             PlasticTool tool,
+            String branchName,
+            String repoSpec,
+            Calendar fromTimestamp,
+            Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
+        DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
+                fromTimestamp, toTimestamp, branchName, repoSpec);
+
+        return CommandRunner.executeAndRead(tool, histCommand, histCommand);
+    }
+    public static List<ChangeSet> getDetailedHistory(
+            PlasticTool tool,
             FilePath wkPath,
             String branchName,
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = new ArrayList<ChangeSet>();
-
-        if(branchName == null || repoSpec == null) {
-            GetWorkspaceInfoCommand wiCommand = new GetWorkspaceInfoCommand(wkPath.getRemote());
-            WorkspaceInfo wi = CommandRunner.executeAndRead(tool, wiCommand, wiCommand);
-            branchName = GetBranchFromWorkspaceInfo(tool, wi);
-            repoSpec = wi.getRepoName();
-        }
-        else {
-            // when we have all the information needed
-            // if the workspace does not exist yet,
-            // don't specify the execution path.
-            wkPath = null;
-        }
-
-        DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
-                fromTimestamp, toTimestamp, branchName, repoSpec);
-        return CommandRunner.executeAndRead(tool, histCommand, histCommand, wkPath);
-    }
-
-    public static List<ChangeSet> getDetailedHistory(
-            PlasticTool tool, FilePath wkPath, Calendar fromTimestamp, Calendar toTimestamp)
-            throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(tool, wkPath, null, null, fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(
+            tool, branchName, repoSpec, fromTimestamp, toTimestamp);
 
         GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath.getRemote());
         String workspaceDir = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);

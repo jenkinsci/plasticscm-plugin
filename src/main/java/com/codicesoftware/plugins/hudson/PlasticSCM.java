@@ -190,11 +190,16 @@ public class PlasticSCM extends SCM {
         return csetsInBuild;
     }
 
+    // Pre Jenkins 2.60
     @Override
     public void buildEnvVars(
             @Nonnull final AbstractBuild<?, ?> build, @Nonnull final Map<String, String> env) {
         super.buildEnvVars(build, env);
+        buildEnvironment(build, env);
+    }
 
+    // Post Jenkins 2.60
+    public void buildEnvironment(Run<?, ?> build, Map<String, String> env) {
         List<WorkspaceInfo> allWorkspaces = getAllWorkspaces();
 
         for (BuildData buildData : build.getActions(BuildData.class)) {

@@ -30,7 +30,8 @@ public class PlasticSCMFile extends SCMFile {
         this.isDir = true;
     }
 
-    public PlasticSCMFile(PlasticSCMFileSystem fs, @Nonnull PlasticSCMFile parent, String name, boolean isDir) {
+    public PlasticSCMFile(
+            PlasticSCMFileSystem fs, @Nonnull PlasticSCMFile parent, String name, boolean isDir) {
         super(parent, name);
         this.fs = fs;
         this.isDir = isDir;
@@ -86,15 +87,21 @@ public class PlasticSCMFile extends SCMFile {
             fs.getSCM().getDescriptor().getCmExecutable(),
             fs.getLauncher(), fs.getLauncher().getListener(), null);
 
-        String repObjectSpec = getRepObjectSpecFromSelector(tool, workspaceInfo.getSelector());
+        try {
+            String repObjectSpec = getRepObjectSpecFromSelector(
+                tool, workspaceInfo.getSelector());
 
-        serverFile = ensureScripPathStartsBySlash(serverFile);
+            serverFile = ensureScripPathStartsBySlash(serverFile);
 
-        return getFileContent(tool, serverFile, repObjectSpec);
+            return getFileContent(tool, serverFile, repObjectSpec);
+        } catch (AbortException e) {
+            throw new FileNotFoundException(e.getMessage());
+        }
     }
 
     private static DeleteOnCloseFileInputStream getFileContent(
-        PlasticTool tool, String serverFile, String repObjectSpec) throws IOException, InterruptedException {
+            PlasticTool tool, String serverFile, String repObjectSpec)
+            throws IOException, InterruptedException {
         File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp");
 
         String serverPathRevSpec = "serverpath:" + serverFile + "#" + repObjectSpec;
@@ -104,7 +111,8 @@ public class PlasticSCMFile extends SCMFile {
     }
 
     private static String getRepObjectSpecFromSelector(
-        PlasticTool tool, String selectorText) throws IOException, InterruptedException {
+            PlasticTool tool, String selectorText)
+            throws IOException, InterruptedException {
         File tempFile = null;
         BufferedWriter out = null;
         try {
@@ -126,8 +134,7 @@ public class PlasticSCMFile extends SCMFile {
         } catch (ParseException e) {
             logger.severe(e.getMessage());
             throw new AbortException("The selector is not valid.");
-        }
-        finally {
+        } finally {
             if (out != null)
                 out.close();
 
@@ -136,7 +143,8 @@ public class PlasticSCMFile extends SCMFile {
         }
     }
 
-    private static PlasticSCM.WorkspaceInfo getWorkspaceInfo(PlasticSCM scm, String workspaceName){
+    private static PlasticSCM.WorkspaceInfo getWorkspaceInfo(
+            PlasticSCM scm, String workspaceName){
         for (PlasticSCM.WorkspaceInfo workspace : scm.getAllWorkspaces()) {
             if (workspaceName.equals(workspace.getWorkspaceName()))
                 return workspace;
@@ -166,12 +174,16 @@ public class PlasticSCMFile extends SCMFile {
         return scriptPath.startsWith(SEPARATOR) ? scriptPath : SEPARATOR + scriptPath;
     }
 
-    private static void getFile(PlasticTool tool, String revSpec, String filePath) throws IOException, InterruptedException {
+    private static void getFile(
+            PlasticTool tool, String revSpec, String filePath)
+            throws IOException, InterruptedException {
         GetFileCommand command = new GetFileCommand(revSpec, filePath);
         CommandRunner.execute(tool, command).close();
     }
 
-    private static WorkspaceInfo getSelectorSpec(PlasticTool tool, String filePath) throws IOException, ParseException, InterruptedException {
+    private static WorkspaceInfo getSelectorSpec(
+            PlasticTool tool, String filePath)
+            throws IOException, ParseException, InterruptedException {
         GetSelectorSpecCommand command = new GetSelectorSpecCommand(filePath);
         return CommandRunner.executeAndRead(tool, command, command);
     }

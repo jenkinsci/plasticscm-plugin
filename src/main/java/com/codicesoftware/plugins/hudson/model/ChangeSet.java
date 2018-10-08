@@ -7,10 +7,7 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -54,6 +51,11 @@ public class ChangeSet extends ChangeLogSet.Entry {
             paths.add(item.getPath());
         }
         return paths;
+    }
+
+    @Override
+    public Collection<? extends ChangeLogSet.AffectedFile> getAffectedFiles() {
+        return Collections.unmodifiableCollection(items);
     }
 
     @Override
@@ -187,20 +189,22 @@ public class ChangeSet extends ChangeLogSet.Entry {
     }
 
     @ExportedBean(defaultVisibility=999)
-    public static class Item {
+    public static class Item implements ChangeLogSet.AffectedFile {
         private String path;
         private ChangeSet parent;
         private String revno;
         private String parentRevno;
+        private String status;
 
         public Item() {
-            this("", "", "");
+            this("", "", "", "");
         }
 
-        public Item(String path, String revno, String parentRevno) {
-            this.path = path;
+        public Item(String path, String revno, String parentRevno, String status) {
+            setPath(path);
             this.revno = revno;
             this.parentRevno = parentRevno;
+            this.status = status;
         }
 
         public ChangeSet getParent() {
@@ -212,20 +216,29 @@ public class ChangeSet extends ChangeLogSet.Entry {
         }
 
         @Exported
+        @Override
         public String getPath() {
             return path;
         }
 
         @Exported
         public String getPath(String base) {
-            if (path.startsWith(base)) {
-                return path.substring(base.length());
-            }
+            if (path.startsWith(base))
+                return formatPath(path.substring(base.length()));
+
             return path;
         }
 
         public void setPath(String path) {
-            this.path = path;
+            this.path = formatPath(path);
+        }
+
+        static String formatPath(String path) {
+            path = path.replace('\\', '/');
+
+            return path.startsWith("/")
+                ? path.replaceFirst("^/*", "")
+                : path;
         }
 
         @Exported
@@ -247,10 +260,12 @@ public class ChangeSet extends ChangeLogSet.Entry {
         }
 
         @Exported
+        @Override
         public EditType getEditType() {
-            if (revno.equals("0") && parentRevno.equals("-1")) {
+            if (status.equals("A"))
                 return EditType.ADD;
-            }
+            if (status.equals("D"))
+                return EditType.DELETE;
             return EditType.EDIT;
         }
     }

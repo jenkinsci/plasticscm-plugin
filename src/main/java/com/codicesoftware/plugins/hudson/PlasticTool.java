@@ -50,6 +50,7 @@ public class PlasticTool {
     }
     public Reader execute(String[] arguments, FilePath executionPath) throws IOException, InterruptedException {
         String[] cmdArgs = getToolArguments(arguments);
+        String cliLine = getCliLine(cmdArgs);
 
         int retries = 0;
         while (retries < MAX_RETRIES) {
@@ -60,12 +61,14 @@ public class PlasticTool {
             retries++;
             logger.warning(String.format(
                 "The cm command '%s' failed. Retrying after %d ms... (%d)",
-                arguments[0], TIME_BETWEEN_RETRIES, retries));
+                cliLine, TIME_BETWEEN_RETRIES, retries));
             Thread.sleep(TIME_BETWEEN_RETRIES);
         }
-        listener.fatalError(String.format(
-            "The cm command '%s' failed after %d retries", arguments[0], MAX_RETRIES));
-        throw new AbortException();
+
+        String errorMessage = String.format(
+                "The cm command '%s' failed after %d retries", cliLine, MAX_RETRIES);
+        listener.fatalError(errorMessage);
+        throw new AbortException(errorMessage);
     }
 
     private String[] getToolArguments(String[] cmArgs) {
@@ -73,6 +76,16 @@ public class PlasticTool {
         result[0] = executable;
         System.arraycopy(cmArgs, 0, result, 1, cmArgs.length);
         return result;
+    }
+
+    private String getCliLine(String[] args) {
+        StringBuilder builder = new StringBuilder();
+        for (String arg : args) {
+            if (builder.length() != 0)
+                builder.append(' ');
+            builder.append(arg);
+        }
+        return builder.toString();
     }
 
     private Reader tryExecute(String[] cmdArgs, FilePath executionPath) throws IOException, InterruptedException {

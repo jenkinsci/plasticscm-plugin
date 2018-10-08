@@ -22,8 +22,8 @@ public class GetChangesetRevisionsCommand implements Command {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("diff");
-        arguments.add("cs:" + csVersion + "@" + repoName);
-        arguments.add("--format={path}" + SEPARATOR + "{revid}" + SEPARATOR + "{parentrevid}");
+        arguments.add(String.format("cs:%s@%s", csVersion, repoName));
+        arguments.add(String.format("--format={path}%1$s{revid}%1$s{parentrevid}%1$s{status}", SEPARATOR ));
         arguments.add("--repositorypaths");
 
         return arguments;
@@ -35,7 +35,9 @@ public class GetChangesetRevisionsCommand implements Command {
         try {
             while ((line = bReader.readLine()) != null) {
                 String[] chunks = line.split(SEPARATOR);
-                cs.add(new ChangeSet.Item(trimQuotes(chunks[0]), chunks[1], chunks[2]));
+
+                cs.add(new ChangeSet.Item(trimQuotes(
+                    chunks[0]), chunks[1], chunks[2], chunks[3]));
             }
         } catch (Exception e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);

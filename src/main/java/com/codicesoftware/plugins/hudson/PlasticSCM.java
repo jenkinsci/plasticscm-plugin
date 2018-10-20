@@ -563,13 +563,23 @@ public class PlasticSCM extends SCM {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            cmExecutable = Util.fixEmpty(req.getParameter("plastic.cmExecutable").trim());
+            cmExecutable = Util.fixEmpty(formData.getString("cmExecutable").trim());
             save();
             return true;
         }
 
-        public FormValidation doCheckExecutable(@QueryParameter final String value) {
-            return FormValidation.validateExecutable(value);
+        public FormValidation doCheckExecutable(@QueryParameter("cmExecutable") final String value) {
+            try {
+                FormValidation validation = FormValidation.validateExecutable(value);
+                if (validation.kind == FormValidation.Kind.OK) {
+                    validation = FormChecker.createValidationResponse("Success", false);
+                } else {
+                    validation = FormChecker.createValidationResponse("Failure: " + validation.getMessage(), true);
+                }
+                return validation;
+            } catch (Exception e) {
+                return FormChecker.createValidationResponse("Error: " + e.getMessage(), true);
+            }
         }
 
         public String getDisplayName() {

@@ -70,6 +70,14 @@ public class FormChecker {
         return FormValidation.error(noMatchText);
     }
 
+    public static FormValidation createValidationResponse(String text, boolean isError) {
+        if (isError) {
+            return FormValidation.respond(FormValidation.Kind.ERROR, "<div class=\"error\">" + text + "</div>");
+        } else {
+            return FormValidation.respond(FormValidation.Kind.OK, "<div class=\"info greenbold\">" + text + "</div>");
+        }
+    }
+
     public static String getDefaultSelector() {
         return DEFAULT_SELECTOR;
     }

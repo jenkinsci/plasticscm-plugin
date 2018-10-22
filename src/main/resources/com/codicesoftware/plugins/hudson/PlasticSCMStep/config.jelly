@@ -17,10 +17,11 @@
         <f:checkbox default="true" />
     </f:entry>
 
-    <f:optionalBlock field="useMultipleWorkspaces" title="Use multiple workspaces"  inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
-      <f:entry field="workspaceName" title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html">
+    <f:entry field="workspaceName" title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html">
         <f:textbox default="${descriptor.defaultWorkspaceName}"/>
-      </f:entry>
+    </f:entry>
+
+    <f:optionalBlock field="useMultipleWorkspaces" title="Use multiple workspaces"  inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
     </f:optionalBlock>
 
     <st:include page="config-generic.jelly" class="org.jenkinsci.plugins.workflow.steps.scm.SCMStep"/>

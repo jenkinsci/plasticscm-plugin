@@ -18,10 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,11 +44,12 @@ import javax.annotation.Nullable;
  */
 public class PlasticSCM extends SCM {
     public final String selector;
-    public final String workspaceName;
+    public String workspaceName = PlasticSCMStep.PlasticStepDescriptor.defaultWorkspaceName;
     public final boolean useUpdate;
-
+    public final boolean useWorkspaceSubdirectory;
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
+    private boolean isRegularJob = false;
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
         "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -62,10 +60,11 @@ public class PlasticSCM extends SCM {
     
     private PlasticSCM() {
         selector = FormChecker.getDefaultSelector();
-        workspaceName = "jenkins-default";
         useUpdate = true;
         firstWorkspace = null;
         additionalWorkspaces = null;
+        useWorkspaceSubdirectory = false;
+        isRegularJob = true;
     }
 
     @DataBoundConstructor
@@ -77,9 +76,14 @@ public class PlasticSCM extends SCM {
             List<WorkspaceInfo> additionalWorkspaces) {
         logger.info("Initializing PlasticSCM plugin");
         this.selector = selector;
-        this.workspaceName = useMultipleWorkspaces ?
-            WorkspaceInfo.cleanWorkspaceName(workspaceName) : null;
         this.useUpdate = useUpdate;
+        this.useWorkspaceSubdirectory = useMultipleWorkspaces;
+        this.isRegularJob = true;
+
+        if (workspaceName != null && !workspaceName.equals("")) {
+            this.workspaceName = WorkspaceInfo.cleanWorkspaceName(workspaceName);
+        }
+
         firstWorkspace = new WorkspaceInfo(selector, this.workspaceName, useUpdate);
         if(additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
@@ -131,10 +135,16 @@ public class PlasticSCM extends SCM {
                 parameters == null ? null : parameters.getParameters();
 
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
+            // shared libraries need to set the workspace name every time
+            // because they use a common SCM object that isn't initialized
+            // in a sane way
+            if (!isRegularJob)
+                workspaceInfo.setWorkspaceName("shl-" + workspace.getRemote().hashCode());
+
             String resolvedWorkspaceName = resolveWorkspaceNameParameters(
                     workspaceInfo.getWorkspaceName(), run.getParent(), run);
             FilePath plasticWorkspacePath = getPlasticWorkspacePath(
-                    workspace, resolvedWorkspaceName);
+                    workspace, resolvedWorkspaceName, additionalWorkspaces == null);
             String resolvedSelector = resolveSelectorParameters(
                     workspaceInfo.getSelector(), parameterValues);
             result.addAll(
@@ -239,8 +249,10 @@ public class PlasticSCM extends SCM {
         Run<?, ?> lastBuild = project.getLastBuild();
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspace = getPlasticWorkspacePath(
-                    workspacePath, resolveWorkspaceNameParameters(
-                            workspaceInfo.getWorkspaceName(), project, lastBuild));
+                    workspacePath,
+                    resolveWorkspaceNameParameters(
+                        workspaceInfo.getWorkspaceName(), project, lastBuild),
+                    additionalWorkspaces == null);
 
             String resolvedSelector = resolveSelectorParameters(workspaceInfo.selector, parameters);
             boolean hasChanges = hasChanges(
@@ -272,8 +284,9 @@ public class PlasticSCM extends SCM {
 
     private FilePath getPlasticWorkspacePath(
             FilePath jenkinsPath,
-            String resolvedWorkspaceName) {
-        if(resolvedWorkspaceName == null)
+            String resolvedWorkspaceName,
+            boolean isSingleWorkspace) {
+        if(resolvedWorkspaceName == null || isSingleWorkspace && !useWorkspaceSubdirectory)
             return jenkinsPath;
 
         return new FilePath(jenkinsPath, resolvedWorkspaceName);
@@ -599,7 +612,7 @@ public class PlasticSCM extends SCM {
         public final String selector;
 
         @Exported
-        public final String workspaceName;
+        public String workspaceName;
 
         @Exported
         public final boolean useUpdate;
@@ -607,7 +620,10 @@ public class PlasticSCM extends SCM {
         private static final long serialVersionUID = 1L;
 
         @DataBoundConstructor
-        public WorkspaceInfo(String selector, String workspaceName, boolean useUpdate) {
+        public WorkspaceInfo(
+                String selector,
+                String workspaceName,
+                boolean useUpdate) {
             this.selector = selector;
             this.workspaceName = cleanWorkspaceName(workspaceName);
             this.useUpdate = useUpdate;
@@ -622,6 +638,10 @@ public class PlasticSCM extends SCM {
             return workspaceName;
         }
 
+        public void setWorkspaceName(String workspaceName) {
+            this.workspaceName = workspaceName;
+        }
+
         public String getSelector() {
             return selector;
         }
@@ -632,7 +652,7 @@ public class PlasticSCM extends SCM {
 
         public  static String cleanWorkspaceName(String wkName){
             if(wkName == null)
-                return wkName;
+                return null;
             return wkName.replaceAll("@", "-");
         }
 

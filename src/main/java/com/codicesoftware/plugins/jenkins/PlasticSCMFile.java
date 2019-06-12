@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
-import javafx.scene.control.TextFormatter;
 import jenkins.scm.api.SCMFile;
 import hudson.AbortException;
 

@@ -43,7 +43,7 @@ public final class CheckoutAction {
             String selector,
             boolean useUpdate,
             List<Workspace> workspaces) throws IOException, InterruptedException {
-        Workspace workspace = findWorkspaceByName(workspaces, workspaceName);
+        Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
 
         UndoCheckoutCommand undoCommand = new UndoCheckoutCommand(workspacePath);
 

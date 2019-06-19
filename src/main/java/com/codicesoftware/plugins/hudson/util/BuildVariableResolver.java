@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
@@ -23,7 +24,8 @@ import hudson.util.VariableResolver;
  * <li> JOB_NAME - The name of the job</li>
  * <li> USER_NAME - The system property "user.name" on the Node that the Launcher
  * is being executed on (slave or master)</li>
- * <li> NODE_NAME - The name of the node that the Launcher is being executed on</li>
+ * <li> NODE_NAME - The name of the node the current build is running on</li>
+ * <li> EXECUTOR_NUMBER - The unique number that identifies the current executor</li>
  * <li> Any environment variable that is set on the Node that the Launcher is
  * being executed on (slave or master)</li> 
  * </ul> 
@@ -49,7 +51,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
         });
     }
     
-    public BuildVariableResolver(final Job<?, ?> project, final Computer computer) {
+    public BuildVariableResolver(final Job<?, ?> project, final Computer computer, final FilePath workspace) {
         this.computer = computer;
         lazyResolvers.put("JOB_NAME", new LazyResolver() {
             public String getValue() {
@@ -59,7 +61,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
         lazyResolvers.put("NODE_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) {
                 if (computer ==  null || Util.fixEmpty(computer.getName()) == null)
-                    return "MASTER";
+                    return "master";
                 return computer.getName();
             }            
         });
@@ -70,24 +72,29 @@ public class BuildVariableResolver implements VariableResolver<String> {
                 return (String) computer.getSystemProperties().get("user.name");
             }            
         });
+        lazyResolvers.put("EXECUTOR_NUMBER", new LazyComputerResolver() {
+            public String getValue(Computer computer) throws IOException, InterruptedException {
+                return ExecutorVariableHelper.getExecutorID(workspace);
+            }
+        });
     }
 
-    /**
-     * Constructor that can be used with a {@linkplain AbstractBuild} instance. 
-     * <p>
-     * This constructor should not be called in a method that may be called by
-     * {@link AbstractBuild#getEnvVars()}.  
-     * @param build used to get the project and the build env vars
-     */
-    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer)
-            throws IOException, InterruptedException {
-        this(build.getProject(), computer);
-        
-        final Map<String, String> envVars = build.getEnvironment(TaskListener.NULL);
-        if (envVars != null) {
-            otherResolvers.add(new VariableResolver.ByMap<String>(envVars));
-        }
-    }
+//    /**
+//     * Constructor that can be used with a {@linkplain AbstractBuild} instance.
+//     * <p>
+//     * This constructor should not be called in a method that may be called by
+//     * {@link AbstractBuild#getEnvVars()}.
+//     * @param build used to get the project and the build env vars
+//     */
+//    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer)
+//            throws IOException, InterruptedException {
+//        this(build.getProject(), computer);
+//
+//        final Map<String, String> envVars = build.getEnvironment(TaskListener.NULL);
+//        if (envVars != null) {
+//            otherResolvers.add(new VariableResolver.ByMap<String>(envVars));
+//        }
+//    }
     
     public String resolve(String variable) {
         try {

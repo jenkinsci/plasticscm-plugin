@@ -1,7 +1,12 @@
-target
+target/
+
+# Eclipse
 .classpath
-.settings
 .project
+.settings/
+
+# IntelliJ IDEA
+.idea/
 *.iml
 *.ipr
 *.iws

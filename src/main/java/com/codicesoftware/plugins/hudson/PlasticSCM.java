@@ -142,7 +142,7 @@ public class PlasticSCM extends SCM {
                 workspaceInfo.setWorkspaceName("shl-" + workspace.getRemote().hashCode());
 
             String resolvedWorkspaceName = resolveWorkspaceNameParameters(
-                    workspaceInfo.getWorkspaceName(), run.getParent(), run);
+                    workspaceInfo.getWorkspaceName(), workspace, run.getParent(), run);
             FilePath plasticWorkspacePath = getPlasticWorkspacePath(
                     workspace, resolvedWorkspaceName, additionalWorkspaces == null);
             String resolvedSelector = resolveSelectorParameters(
@@ -237,7 +237,7 @@ public class PlasticSCM extends SCM {
     public PollingResult compareRemoteRevisionWith(
             @Nonnull final  Job<?,?> project,
             @Nullable final Launcher launcher,
-            @Nullable final FilePath workspacePath,
+            @Nullable final FilePath workspace,
             @Nonnull final TaskListener listener,
             @Nonnull final SCMRevisionState baseline) {
         if (project.getLastBuild() == null) {
@@ -249,9 +249,9 @@ public class PlasticSCM extends SCM {
         Run<?, ?> lastBuild = project.getLastBuild();
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspace = getPlasticWorkspacePath(
-                    workspacePath,
+                    workspace,
                     resolveWorkspaceNameParameters(
-                        workspaceInfo.getWorkspaceName(), project, lastBuild),
+                        workspaceInfo.getWorkspaceName(), workspace, project, lastBuild),
                     additionalWorkspaces == null);
 
             String resolvedSelector = resolveSelectorParameters(workspaceInfo.selector, parameters);
@@ -294,6 +294,7 @@ public class PlasticSCM extends SCM {
 
     private String resolveWorkspaceNameParameters(
             String workspaceName,
+            FilePath workspacePath,
             Job<?,?> project,
             Run<?,?> build) {
         if (workspaceName == null)
@@ -304,7 +305,7 @@ public class PlasticSCM extends SCM {
         if (build != null) {
             result = replaceBuildParameter(build, result);
             BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
-                project, Computer.currentComputer());
+                project, Computer.currentComputer(), workspacePath);
             result = Util.replaceMacro(result, buildVariableResolver);
         }
         result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
@@ -576,13 +577,23 @@ public class PlasticSCM extends SCM {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            cmExecutable = Util.fixEmpty(req.getParameter("plastic.cmExecutable").trim());
+            cmExecutable = Util.fixEmpty(formData.getString("cmExecutable").trim());
             save();
             return true;
         }
 
-        public FormValidation doCheckExecutable(@QueryParameter final String value) {
-            return FormValidation.validateExecutable(value);
+        public FormValidation doCheckExecutable(@QueryParameter("cmExecutable") final String value) {
+            try {
+                FormValidation validation = FormValidation.validateExecutable(value);
+                if (validation.kind == FormValidation.Kind.OK) {
+                    validation = FormChecker.createValidationResponse("Success", false);
+                } else {
+                    validation = FormChecker.createValidationResponse("Failure: " + validation.getMessage(), true);
+                }
+                return validation;
+            } catch (Exception e) {
+                return FormChecker.createValidationResponse("Error: " + e.getMessage(), true);
+            }
         }
 
         public String getDisplayName() {

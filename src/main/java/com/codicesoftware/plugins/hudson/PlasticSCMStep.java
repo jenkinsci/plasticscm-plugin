@@ -99,7 +99,7 @@ public class PlasticSCMStep extends SCMStep {
         public static final String defaultBranch = "/main";
         public static final String defaultRepository = "default";
         public static final String defaultServer = "localhost:8087";
-        public static final String defaultWorkspaceName = "Jenkins-${JOB_NAME}-${NODE_NAME}";
+        public static final String defaultWorkspaceName = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
 
         @Override
         public String getFunctionName() {

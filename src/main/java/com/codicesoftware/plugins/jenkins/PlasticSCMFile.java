@@ -9,10 +9,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import hudson.Launcher;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.Run;
 import jenkins.scm.api.SCMFile;
 import hudson.AbortException;
 
@@ -82,13 +88,20 @@ public class PlasticSCMFile extends SCMFile {
             }
         }
 
+        Launcher launcher = fs.getLauncher();
         PlasticTool tool = new PlasticTool(
             fs.getSCM().getDescriptor().getCmExecutable(),
-            fs.getLauncher(), fs.getLauncher().getListener(), null);
+            launcher,
+            launcher.getListener(),
+            null);
 
         try {
+            String resolvedSelector = SelectorParametersResolver.resolve(
+                    workspaceInfo.getSelector(),
+                    getLastBuildParameters(fs));
+
             String repObjectSpec = getRepObjectSpecFromSelector(
-                tool, workspaceInfo.getSelector());
+                tool, resolvedSelector);
 
             serverFile = ensureScripPathStartsBySlash(serverFile);
 
@@ -96,6 +109,16 @@ public class PlasticSCMFile extends SCMFile {
         } catch (AbortException e) {
             throw new FileNotFoundException(e.getMessage());
         }
+    }
+
+    private static List<ParameterValue> getLastBuildParameters(
+            PlasticSCMFileSystem fs) {
+        Run<?, ?> run = fs.getLastBuildFromFirstJob();
+        if (run == null)
+            return null;
+
+        ParametersAction parameters = run.getAction(ParametersAction.class);
+        return parameters != null ? parameters.getParameters() : null;
     }
 
     private static DeleteOnCloseFileInputStream getFileContent(

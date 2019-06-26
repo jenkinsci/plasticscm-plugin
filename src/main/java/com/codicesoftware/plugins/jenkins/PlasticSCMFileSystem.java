@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.jenkins;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
@@ -9,6 +10,8 @@ import javax.annotation.Nonnull;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.Run;
 import hudson.scm.SCM;
 import hudson.util.LogTaskListener;
 import jenkins.scm.api.SCMFile;
@@ -22,9 +25,22 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
     protected PlasticSCMFileSystem(@Nonnull Item owner, @Nonnull PlasticSCM scm, @CheckForNull SCMRevision rev) {
         super(rev);
+        this.owner = owner;
         this.scm = scm;
         this.launcher = new Launcher.LocalLauncher(
             new LogTaskListener(LOGGER, Level.ALL));
+    }
+
+    public Run<?, ?> getLastBuildFromFirstJob() {
+        Collection<? extends Job> jobs = owner.getAllJobs();
+        for (Job job : jobs) {
+            if (job == null)
+                continue;
+            Run<?, ?> run = job.getLastBuild();
+            if (run != null)
+                return run;
+        }
+        return null;
     }
 
     public PlasticSCM getSCM() {
@@ -78,6 +94,7 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         }
     }
 
+    private Item owner;
     private Launcher launcher;
     private final PlasticSCM scm;
 

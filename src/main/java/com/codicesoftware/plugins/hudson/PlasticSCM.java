@@ -9,6 +9,7 @@ import com.codicesoftware.plugins.hudson.model.*;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 
+import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
 import hudson.*;
 import hudson.model.*;
 import hudson.scm.*;
@@ -49,7 +50,6 @@ public class PlasticSCM extends SCM {
     public final boolean useWorkspaceSubdirectory;
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
-    private boolean isRegularJob = false;
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
         "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -64,7 +64,6 @@ public class PlasticSCM extends SCM {
         firstWorkspace = null;
         additionalWorkspaces = null;
         useWorkspaceSubdirectory = false;
-        isRegularJob = true;
     }
 
     @DataBoundConstructor
@@ -78,7 +77,6 @@ public class PlasticSCM extends SCM {
         this.selector = selector;
         this.useUpdate = useUpdate;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
-        this.isRegularJob = true;
 
         if (workspaceName != null && !workspaceName.equals("")) {
             this.workspaceName = WorkspaceInfo.cleanWorkspaceName(workspaceName);
@@ -93,7 +91,7 @@ public class PlasticSCM extends SCM {
     }
 
     public boolean isUseMultipleWorkspaces() {
-        return workspaceName != null;
+        return useWorkspaceSubdirectory;
     }
 
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
@@ -138,14 +136,14 @@ public class PlasticSCM extends SCM {
             // shared libraries need to set the workspace name every time
             // because they use a common SCM object that isn't initialized
             // in a sane way
-            if (!isRegularJob)
+            if (isSharedLibrary(workspace))
                 workspaceInfo.setWorkspaceName("shl-" + workspace.getRemote().hashCode());
 
             String resolvedWorkspaceName = resolveWorkspaceNameParameters(
                     workspaceInfo.getWorkspaceName(), workspace, run.getParent(), run);
             FilePath plasticWorkspacePath = getPlasticWorkspacePath(
                     workspace, resolvedWorkspaceName, additionalWorkspaces == null);
-            String resolvedSelector = resolveSelectorParameters(
+            String resolvedSelector = SelectorParametersResolver.resolve(
                     workspaceInfo.getSelector(), parameterValues);
             result.addAll(
                 SetUpWorkspace(
@@ -162,6 +160,10 @@ public class PlasticSCM extends SCM {
 
         if (changelogFile != null)
             writeChangeLog(listener, changelogFile, result);
+    }
+
+    private static boolean isSharedLibrary(@Nonnull FilePath jenkinsPath) {
+        return jenkinsPath.getParent().getName().endsWith("@libs");
     }
 
     private List<ChangeSet> SetUpWorkspace(
@@ -247,6 +249,7 @@ public class PlasticSCM extends SCM {
 
         List<ParameterValue> parameters = getDefaultParameterValues(project);
         Run<?, ?> lastBuild = project.getLastBuild();
+
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspace = getPlasticWorkspacePath(
                     workspace,
@@ -254,7 +257,8 @@ public class PlasticSCM extends SCM {
                         workspaceInfo.getWorkspaceName(), workspace, project, lastBuild),
                     additionalWorkspaces == null);
 
-            String resolvedSelector = resolveSelectorParameters(workspaceInfo.selector, parameters);
+            String resolvedSelector = SelectorParametersResolver.resolve(
+                    workspaceInfo.selector, parameters);
             boolean hasChanges = hasChanges(
                     launcher,
                     plasticWorkspace,
@@ -310,27 +314,6 @@ public class PlasticSCM extends SCM {
         }
         result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
         return result.replaceAll("[\\.\\s]+$", "_");
-    }
-
-    private String resolveSelectorParameters(String selector, List<ParameterValue> parameters) {
-        if (parameters == null)
-            return selector;
-
-        logger.info("Replacing build parameters in selector...");
-
-        String result = selector;
-        for (ParameterValue parameter : parameters) {
-            if (!(parameter instanceof StringParameterValue))
-                continue;
-
-            StringParameterValue stringParameter = (StringParameterValue)parameter;
-            String variable = "%" + stringParameter.getName() + "%";
-            String value = stringParameter.value;
-            logger.info("Replacing [" + variable + "]->[" + value + "]");
-            result = result.replace(variable, value);
-        }
-
-        return result;
     }
 
     private String replaceBuildParameter(Run<?,?> run, String text) {

@@ -75,7 +75,7 @@ public class PlasticSCM extends SCM {
         firstWorkspace = null;
         additionalWorkspaces = null;
         useWorkspaceSubdirectory = false;
-        directory = "";
+        directory = null;
     }
 
     @DataBoundConstructor
@@ -92,7 +92,7 @@ public class PlasticSCM extends SCM {
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.directory = directory;
 
-        if (workspaceName != null && !workspaceName.equals("")) {
+        if (Util.fixEmpty(workspaceName) != null) {
             this.workspaceName = WorkspaceInfo.cleanWorkspaceName(workspaceName);
         }
 
@@ -150,8 +150,10 @@ public class PlasticSCM extends SCM {
             // shared libraries need to set the workspace name every time
             // because they use a common SCM object that isn't initialized
             // in a sane way
-            if (isSharedLibrary(workspace))
+            if (isSharedLibrary(workspace)) {
                 workspaceInfo.setWorkspaceName("shl-" + workspace.getRemote().hashCode());
+                workspaceInfo.setDirectory("");
+            }
 
             String plasticWorkspaceName = resolveWorkspaceNameParameters(workspace, workspaceInfo, run);
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
@@ -296,25 +298,21 @@ public class PlasticSCM extends SCM {
             return null;
         }
         String subdirectory = workspaceInfo.getDirectory();
-        if (subdirectory == null || subdirectory.isEmpty()) {
+        if (Util.fixEmpty(subdirectory) == null) {
             return jenkinsWorkspacePath;
         }
         return new FilePath(jenkinsWorkspacePath, workspaceInfo.getDirectory());
     }
 
-//    private String generateUniqueWorkspaceName(Run<?, ?> build) {
-//        String result = "jenkins-" + build.getParent().getName() + "-" + RandomStringUtils.randomAlphanumeric(12);
-//        return result.replaceAll("[^A-Za-z0-9_\\-]", "_");
-//    }
-
     private String resolveWorkspaceNameParameters(
             FilePath workspacePath,
             WorkspaceInfo workspaceInfo,
             Run<?,?> build) {
-        if (workspaceName == null)
-            return null;
-
         String result = workspaceName;
+
+        if (Util.fixEmpty(result) == null) {
+            result = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
+        }
 
         if (build != null) {
             result = replaceBuildParameter(build, result);
@@ -323,7 +321,7 @@ public class PlasticSCM extends SCM {
             result = Util.replaceMacro(result, buildVariableResolver);
         }
 
-        if (!workspaceInfo.getDirectory().isEmpty()) {
+        if (Util.fixEmpty(workspaceInfo.getDirectory()) != null) {
             result += "-" + workspaceInfo.getDirectory();
         }
         result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");

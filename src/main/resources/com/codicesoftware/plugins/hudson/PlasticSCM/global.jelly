@@ -1,9 +1,11 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
   <f:section title="Plastic SCM">
     <f:entry title="Plastic command line executable" help="/plugin/plasticscm-plugin/cmExecutable.html">
-      <f:textbox field="cmExecutable" value="${descriptor.cmExecutable}" />
+      <f:textbox field="cmExecutable" value="${descriptor.cmExecutable}" checkMethod="post" />
     </f:entry>
     <f:validateButton title="${%Check}" progress="${%Checking...}" method="checkExecutable" with="cmExecutable" />
   </f:section>
+
 </j:jelly>

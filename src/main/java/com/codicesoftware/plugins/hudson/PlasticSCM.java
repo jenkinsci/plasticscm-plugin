@@ -11,11 +11,13 @@ import hudson.model.*;
 import hudson.scm.*;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -573,6 +575,10 @@ public class PlasticSCM extends SCM {
             load();
         }
 
+        public String getDisplayName() {
+            return "Plastic SCM";
+        }
+
         public String getCmExecutable() {
             if (cmExecutable == null) {
                 return "cm";
@@ -593,7 +599,8 @@ public class PlasticSCM extends SCM {
             return true;
         }
 
-        public FormValidation doCheckExecutable(@QueryParameter("cmExecutable") final String value) {
+        @RequirePOST
+        public FormValidation doCheckExecutable(@QueryParameter("cmExecutable") String value) {
             try {
                 FormValidation validation = FormValidation.validateExecutable(value);
                 if (validation.kind == FormValidation.Kind.OK) {
@@ -607,23 +614,32 @@ public class PlasticSCM extends SCM {
             }
         }
 
-        public String getDisplayName() {
-            return "Plastic SCM";
-        }
-
-        public static FormValidation doCheckWorkspaceName(@QueryParameter final String value) {
+        @RequirePOST
+        public static FormValidation doCheckWorkspaceName(@QueryParameter String value) {
             return FormChecker.doCheckWorkspaceName(value);
         }
 
-        public static FormValidation doCheckSelector(@QueryParameter final String value) {
+        @RequirePOST
+        public static FormValidation doCheckSelector(@QueryParameter String value) {
             return FormChecker.doCheckSelector(value);
         }
 
-        public String getDefaultSelector() {
+        @RequirePOST
+        public static FormValidation doCheckDirectory(
+                @QueryParameter String value,
+                @QueryParameter boolean useMultipleWorkspaces,
+                @AncestorInPath Item item) {
+            if (Util.fixEmpty(value) == null && !useMultipleWorkspaces) {
+                return FormValidation.ok();
+            }
+            return FormChecker.doCheckDirectory(value, item);
+        }
+
+        public static String getDefaultSelector() {
             return PlasticSCM.DEFAULT_SELECTOR;
         }
 
-        public String getDefaultWorkspaceName() {
+        public static String getDefaultWorkspaceName() {
             return PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
         }
     }
@@ -696,19 +712,30 @@ public class PlasticSCM extends SCM {
 
             @Override
             public String getDisplayName() {
-                return "Workspace Info";
+                return "Plastic SCM Workspace";
             }
 
-            public static FormValidation doCheckWorkspaceName(@QueryParameter final String value) {
+            @RequirePOST
+            public static FormValidation doCheckWorkspaceName(@QueryParameter String value) {
                 return FormChecker.doCheckWorkspaceName(value);
             }
 
-            public static FormValidation doCheckSelector(@QueryParameter final String value) {
+            @RequirePOST
+            public static FormValidation doCheckSelector(@QueryParameter String value) {
                 return FormChecker.doCheckSelector(value);
             }
 
-            public String getDefaultSelector() {
+            @RequirePOST
+            public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
+                return FormChecker.doCheckDirectory(value, item);
+            }
+
+            public static String getDefaultSelector() {
                 return PlasticSCM.DEFAULT_SELECTOR;
+            }
+
+            public static String getDefaultWorkspaceName() {
+                return PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
             }
         }
     }

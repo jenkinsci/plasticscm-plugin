@@ -1,30 +1,26 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:block>
-    <table>
 
-      <f:entry title="Selector" help="/plugin/plasticscm-plugin/selector.html" field="selector">
-        <f:textarea default="${descriptor.getDefaultSelector()}" />
-      </f:entry>
+  <f:entry title="Selector" help="/plugin/plasticscm-plugin/selector.html" field="selector">
+    <f:textarea default="${descriptor.getDefaultSelector()}" checkMethod="post" />
+  </f:entry>
 
-      <f:entry title="Use update" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
-        <f:checkbox default="true" />
-      </f:entry>
+  <f:entry title="Use update" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
+    <f:checkbox default="true" />
+  </f:entry>
 
-      <f:entry title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html" field="workspaceName">
-        <f:textbox default="${descriptor.getDefaultWorkspaceName()}" />
-      </f:entry>
+  <f:entry title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html" field="workspaceName">
+    <f:textbox default="${descriptor.getDefaultWorkspaceName()}" checkMethod="post" />
+  </f:entry>
 
-      <f:entry title="Subdirectory" field="directory" help="/plugin/plasticscm-plugin/directory.html">
-        <f:textbox default=""/>
-      </f:entry>
+  <f:entry title="Subdirectory" field="directory" help="/plugin/plasticscm-plugin/directory.html">
+    <f:textbox checkMethod="post" />
+  </f:entry>
 
-      <f:optionalBlock title="Use multiple workspaces"  field="useMultipleWorkspaces" inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
-        <f:entry title="Additional workspaces" field="additionalWorkspaces">
-          <f:repeatableProperty field="additionalWorkspaces" add="Add workspace..."/>
-        </f:entry>
-      </f:optionalBlock>
+  <f:optionalBlock title="Use multiple workspaces" field="useMultipleWorkspaces" inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
+    <f:entry title="Additional workspaces" field="additionalWorkspaces">
+      <f:repeatableProperty field="additionalWorkspaces" add="Add workspace..." />
+    </f:entry>
+  </f:optionalBlock>
 
-    </table>
-  </f:block>
 </j:jelly>

@@ -10,9 +10,19 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 
 public class PlasticSCMStep extends SCMStep {
+
+    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";
+
+    private String branch = PlasticStepDescriptor.defaultBranch;
+    private String repository = PlasticStepDescriptor.defaultRepository;
+    private String server = PlasticStepDescriptor.defaultServer;
+
+    private boolean useUpdate = true;
+    private boolean useMultipleWorkspaces = false;
+    private String workspaceName = PlasticStepDescriptor.defaultWorkspaceName;
+    private String directory = "";
 
     @DataBoundConstructor
     public PlasticSCMStep() {
@@ -63,6 +73,15 @@ public class PlasticSCMStep extends SCMStep {
         this.workspaceName = workspaceName;
     }
 
+    public String getDirectory() {
+        return directory;
+    }
+
+    @DataBoundSetter
+    public void setDirectory(String directory) {
+        this.directory = directory;
+    }
+
     public boolean isUseMultipleWorkspaces() {
         return useMultipleWorkspaces;
     }
@@ -76,30 +95,19 @@ public class PlasticSCMStep extends SCMStep {
     @Override
     protected SCM createSCM() {
         return new PlasticSCM(
-            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null);
+            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null, directory);
     }
 
     String buildSelector() {
         return String.format(SELECTOR_FORMAT, repository, server, branch);
     }
 
-    private String branch = PlasticStepDescriptor.defaultBranch;
-    private String repository = PlasticStepDescriptor.defaultRepository;
-    private String server = PlasticStepDescriptor.defaultServer;
-
-    private boolean useUpdate = true;
-    private boolean useMultipleWorkspaces = false;
-    private String workspaceName = "";
-
-    private static final String SELECTOR_FORMAT =
-            "rep \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";
-
     @Extension
     public static final class PlasticStepDescriptor extends SCMStepDescriptor {
-        public static final String defaultBranch = "/main";
-        public static final String defaultRepository = "default";
-        public static final String defaultServer = "localhost:8087";
-        public static final String defaultWorkspaceName = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
+        public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
+        public static final String defaultRepository = PlasticSCM.DEFAULT_REPOSITORY;
+        public static final String defaultServer = PlasticSCM.DEFAULT_SERVER;
+        public static final String defaultWorkspaceName = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
 
         @Override
         public String getFunctionName() {

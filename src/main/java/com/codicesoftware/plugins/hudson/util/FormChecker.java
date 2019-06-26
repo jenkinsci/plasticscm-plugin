@@ -18,9 +18,6 @@ public class FormChecker {
     private static final Pattern NO_AT_CHAR_REGEX = Pattern.compile("^[^@]+$");
     private static final Pattern SERVER_REGEX = Pattern.compile("^.+:[0-9]+$");
 
-    private static final String DEFAULT_SELECTOR =
-        "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
-
     public static FormValidation doCheckWorkspaceName(String value) {
         return doRegexCheck(WORKSPACE_REGEX, "Workspace name should not include @, #, / or :",
             "Workspace name is mandatory", value);
@@ -76,10 +73,6 @@ public class FormChecker {
         } else {
             return FormValidation.respond(FormValidation.Kind.OK, "<div class=\"info greenbold\">" + text + "</div>");
         }
-    }
-
-    public static String getDefaultSelector() {
-        return DEFAULT_SELECTOR;
     }
 
 }

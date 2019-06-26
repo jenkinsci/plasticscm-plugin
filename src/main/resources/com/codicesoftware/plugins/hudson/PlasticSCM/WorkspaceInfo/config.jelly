@@ -1,15 +1,20 @@
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
   <f:entry title="Selector" help="/plugin/plasticscm-plugin/selector.html" field="selector">
     <f:textarea default="${descriptor.getDefaultSelector()}" />
   </f:entry>
 
-  <f:entry title="Use update" description="If selected, Jenkins will not delete the workspace at the end of each build, making the build faster.  But this causes the artifacts from the previous build to remain when a new build starts." field="useUpdate">
+  <f:entry title="Use update" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
     <f:checkbox default="true" />
   </f:entry>
   
   <f:entry title="Workspace name" help="/plugin/plasticscm-plugin/workspace.html" field="workspaceName">
     <f:textbox />
+  </f:entry>
+
+  <f:entry title="Subdirectory" field="directory" help="/plugin/plasticscm-plugin/directory.html">
+    <f:textbox default=""/>
   </f:entry>
 
   <f:entry>

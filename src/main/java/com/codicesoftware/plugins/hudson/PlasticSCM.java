@@ -1,30 +1,16 @@
 package com.codicesoftware.plugins.hudson;
 
-import static hudson.scm.PollingResult.BUILD_NOW;
-import static hudson.scm.PollingResult.NO_CHANGES;
-
 import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
 import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
-import com.codicesoftware.plugins.hudson.model.*;
+import com.codicesoftware.plugins.hudson.model.BuildData;
+import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
-
 import hudson.*;
 import hudson.model.*;
 import hudson.scm.*;
 import hudson.util.FormValidation;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.ParseException;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -34,6 +20,20 @@ import org.kohsuke.stapler.export.ExportedBean;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static hudson.scm.PollingResult.BUILD_NOW;
+import static hudson.scm.PollingResult.NO_CHANGES;
 
 /**
  * SCM for Plastic SCM
@@ -43,13 +43,22 @@ import javax.annotation.Nullable;
  * @author Dick Porter
  */
 public class PlasticSCM extends SCM {
+
+    public static final String DEFAULT_BRANCH = "/main";
+    public static final String DEFAULT_REPOSITORY = "default";
+    public static final String DEFAULT_SERVER = "localhost:8087";
+    public static final String DEFAULT_SELECTOR = "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
+
+    public static final String WORKSPACE_NAME_PARAMETRIZED = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
+
     public final String selector;
-    public String workspaceName = PlasticSCMStep.PlasticStepDescriptor.defaultWorkspaceName;
+    public String workspaceName = WORKSPACE_NAME_PARAMETRIZED;
     public final boolean useUpdate;
     public final boolean useWorkspaceSubdirectory;
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
     private boolean isRegularJob = false;
+    public final String directory;
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
         "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -59,12 +68,13 @@ public class PlasticSCM extends SCM {
     private static final Logger logger = Logger.getLogger(PlasticSCM.class.getName());
     
     private PlasticSCM() {
-        selector = FormChecker.getDefaultSelector();
+        selector = DEFAULT_SELECTOR;
         useUpdate = true;
         firstWorkspace = null;
         additionalWorkspaces = null;
         useWorkspaceSubdirectory = false;
         isRegularJob = true;
+        directory = "";
     }
 
     @DataBoundConstructor
@@ -73,18 +83,20 @@ public class PlasticSCM extends SCM {
             String workspaceName,
             boolean useUpdate,
             boolean useMultipleWorkspaces,
-            List<WorkspaceInfo> additionalWorkspaces) {
+            List<WorkspaceInfo> additionalWorkspaces,
+            String directory) {
         logger.info("Initializing PlasticSCM plugin");
         this.selector = selector;
         this.useUpdate = useUpdate;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.isRegularJob = true;
+        this.directory = directory;
 
         if (workspaceName != null && !workspaceName.equals("")) {
             this.workspaceName = WorkspaceInfo.cleanWorkspaceName(workspaceName);
         }
 
-        firstWorkspace = new WorkspaceInfo(selector, this.workspaceName, useUpdate);
+        firstWorkspace = new WorkspaceInfo(this.selector, this.workspaceName, this.useUpdate, this.directory);
         if(additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
             return;
@@ -93,7 +105,7 @@ public class PlasticSCM extends SCM {
     }
 
     public boolean isUseMultipleWorkspaces() {
-        return workspaceName != null;
+        return useWorkspaceSubdirectory;
     }
 
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
@@ -141,10 +153,8 @@ public class PlasticSCM extends SCM {
             if (!isRegularJob)
                 workspaceInfo.setWorkspaceName("shl-" + workspace.getRemote().hashCode());
 
-            String resolvedWorkspaceName = resolveWorkspaceNameParameters(
-                    workspaceInfo.getWorkspaceName(), workspace, run.getParent(), run);
-            FilePath plasticWorkspacePath = getPlasticWorkspacePath(
-                    workspace, resolvedWorkspaceName, additionalWorkspaces == null);
+            String plasticWorkspaceName = resolveWorkspaceNameParameters(workspace, workspaceInfo, run);
+            FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = resolveSelectorParameters(
                     workspaceInfo.getSelector(), parameterValues);
             result.addAll(
@@ -152,8 +162,7 @@ public class PlasticSCM extends SCM {
                     run,
                     launcher,
                     listener,
-                    workspaceInfo.getWorkspaceName(),
-                    resolvedWorkspaceName,
+                    plasticWorkspaceName,
                     plasticWorkspacePath,
                     resolvedSelector,
                     workspaceInfo.getUseUpdate())
@@ -168,32 +177,28 @@ public class PlasticSCM extends SCM {
             @Nonnull final Run<?, ?> run,
             @Nonnull final Launcher launcher,
             @Nonnull final TaskListener listener,
-            @Nonnull final String originalWorkspaceName,
             @Nonnull final String plasticWorkspaceName,
             @Nonnull final FilePath plasticWorkspacePath,
             @Nonnull final String resolvedSelector,
             @Nonnull final boolean useUpdate) throws IOException, InterruptedException {
-        if (!plasticWorkspacePath.exists())
-                plasticWorkspacePath.mkdirs();
+        if (!plasticWorkspacePath.exists()) {
+            plasticWorkspacePath.mkdirs();
+        }
 
         PlasticTool tool = new PlasticTool(
                 getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
-
-        String wkName = plasticWorkspaceName != null ?  plasticWorkspaceName :
-                WorkspaceInfo.cleanWorkspaceName(plasticWorkspacePath.getName());
 
         List<ChangeSet> csetsInBuild = FindCsets(
             run, tool, listener, plasticWorkspacePath,
             getSelectorBranch(resolvedSelector),
             getSelectorRepository(resolvedSelector));
-        run.addAction(new BuildData(
-            originalWorkspaceName, getLastChangeSet(csetsInBuild)));
+        run.addAction(new BuildData(plasticWorkspaceName, getLastChangeSet(csetsInBuild)));
 
         checkoutWorkspace(
             plasticWorkspacePath,
             tool,
             listener,
-            wkName,
+            plasticWorkspaceName,
             resolvedSelector,
             useUpdate);
 
@@ -248,16 +253,11 @@ public class PlasticSCM extends SCM {
         List<ParameterValue> parameters = getDefaultParameterValues(project);
         Run<?, ?> lastBuild = project.getLastBuild();
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
-            FilePath plasticWorkspace = getPlasticWorkspacePath(
-                    workspace,
-                    resolveWorkspaceNameParameters(
-                        workspaceInfo.getWorkspaceName(), workspace, project, lastBuild),
-                    additionalWorkspaces == null);
-
+            FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = resolveSelectorParameters(workspaceInfo.selector, parameters);
             boolean hasChanges = hasChanges(
                     launcher,
-                    plasticWorkspace,
+                    plasticWorkspacePath,
                     listener,
                     lastBuild.getTimestamp(),
                     getSelectorBranch(resolvedSelector),
@@ -282,20 +282,27 @@ public class PlasticSCM extends SCM {
         return result;
     }
 
-    private FilePath getPlasticWorkspacePath(
-            FilePath jenkinsPath,
-            String resolvedWorkspaceName,
-            boolean isSingleWorkspace) {
-        if(resolvedWorkspaceName == null || isSingleWorkspace && !useWorkspaceSubdirectory)
-            return jenkinsPath;
-
-        return new FilePath(jenkinsPath, resolvedWorkspaceName);
+    private FilePath resolveWorkspacePath(
+            FilePath jenkinsWorkspacePath,
+            WorkspaceInfo workspaceInfo) {
+        if (jenkinsWorkspacePath == null || workspaceInfo == null) {
+            return null;
+        }
+        String subdirectory = workspaceInfo.getDirectory();
+        if (subdirectory == null || subdirectory.isEmpty()) {
+            return jenkinsWorkspacePath;
+        }
+        return new FilePath(jenkinsWorkspacePath, workspaceInfo.getDirectory());
     }
 
+//    private String generateUniqueWorkspaceName(Run<?, ?> build) {
+//        String result = "jenkins-" + build.getParent().getName() + "-" + RandomStringUtils.randomAlphanumeric(12);
+//        return result.replaceAll("[^A-Za-z0-9_\\-]", "_");
+//    }
+
     private String resolveWorkspaceNameParameters(
-            String workspaceName,
             FilePath workspacePath,
-            Job<?,?> project,
+            WorkspaceInfo workspaceInfo,
             Run<?,?> build) {
         if (workspaceName == null)
             return null;
@@ -305,8 +312,12 @@ public class PlasticSCM extends SCM {
         if (build != null) {
             result = replaceBuildParameter(build, result);
             BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
-                project, Computer.currentComputer(), workspacePath);
+                build.getParent(), Computer.currentComputer(), workspacePath);
             result = Util.replaceMacro(result, buildVariableResolver);
+        }
+
+        if (!workspaceInfo.getDirectory().isEmpty()) {
+            result += "-" + workspaceInfo.getDirectory();
         }
         result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
         return result.replaceAll("[\\.\\s]+$", "_");
@@ -345,7 +356,7 @@ public class PlasticSCM extends SCM {
     }
 
     private static void checkoutWorkspace(
-            FilePath plasticWorkspace,
+            FilePath workspacePath,
             PlasticTool tool,
             TaskListener listener,
             String workspaceName,
@@ -353,7 +364,7 @@ public class PlasticSCM extends SCM {
             boolean useUpdate) throws IOException, InterruptedException {
         try {
             CheckoutAction.checkout(
-                tool, workspaceName, plasticWorkspace, selector, useUpdate);
+                tool, workspaceName, workspacePath, selector, useUpdate);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         } catch (IOException e) {
@@ -609,11 +620,11 @@ public class PlasticSCM extends SCM {
         }
 
         public String getDefaultSelector() {
-            return FormChecker.getDefaultSelector();
+            return PlasticSCM.DEFAULT_SELECTOR;
         }
 
         public String getDefaultWorkspaceName() {
-            return PlasticSCMStep.PlasticStepDescriptor.defaultWorkspaceName;
+            return PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
         }
     }
 
@@ -628,16 +639,21 @@ public class PlasticSCM extends SCM {
         @Exported
         public final boolean useUpdate;
 
+        @Exported
+        public String directory;
+
         private static final long serialVersionUID = 1L;
 
         @DataBoundConstructor
         public WorkspaceInfo(
                 String selector,
                 String workspaceName,
-                boolean useUpdate) {
+                boolean useUpdate,
+                String directory) {
             this.selector = selector;
             this.workspaceName = cleanWorkspaceName(workspaceName);
             this.useUpdate = useUpdate;
+            this.directory = directory;
         }
 
         @Override
@@ -650,7 +666,7 @@ public class PlasticSCM extends SCM {
         }
 
         public void setWorkspaceName(String workspaceName) {
-            this.workspaceName = workspaceName;
+            this.workspaceName = Util.fixNull(workspaceName);
         }
 
         public String getSelector() {
@@ -665,6 +681,14 @@ public class PlasticSCM extends SCM {
             if(wkName == null)
                 return null;
             return wkName.replaceAll("@", "-");
+        }
+
+        public String getDirectory() {
+            return directory;
+        }
+
+        public void setDirectory(String directory) {
+            this.directory = Util.fixNull(directory);
         }
 
         @Extension
@@ -684,7 +708,7 @@ public class PlasticSCM extends SCM {
             }
 
             public String getDefaultSelector() {
-                return FormChecker.getDefaultSelector();
+                return PlasticSCM.DEFAULT_SELECTOR;
             }
         }
     }

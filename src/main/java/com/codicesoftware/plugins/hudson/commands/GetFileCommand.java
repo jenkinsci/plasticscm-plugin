@@ -3,6 +3,10 @@ package com.codicesoftware.plugins.hudson.commands;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 
 public class GetFileCommand implements Command {
+
+    private final String revSpec;
+    private final String filePath;
+
     public GetFileCommand(String revSpec, String filePath) {
         this.revSpec = revSpec;
         this.filePath = filePath;
@@ -15,7 +19,4 @@ public class GetFileCommand implements Command {
         arguments.add("--file=" + filePath);
         return arguments;
     }
-
-    private final String filePath;
-    private final String revSpec;
 }

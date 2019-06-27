@@ -25,9 +25,6 @@
     <f:textbox checkMethod="post" />
   </f:entry>
 
-  <f:optionalBlock field="useMultipleWorkspaces" title="Use multiple workspaces" inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
-  </f:optionalBlock>
-
   <st:include page="config-generic.jelly" class="org.jenkinsci.plugins.workflow.steps.scm.SCMStep" />
 
 </j:jelly>

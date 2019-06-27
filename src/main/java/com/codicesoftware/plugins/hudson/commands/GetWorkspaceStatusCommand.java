@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.ChangesetID;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -12,19 +13,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetWorkspaceStatusCommand implements ParseableCommand<List<ChangesetID>>, Command {
+
     private static final Pattern statusRegex = Pattern.compile("^cs:(\\d+)@rep:(.+)@repserver:(.+):(\\d+)$");
 
-    private String mWkPath;
+    private final String workspacePath;
 
-    public GetWorkspaceStatusCommand(String wkPath) {
-        mWkPath = wkPath;
+    public GetWorkspaceStatusCommand(String workspacePath) {
+        this.workspacePath = workspacePath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("status");
-        arguments.add(mWkPath);
+        arguments.add(workspacePath);
 
         return arguments;
     }

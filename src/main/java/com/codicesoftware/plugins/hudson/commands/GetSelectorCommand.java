@@ -1,12 +1,14 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
 public class GetSelectorCommand implements ParseableCommand<String>, Command {
+
     private final String workspaceName;
 
     public GetSelectorCommand(String workspaceName) {

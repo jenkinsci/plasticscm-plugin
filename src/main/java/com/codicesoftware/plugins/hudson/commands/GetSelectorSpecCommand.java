@@ -9,14 +9,17 @@ import java.io.Reader;
 import java.text.ParseException;
 
 public class GetSelectorSpecCommand implements ParseableCommand<WorkspaceInfo>, Command {
-    public GetSelectorSpecCommand(String filePath) {
-        this.filePath = filePath;
+
+    private final String selectorPath;
+
+    public GetSelectorSpecCommand(String selectorPath) {
+        this.selectorPath = selectorPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
         arguments.add("checkselectorsyntax");
-        arguments.add("--file=" + filePath);
+        arguments.add("--file=" + selectorPath);
         arguments.add("--spec");
         arguments.add("--machinereadable");
         arguments.add("--fieldseparator=" + WorkspaceInfoParser.DEFAULT_SEPARATOR);
@@ -30,11 +33,8 @@ public class GetSelectorSpecCommand implements ParseableCommand<WorkspaceInfo>, 
             return WorkspaceInfoParser.parse(line);
         } catch (Exception e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
-        }
-        finally {
+        } finally {
             reader.close();
         }
     }
-
-    private final String filePath;
 }

@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -11,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ListWorkspacesCommand implements ParseableCommand<List<Workspace>>, Command {
+
     private static final Pattern parserPattern = Pattern.compile("^(.*)#(.*)#(.*)$");
 
     public MaskedArgumentListBuilder getArguments() {

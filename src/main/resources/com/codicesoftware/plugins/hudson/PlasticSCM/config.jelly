@@ -17,7 +17,7 @@
     <f:textbox checkMethod="post" />
   </f:entry>
 
-  <f:optionalBlock title="Use multiple workspaces" field="useMultipleWorkspaces" inline="true" help="/plugin/plasticscm-plugin/multipleworkspaces.html">
+  <f:optionalBlock title="Use multiple workspaces" field="useMultipleWorkspaces" inline="true" help="/plugin/plasticscm-plugin/multipleWorkspaces.html">
     <f:entry title="Additional workspaces" field="additionalWorkspaces">
       <f:repeatableProperty field="additionalWorkspaces" add="Add workspace..." />
     </f:entry>

@@ -1,6 +1,5 @@
 package com.codicesoftware.plugins.hudson.model;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.scm.RepositoryBrowser;
 
@@ -9,16 +8,16 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * ChangeLogSet for the Plastic SCM
+ * ChangeSetList for the Plastic SCM
  * The log set will set the parent of the log entries in the constructor.
  *
  * @author Erik Ramfelt
  * @author Dick Porter
  */
-public class ChangeLogSet extends hudson.scm.ChangeLogSet<ChangeSet> {
+public class ChangeSetList extends hudson.scm.ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;
 
-    public ChangeLogSet(
+    public ChangeSetList(
             Run<?, ?> run, RepositoryBrowser<?> browser, List<ChangeSet> changesets) {
         super(run, browser);
         this.changesets = changesets;
@@ -27,7 +26,7 @@ public class ChangeLogSet extends hudson.scm.ChangeLogSet<ChangeSet> {
         }
     }
 
-    public ChangeLogSet(
+    public ChangeSetList(
             Run<?, ?> run, RepositoryBrowser<?> browser, ChangeSet[] changesetArray) {
         super(run, browser);
         changesets = new ArrayList<ChangeSet>();

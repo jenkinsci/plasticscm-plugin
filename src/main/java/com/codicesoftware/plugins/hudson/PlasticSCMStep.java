@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 
 public class PlasticSCMStep extends SCMStep {
 
-    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";
+    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
 
     private String branch = DescriptorImpl.defaultBranch;
     private String repository = DescriptorImpl.defaultRepository;

@@ -1,16 +1,14 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.util.DateUtil;
-
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import java.text.ParseException;
 import java.util.*;
-
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean(defaultVisibility=999)
 public class ChangeSet extends ChangeLogSet.Entry {
@@ -35,7 +33,7 @@ public class ChangeSet extends ChangeLogSet.Entry {
         this.version = version;
         this.repoName = repoName;
         this.repoServer = repoServer;
-        this.date = date;
+        this.date = (date != null) ? new Date(date.getTime()) : null;
         this.comment = comment;
         this.branch = branch;
         this.guid = guid;
@@ -135,7 +133,10 @@ public class ChangeSet extends ChangeLogSet.Entry {
 
     @Exported
     public Date getDate() {
-        return date;
+        if (date != null) {
+            return new Date(date.getTime());
+        }
+        return null;
     }
 
     public void setChangesetDateStr(String dateStr) throws ParseException {

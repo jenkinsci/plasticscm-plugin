@@ -6,11 +6,9 @@ import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.TaskListener;
 import hudson.util.ForkOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 /**
@@ -97,8 +95,9 @@ public class PlasticTool {
                 .pwd(executionPath).start();
         consoleStream.close();
 
-        if (proc.join() == 0)
-            return new InputStreamReader(new ByteArrayInputStream(consoleStream.toByteArray()));
+        if (proc.join() == 0) {
+            return new InputStreamReader(new ByteArrayInputStream(consoleStream.toByteArray()), StandardCharsets.UTF_8);
+        }
         return null;
     }
 }

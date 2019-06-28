@@ -1,23 +1,23 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.codicesoftware.plugins.hudson.model.ChangeLogSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.codicesoftware.plugins.hudson.model.ChangeSetList;
 import hudson.model.Run;
+import hudson.scm.ChangeLogParser;
 import hudson.scm.RepositoryBrowser;
+import hudson.util.Digester2;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
-import hudson.scm.ChangeLogParser;
-import hudson.util.Digester2;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Plastic SCM change log reader, based on tfs version.
@@ -28,10 +28,10 @@ import hudson.util.Digester2;
 public class ChangeSetReader extends ChangeLogParser {
 
     @Override
-    public ChangeLogSet parse(
+    public ChangeSetList parse(
             Run run, RepositoryBrowser<?> browser, File changelogFile)
             throws IOException, SAXException {
-        FileReader reader = new FileReader(changelogFile);
+        BufferedReader reader = Files.newBufferedReader(changelogFile.toPath(), StandardCharsets.UTF_8);
         try {
             return parse(run, browser, reader);
         } finally {
@@ -39,7 +39,7 @@ public class ChangeSetReader extends ChangeLogParser {
         }
     }
 
-    public ChangeLogSet parse(
+    public ChangeSetList parse(
             Run<?,?> run, RepositoryBrowser<?> browser, Reader reader)
             throws IOException, SAXException {
         List<ChangeSet> changesetList = new ArrayList<ChangeSet>();
@@ -62,6 +62,6 @@ public class ChangeSetReader extends ChangeLogParser {
 
         digester.parse(reader);
 
-        return new ChangeLogSet(run, browser, changesetList);
+        return new ChangeSetList(run, browser, changesetList);
     }
 }

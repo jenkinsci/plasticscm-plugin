@@ -9,12 +9,15 @@ import java.io.Serializable;
 import static java.lang.String.format;
 
 @ExportedBean(defaultVisibility = 999)
-public class BuildData implements Action, Serializable, Cloneable{
+public class BuildData implements Action, Serializable, Cloneable {
+
+    private static final long serialVersionUID = 2L;
 
     private static final String NONE = "NONE";
 
     public String wkName;
-    public ChangeSet builtCset;
+    //TODO this field should be replaced with a better object to make it serialize properly
+    public transient ChangeSet builtCset;
 
     public BuildData() {
     }
@@ -58,7 +61,7 @@ public class BuildData implements Action, Serializable, Cloneable{
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Object clone() {
         BuildData result;
         try {
             result = (BuildData)super.clone();

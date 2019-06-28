@@ -161,7 +161,7 @@ public class PlasticSCM extends SCM {
             String resolvedSelector = SelectorParametersResolver.resolve(
                     workspaceInfo.getSelector(), parameterValues);
             result.addAll(
-                SetUpWorkspace(
+                setupWorkspace(
                     run,
                     launcher,
                     listener,
@@ -180,7 +180,7 @@ public class PlasticSCM extends SCM {
         return jenkinsPath.getParent().getName().endsWith("@libs");
     }
 
-    private List<ChangeSet> SetUpWorkspace(
+    private List<ChangeSet> setupWorkspace(
             @Nonnull final Run<?, ?> run,
             @Nonnull final Launcher launcher,
             @Nonnull final TaskListener listener,
@@ -195,7 +195,7 @@ public class PlasticSCM extends SCM {
         PlasticTool tool = new PlasticTool(
                 getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
 
-        List<ChangeSet> csetsInBuild = FindCsets(
+        List<ChangeSet> csetsInBuild = findChangesets(
             run, tool, listener, plasticWorkspacePath,
             getSelectorBranch(resolvedSelector),
             getSelectorRepository(resolvedSelector));
@@ -356,7 +356,7 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private static List<ChangeSet> FindCsets(
+    private static List<ChangeSet> findChangesets(
             Run<?, ?> build,
             PlasticTool tool,
             TaskListener listener,

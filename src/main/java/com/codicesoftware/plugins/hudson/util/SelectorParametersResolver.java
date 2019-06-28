@@ -1,14 +1,16 @@
 package com.codicesoftware.plugins.hudson.util;
 
+import hudson.Util;
 import hudson.model.ParameterValue;
-import hudson.model.StringParameterValue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class SelectorParametersResolver {
-    private static final Logger logger = Logger.getLogger(
-            SelectorParametersResolver.class.getName());
+
+    private static final Logger logger = Logger.getLogger(SelectorParametersResolver.class.getName());
 
     public static String resolve(
             String selector, List<ParameterValue> parameters) {
@@ -17,18 +19,11 @@ public class SelectorParametersResolver {
 
         logger.info("Replacing build parameters in selector...");
 
-        String result = selector;
+        Map<String, String> parametersMap = new HashMap<>();
         for (ParameterValue parameter : parameters) {
-            if (!(parameter instanceof StringParameterValue))
-                continue;
-
-            StringParameterValue stringParameter = (StringParameterValue)parameter;
-            String variable = "%" + stringParameter.getName() + "%";
-            String value = stringParameter.value;
-            logger.info("Replacing [" + variable + "]->[" + value + "]");
-            result = result.replace(variable, value);
+            parametersMap.put(parameter.getName(), parameter.getValue().toString());
         }
 
-        return result;
+        return Util.replaceMacro(selector, parametersMap);
     }
 }

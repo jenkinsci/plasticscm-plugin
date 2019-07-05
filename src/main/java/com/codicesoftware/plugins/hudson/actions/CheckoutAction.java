@@ -106,7 +106,7 @@ public final class CheckoutAction {
             return;
 
         boolean bHasSameName = workspace.getName().equals(workspaceName);
-        boolean bHasSamePath = isSamePath(workspacePath.getRemote(), workspacePath.getRemote());
+        boolean bHasSamePath = isSameWorkspacePath(workspace.getPath(), workspacePath.getRemote());
 
         if (shouldUseUpdate && bHasSameName && bHasSamePath)
             return;
@@ -114,12 +114,15 @@ public final class CheckoutAction {
         deleteWorkspace(tool, workspace, workspaces);
     }
 
-    private static boolean isSamePath(String expected, String actual) {
-        Matcher windowsPathMatcher = windowsPathPattern.matcher(actual);
+    private static boolean isSameWorkspacePath(String actual, String expected) {
+        String actualFixed = actual.replaceAll("\\\\", "/");
+        String expectedFixed = expected.replaceAll("\\\\", "/");
+
+        Matcher windowsPathMatcher = windowsPathPattern.matcher(expectedFixed);
         if (windowsPathMatcher.matches()) {
-            return actual.equalsIgnoreCase(expected);
+            return actualFixed.equalsIgnoreCase(expectedFixed);
         }
-        return actual.equals(expected);
+        return actualFixed.equals(expectedFixed);
     }
 
     private static void deleteWorkspace(
@@ -148,7 +151,7 @@ public final class CheckoutAction {
     private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath wkPath)
     {
         for (Workspace workspace : workspaces) {
-            if(isSamePath(workspace.getPath(), wkPath.getRemote()))
+            if(isSameWorkspacePath(workspace.getPath(), wkPath.getRemote()))
                 return workspace;
         }
         return null;
@@ -160,11 +163,11 @@ public final class CheckoutAction {
 
         for (Workspace workspace : workspaces) {
             String parentPath = FilenameUtils.getFullPathNoEndSeparator(workspace.getPath());
-            if(isSamePath(parentPath, wkPath.getRemote()))
+            if(isSameWorkspacePath(parentPath, wkPath.getRemote()))
                 result.add(workspace);
         }
         return result;
     }
 
-    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:\\\\.*$");
+    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:/.*$");
 }

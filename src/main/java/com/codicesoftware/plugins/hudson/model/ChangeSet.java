@@ -7,11 +7,14 @@ import hudson.scm.EditType;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.*;
 
 @ExportedBean(defaultVisibility=999)
-public class ChangeSet extends ChangeLogSet.Entry {
+public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
+    private static final long serialVersionUID = 2536283825419567018L;
+
     private String version;
     private String repoName;
     private String repoServer;
@@ -20,7 +23,7 @@ public class ChangeSet extends ChangeLogSet.Entry {
     private Date date;
     private String comment;
     private String guid;
-    private List<Item> items;
+    private ArrayList<Item> items;
     private String workspaceDir;
 
     public ChangeSet() {
@@ -37,14 +40,14 @@ public class ChangeSet extends ChangeLogSet.Entry {
         this.comment = comment;
         this.branch = branch;
         this.guid = guid;
-        items = new ArrayList<Item>();
+        items = new ArrayList<>();
         setUser(user);
         this.workspaceDir = "/";
     }
     
     @Override
     public Collection<String> getAffectedPaths() {
-        Collection<String> paths = new ArrayList<String>(items.size());
+        Collection<String> paths = new ArrayList<>(items.size());
         for (Item item : items) {
             paths.add(item.getPath());
         }
@@ -58,7 +61,7 @@ public class ChangeSet extends ChangeLogSet.Entry {
 
     @Override
     public ChangeLogSet getParent() {
-        return (ChangeLogSet)super.getParent();
+        return super.getParent();
     }
 
     @Override
@@ -190,7 +193,9 @@ public class ChangeSet extends ChangeLogSet.Entry {
     }
 
     @ExportedBean(defaultVisibility=999)
-    public static class Item implements ChangeLogSet.AffectedFile {
+    public static class Item implements ChangeLogSet.AffectedFile, Serializable {
+        private static final long serialVersionUID = -197448462344216883L;
+
         private String path;
         private ChangeSet parent;
         private String revno;

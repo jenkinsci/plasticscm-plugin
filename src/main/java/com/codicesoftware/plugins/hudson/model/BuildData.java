@@ -10,14 +10,12 @@ import static java.lang.String.format;
 
 @ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
-
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = -3335648855305648577L;
 
     private static final String NONE = "NONE";
 
     public String wkName;
-    //TODO this field should be replaced with a better object to make it serialize properly
-    public transient ChangeSet builtCset;
+    public ChangeSet builtCset;
 
     public BuildData() {
     }

@@ -111,7 +111,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.repoServer = repoServer;
     }
 
+    /**
+     * @deprecated Returned value does not follow RepSpec format
+     */
     @Exported
+    @Deprecated
     public String getRepository() {
         return repoName + "@" + repoServer;
     }
@@ -182,13 +186,12 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         return items;
     }
 
-    public void add(ChangeSet.Item item) {
+    public void addItem(ChangeSet.Item item) {
         items.add(item);
-        item.setParent(this);
     }
 
     @Override
-    protected void setParent(hudson.scm.ChangeLogSet parent) {
+    protected void setParent(ChangeLogSet parent) {
         super.setParent(parent);
     }
 
@@ -197,28 +200,19 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         private static final long serialVersionUID = -197448462344216883L;
 
         private String path;
-        private ChangeSet parent;
-        private String revno;
-        private String parentRevno;
+        private String revId;
+        private String parentRevId;
         private String status;
 
         public Item() {
             this("", "", "", "");
         }
 
-        public Item(String path, String revno, String parentRevno, String status) {
+        public Item(String path, String revId, String parentRevId, String status) {
             setPath(path);
-            this.revno = revno;
-            this.parentRevno = parentRevno;
+            this.revId = revId;
+            this.parentRevId = parentRevId;
             this.status = status;
-        }
-
-        public ChangeSet getParent() {
-            return parent;
-        }
-
-        void setParent(ChangeSet parent) {
-            this.parent = parent;
         }
 
         @Exported
@@ -248,31 +242,44 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         }
 
         @Exported
-        public String getRevno() {
-            return revno;
+        public String getRevId() {
+            return revId;
         }
 
-        public void setRevno(String revno) {
-            this.revno = revno;
+        public void setRevId(String revId) {
+            this.revId = revId;
         }
 
         @Exported
-        public String getParentRevno() {
-            return parentRevno;
+        public String getParentRevId() {
+            return parentRevId;
         }
 
-        public void setParentRevno(String parentRevno) {
-            this.parentRevno = parentRevno;
+        public void setParentRevId(String parentRevId) {
+            this.parentRevId = parentRevId;
+        }
+
+        @Exported
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
         }
 
         @Exported
         @Override
         public EditType getEditType() {
-            if (status.equals("A"))
-                return EditType.ADD;
-            if (status.equals("D"))
-                return EditType.DELETE;
-            return EditType.EDIT;
+            String type = (status != null) ? status.toLowerCase() : "";
+            switch (type) {
+                case "added":
+                    return EditType.ADD;
+                case "deleted":
+                    return EditType.DELETE;
+                default:
+                    return EditType.EDIT;
+            }
         }
     }
 }

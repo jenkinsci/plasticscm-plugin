@@ -1,9 +1,10 @@
 package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
-import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
+import com.codicesoftware.plugins.hudson.commands.*;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.hudson.model.ChangeSetID;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
@@ -140,7 +141,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final TaskListener listener,
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException  {
-        List<ChangeSet> result = new ArrayList<ChangeSet>();
+        List<ChangeSet> result = new ArrayList<>();
 
         ParametersAction parameters = run.getAction(ParametersAction.class);
         List<ParameterValue> parameterValues =
@@ -160,27 +161,28 @@ public class PlasticSCM extends SCM {
 
             String resolvedSelector = SelectorParametersResolver.resolve(
                     workspaceInfo.getSelector(), parameterValues);
-            result.addAll(
-                setupWorkspace(
-                    run,
-                    launcher,
-                    listener,
-                    plasticWorkspaceName,
-                    plasticWorkspacePath,
-                    resolvedSelector,
-                    workspaceInfo.getUseUpdate())
-            );
+
+            ChangeSet cset = setupWorkspace(
+                run,
+                launcher,
+                listener,
+                plasticWorkspaceName,
+                plasticWorkspacePath,
+                resolvedSelector,
+                workspaceInfo.getUseUpdate());
+            result.add(cset);
         }
 
-        if (changelogFile != null)
+        if (changelogFile != null) {
             writeChangeLog(listener, changelogFile, result);
+        }
     }
 
     private static boolean isSharedLibrary(@Nonnull FilePath jenkinsPath) {
         return jenkinsPath.getParent().getName().endsWith("@libs");
     }
 
-    private List<ChangeSet> setupWorkspace(
+    private ChangeSet setupWorkspace(
             @Nonnull final Run<?, ?> run,
             @Nonnull final Launcher launcher,
             @Nonnull final TaskListener listener,
@@ -195,11 +197,13 @@ public class PlasticSCM extends SCM {
         PlasticTool tool = new PlasticTool(
                 getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
 
-        List<ChangeSet> csetsInBuild = findChangesets(
-            run, tool, listener, plasticWorkspacePath,
-            getSelectorBranch(resolvedSelector),
-            getSelectorRepository(resolvedSelector));
-        run.addAction(new BuildData(plasticWorkspaceName, getLastChangeSet(csetsInBuild)));
+        // THIS IS BAD IN A LOT OF WAYS
+        // List<ChangeSet> csetsInBuild = findChangesets(
+        //    run, tool, listener, plasticWorkspacePath,
+        //    getSelectorBranch(resolvedSelector),
+        //    getSelectorRepository(resolvedSelector));
+
+        // BuildData buildData = new BuildData(plasticWorkspaceName, getLastChangeSet(csetsInBuild));
 
         checkoutWorkspace(
             plasticWorkspacePath,
@@ -209,30 +213,37 @@ public class PlasticSCM extends SCM {
             resolvedSelector,
             useUpdate);
 
-        return csetsInBuild;
+        ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
+        ChangeSet cset = retrieveChangesetDetails(tool, listener, csetId.getId());
+        cset.setRepoName(csetId.getRepository());
+        cset.setRepoServer(csetId.getHost());
+        BuildData buildData = new BuildData(plasticWorkspaceName, cset);
+        run.addAction(buildData);
+
+        return cset;
     }
 
     // Pre Jenkins 2.60
     @Override
-    public void buildEnvVars(
-            @Nonnull final AbstractBuild<?, ?> build, @Nonnull final Map<String, String> env) {
+    public void buildEnvVars(@Nonnull AbstractBuild<?, ?> build, @Nonnull Map<String, String> env) {
         super.buildEnvVars(build, env);
         buildEnvironment(build, env);
     }
 
     // Post Jenkins 2.60
-    public void buildEnvironment(Run<?, ?> build, Map<String, String> env) {
-        List<WorkspaceInfo> allWorkspaces = getAllWorkspaces();
-
+    public void buildEnvironment(@Nonnull Run<?, ?> build, @Nonnull Map<String, String> env) {
+        int index = 1;
         for (BuildData buildData : build.getActions(BuildData.class)) {
-            String wkName = buildData.getWkName();
-            ChangeSet builtCset = getBuildChangeSet(build, wkName);
-
-            if (builtCset == null)
-                continue;
-
-            publishCsetToEnvironment(
-                builtCset, findWorkspaceInfoFromName(wkName, allWorkspaces), env, allWorkspaces);
+            ChangeSet cset = buildData.getBuiltCset();
+            if (cset != null) {
+                populateEnvironmentVariables(cset, env, PLASTIC_ENV_PREFIX);
+                if (additionalWorkspaces != null) {
+                    populateEnvironmentVariables(cset, env, PLASTIC_ENV_PREFIX + index + "_");
+                    index++;
+                }
+            } else {
+                logger.warning("Unable to populate environment variables");
+            }
         }
     }
 
@@ -284,7 +295,7 @@ public class PlasticSCM extends SCM {
     }
 
     public List<WorkspaceInfo> getAllWorkspaces() {
-        List<WorkspaceInfo> result = new ArrayList<WorkspaceInfo>();
+        List<WorkspaceInfo> result = new ArrayList<>();
         result.add(firstWorkspace);
         if(additionalWorkspaces != null)
             result.addAll(additionalWorkspaces);
@@ -366,7 +377,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         Calendar previousBuildDate = getPreviousBuildDate(build);
         if (previousBuildDate == null)
-            return new ArrayList<ChangeSet>();
+            return new ArrayList<>();
 
         try {
             return ChangesetsRetriever.getDetailedHistory(
@@ -376,6 +387,37 @@ public class PlasticSCM extends SCM {
             throw buildAbortException(listener, e);
         }
     }
+
+    private static ChangeSetID determineCurrentChangeset(
+            PlasticTool tool,
+            TaskListener listener,
+            FilePath workspacePath)
+            throws IOException, InterruptedException {
+        try {
+            ParseableCommand<List<ChangeSetID>> statusCommand = new GetWorkspaceStatusCommand(workspacePath.getRemote());
+            List<ChangeSetID> list = CommandRunner.executeAndRead(tool, statusCommand, statusCommand);
+            if (list != null && !list.isEmpty()) {
+                return list.get(0);
+            }
+            return null;
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        }
+    }
+
+    private static ChangeSet retrieveChangesetDetails(
+            PlasticTool tool,
+            TaskListener listener,
+            int csetId)
+            throws IOException, InterruptedException {
+        try {
+            ParseableCommand<ChangeSet> changesetDetailsCommand = new ChangesetDetailsCommand("cs:" + csetId);
+            return CommandRunner.executeAndRead(tool, changesetDetailsCommand, changesetDetailsCommand);
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        }
+    }
+
 
     private static Calendar getPreviousBuildDate(Run<?, ?> build) {
         Run<?, ?> previousBuild = build.getPreviousBuild();
@@ -434,7 +476,7 @@ public class PlasticSCM extends SCM {
         if (paramDefProp == null)
             return null;
 
-        ArrayList<ParameterValue> result = new ArrayList<ParameterValue>();
+        ArrayList<ParameterValue> result = new ArrayList<>();
 
         for(ParameterDefinition paramDefinition : paramDefProp.getParameterDefinitions()) {
             ParameterValue defaultValue = paramDefinition.getDefaultParameterValue();
@@ -460,59 +502,57 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
-    @Nullable
-    private ChangeSet getLastChangeSet(@Nonnull final List<ChangeSet> csets) {
-        ChangeSet result = null;
-        for (ChangeSet cset : csets) {
-            if (result == null || result.getDate().before(cset.getDate()))
-                result = cset;
-        }
-        return result;
-    }
+//    @Nullable
+//    private ChangeSet getLastChangeSet(@Nonnull final List<ChangeSet> csets) {
+//        ChangeSet result = null;
+//        for (ChangeSet cset : csets) {
+//            if (result == null || result.getDate().before(cset.getDate()))
+//                result = cset;
+//        }
+//        return result;
+//    }
 
-    @CheckForNull
-    private WorkspaceInfo findWorkspaceInfoFromName(
-            @CheckForNull final String wkName, @Nonnull final List<WorkspaceInfo> wkInfos) {
-        if (wkName == null)
-            return getFirstWorkspace();
+//    @CheckForNull
+//    private WorkspaceInfo findWorkspaceInfoFromName(
+//            @CheckForNull final String wkName, @Nonnull final List<WorkspaceInfo> wkInfos) {
+//        if (wkName == null)
+//            return getFirstWorkspace();
+//
+//        for (WorkspaceInfo wkInfo : wkInfos) {
+//            if (wkName.equals(wkInfo.getWorkspaceName()))
+//                return wkInfo;
+//        }
+//        return null;
+//    }
 
-        for (WorkspaceInfo wkInfo : wkInfos) {
-            if (wkName.equals(wkInfo.getWorkspaceName()))
-                return wkInfo;
-        }
-        return null;
-    }
-
-    private void publishCsetToEnvironment(
+    private void populateEnvironmentVariables(
             @Nonnull final ChangeSet cset,
-            @CheckForNull final WorkspaceInfo wkInfo,
             @Nonnull final Map<String, String> environment,
-            @CheckForNull final List<WorkspaceInfo> allWorkspaces) {
-        String variablePrefix = getEnvironmentVariablePrefix(wkInfo, allWorkspaces);
-
-        environment.put(variablePrefix + CHANGESET_ID, cset.getVersion());
-        environment.put(variablePrefix + CHANGESET_GUID, cset.getGuid());
-        environment.put(variablePrefix + BRANCH, cset.getBranch());
-        environment.put(variablePrefix + AUTHOR, cset.getUser());
-        environment.put(variablePrefix + REPSPEC, cset.getRepository());
+            @CheckForNull final String prefix) {
+        environment.put(prefix + CHANGESET_ID, cset.getVersion());
+        environment.put(prefix + CHANGESET_GUID, cset.getGuid());
+        environment.put(prefix + BRANCH, cset.getBranch());
+        environment.put(prefix + AUTHOR, cset.getUser());
+        environment.put(prefix + REPSPEC, cset.getRepository());
     }
 
-    @Nonnull
-    private String getEnvironmentVariablePrefix(
-            @CheckForNull final WorkspaceInfo wkInfo,
-            @CheckForNull final List<WorkspaceInfo> allWorkspaces) {
-        if (wkInfo == null)
-            return PLASTIC_ENV_UNKNOWN_PREFIX;
-
-        int index = allWorkspaces.indexOf(wkInfo);
-        if(index == -1)
-            return PLASTIC_ENV_UNKNOWN_PREFIX;
-
-        if(index == 0)
-            return PLASTIC_ENV_PREFIX;
-
-        return PLASTIC_ENV_PREFIX + index + "_";
-    }
+//    @Nonnull
+//    private String getEnvironmentVariablePrefix(
+//            @CheckForNull final String wkName,
+//            @CheckForNull final List<WorkspaceInfo> allWorkspaces) {
+//        WorkspaceInfo wkInfo = findWorkspaceInfoFromName(wkName, allWorkspaces);
+//        if (wkInfo == null)
+//            return PLASTIC_ENV_UNKNOWN_PREFIX;
+//
+//        int index = allWorkspaces.indexOf(wkInfo);
+//        if(index == -1)
+//            return PLASTIC_ENV_UNKNOWN_PREFIX;
+//
+//        if(index == 0)
+//            return PLASTIC_ENV_PREFIX;
+//
+//        return PLASTIC_ENV_PREFIX + index + "_";
+//    }
 
     private static ChangeSet getBuildChangeSet(Run build, String wkName){
         while (build != null) {

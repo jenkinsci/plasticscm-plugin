@@ -3,16 +3,15 @@ package com.codicesoftware.plugins.hudson.actions;
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.commands.*;
 import com.codicesoftware.plugins.hudson.model.Workspace;
-
 import hudson.FilePath;
-import hudson.util.IOUtils;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.text.ParseException;
 import java.util.List;
+import java.util.UUID;
 
 public class Workspaces {
+
     public static List<Workspace> loadWorkspaces(PlasticTool tool)
             throws IOException, InterruptedException, ParseException {
         ListWorkspacesCommand command = new ListWorkspacesCommand();
@@ -22,36 +21,42 @@ public class Workspaces {
     public static Workspace newWorkspace(
             PlasticTool tool,
             FilePath workspacePath,
-            String name,
-            String selector) throws IOException, InterruptedException {
+            String workspaceName,
+            String selector) throws IOException, InterruptedException, ParseException {
         FilePath selectorPath = workspacePath.createTextTempFile("selector", ".txt", selector);
 
-        NewWorkspaceCommand command = new NewWorkspaceCommand(name, workspacePath, selectorPath);
+        NewWorkspaceCommand command = new NewWorkspaceCommand(workspaceName, workspacePath, selectorPath);
         CommandRunner.execute(tool, command);
         selectorPath.delete();
-        return new Workspace(name, workspacePath.getRemote());
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
+        return CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
     }
 
     public static void setWorkspaceSelector(
             PlasticTool tool,
             FilePath workspacePath,
-            String name,
             String selector) throws IOException, InterruptedException {
         FilePath selectorPath = workspacePath.createTextTempFile("selector", ".txt", selector);
-        SetSelectorCommand command = new SetSelectorCommand(name, selectorPath);
+        SetSelectorCommand command = new SetSelectorCommand(workspacePath.getRemote(), selectorPath.getRemote());
         CommandRunner.execute(tool, command);
         selectorPath.delete();
     }
 
-    public static void deleteWorkspace(PlasticTool tool, String name) throws IOException, InterruptedException {
-        DeleteWorkspaceCommand command = new DeleteWorkspaceCommand(name);
+    public static void deleteWorkspace(PlasticTool tool, FilePath workspacePath) throws IOException, InterruptedException {
+        DeleteWorkspaceCommand command = new DeleteWorkspaceCommand(workspacePath.getRemote());
         CommandRunner.execute(tool, command);
     }
 
-    public static void updateWorkspace(PlasticTool tool, String localPath) throws IOException, InterruptedException {
-        UpdateWorkspaceCommand command = new UpdateWorkspaceCommand(localPath);
+    public static void updateWorkspace(PlasticTool tool, FilePath workspacePath) throws IOException, InterruptedException {
+        UpdateWorkspaceCommand command = new UpdateWorkspaceCommand(workspacePath.getRemote());
         CommandRunner.execute(tool, command);
     }
+
+    public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath) throws IOException, InterruptedException {
+        UndoCheckoutCommand command = new UndoCheckoutCommand(workspacePath.getRemote());
+        CommandRunner.execute(tool, command);
+    }
+
 
     public static String loadSelector(PlasticTool tool, String name) {
         GetSelectorCommand command = new GetSelectorCommand(name);
@@ -60,5 +65,9 @@ public class Workspaces {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static String generateUniqueWorkspaceName() {
+        return "jenkins_" + UUID.randomUUID().toString().replaceAll("-", "");
     }
 }

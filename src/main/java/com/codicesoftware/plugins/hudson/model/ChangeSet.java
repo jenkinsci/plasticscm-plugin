@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.util.DateUtil;
+import hudson.Util;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
@@ -26,6 +27,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private ArrayList<Item> items;
     private String workspaceDir;
 
+    @SuppressWarnings("unused")
     public ChangeSet() {
         this("", "", "", null, "", "", "", "");
     }
@@ -40,11 +42,27 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.comment = comment;
         this.branch = branch;
         this.guid = guid;
-        items = new ArrayList<>();
-        setUser(user);
+        this.items = new ArrayList<>();
+        this.user = user;
         this.workspaceDir = "/";
     }
-    
+
+    public ChangeSet(ChangeSet o) {
+        this.version = o.version;
+        this.repoName = o.repoName;
+        this.repoServer = o.repoServer;
+        this.date = (date != null) ? new Date(date.getTime()) : null;
+        this.comment = o.comment;
+        this.branch = o.branch;
+        this.guid = o.guid;
+        items = new ArrayList<>();
+        for (Item i : Util.fixNull(o.items)) {
+            items.add(new Item(i));
+        }
+        this.user = o.user;
+        this.workspaceDir = o.workspaceDir;
+    }
+
     @Override
     public Collection<String> getAffectedPaths() {
         Collection<String> paths = new ArrayList<>(items.size());
@@ -204,6 +222,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         private String parentRevId;
         private String status;
 
+        @SuppressWarnings("unused")
         public Item() {
             this("", "", "", "");
         }
@@ -213,6 +232,13 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
             this.revId = revId;
             this.parentRevId = parentRevId;
             this.status = status;
+        }
+
+        public Item(Item o) {
+            setPath(o.path);
+            this.revId = o.revId;
+            this.parentRevId = o.parentRevId;
+            this.status = o.status;
         }
 
         @Exported

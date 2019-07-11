@@ -1,19 +1,37 @@
 package com.codicesoftware.plugins.hudson.model;
 
-public class Workspace {
-    private final String name;
-    private final String path;
+import hudson.FilePath;
 
-    public Workspace (String name, String path) {
+import java.io.File;
+import java.io.Serializable;
+
+public class Workspace implements Serializable {
+
+    private final String name;
+    private final FilePath path;
+    private final String guid;
+
+    public Workspace(String name, String path, String guid) {
         this.name = name;
-        this.path = path;
+        this.path = new FilePath(new File(path));
+        this.guid = guid;
+    }
+
+    public Workspace(Workspace o) {
+        this.name = o.name;
+        this.path = o.path;
+        this.guid = o.guid;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getPath() {
+    public FilePath getPath() {
         return path;
+    }
+
+    public String getGuid() {
+        return guid;
     }
 }

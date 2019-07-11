@@ -10,19 +10,28 @@ import static java.lang.String.format;
 
 @ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
+
     private static final long serialVersionUID = -3335648855305648577L;
 
-    private static final String NONE = "NONE";
-
-    public String wkName;
+    public Workspace workspace;
     public ChangeSet builtCset;
 
+    @SuppressWarnings("unused")
     public BuildData() {
     }
 
-    public BuildData(String wkName, ChangeSet builtCset) {
-        this.wkName = wkName;
+    public BuildData(Workspace workspace, ChangeSet builtCset) {
+        this.workspace = workspace;
         this.builtCset = builtCset;
+    }
+
+    @Exported
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
     }
 
     @Exported
@@ -34,15 +43,6 @@ public class BuildData implements Action, Serializable, Cloneable {
         this.builtCset = builtCset;
     }
 
-    @Exported
-    public String getWkName() {
-        return wkName;
-    }
-
-    public void setWkName(String wkName) {
-        this.wkName = wkName;
-    }
-
     @Override
     public String getIconFileName() {
         return null;
@@ -50,7 +50,7 @@ public class BuildData implements Action, Serializable, Cloneable {
 
     @Override
     public String getDisplayName() {
-        return format("Workspace '%s', built cset: %s", wkName, getCsetSpec());
+        return format("Workspace '%s', built cset: %s", workspace.getName(), getCsetSpec());
     }
 
     @Override
@@ -62,19 +62,19 @@ public class BuildData implements Action, Serializable, Cloneable {
     public Object clone() {
         BuildData result;
         try {
-            result = (BuildData)super.clone();
+            result = (BuildData) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException("Error cloning BuildData", e);
         }
 
-        result.setWkName(wkName);
-        result.setBuiltCset(builtCset);
+        result.setWorkspace(new Workspace(workspace));
+        result.setBuiltCset(new ChangeSet(builtCset));
         return result;
     }
 
     private String getCsetSpec() {
         if (builtCset == null)
-            return NONE;
+            return "NONE";
         return format("cs:%s@%s", builtCset.getCommitId(), builtCset.getRepository());
     }
 }

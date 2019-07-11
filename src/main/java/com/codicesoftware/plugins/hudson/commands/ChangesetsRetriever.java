@@ -1,15 +1,17 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
-import com.codicesoftware.plugins.hudson.model.*;
+import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.hudson.model.Workspace;
+import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
+import hudson.FilePath;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.List;
-
-import hudson.FilePath;
-import org.apache.commons.io.IOUtils;
 
 public class ChangesetsRetriever {
     public static List<ChangeSet> getChangesets(
@@ -34,10 +36,10 @@ public class ChangesetsRetriever {
             tool, branchName, repoSpec, fromTimestamp, toTimestamp);
 
         GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath.getRemote());
-        String workspaceDir = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
+        Workspace workspace = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
 
         for(ChangeSet cs : list) {
-            cs.setWorkspaceDir(workspaceDir);
+            cs.setWorkspaceDir(workspace.getPath().getRemote());
 
             GetChangesetRevisionsCommand revs = new GetChangesetRevisionsCommand(
                     cs.getVersion(), cs.getRepository());

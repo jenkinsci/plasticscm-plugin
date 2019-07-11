@@ -76,13 +76,12 @@ public class PlasticSCMFile extends SCMFile {
                 throw new FileNotFoundException("The pipeline script path is not valid. " +
                     "Maybe you didn't use '/' as directory separator.");
 
-            workspaceInfo = getWorkspaceInfo(fs.getSCM(), workspaceName);
-
-            if (workspaceInfo == null) {
-                throw new FileNotFoundException(String.format(
-                    "The pipeline script path must start by a valid workspace name. " +
-                    "The workspace '%s' was not found.", workspaceName));
-            }
+//            workspaceInfo = getWorkspaceInfo(fs.getSCM(), workspaceName);
+//            if (workspaceInfo == null) {
+//                throw new FileNotFoundException(String.format(
+//                    "The pipeline script path must start by a valid workspace name. " +
+//                    "The workspace '%s' was not found.", workspaceName));
+//            }
         }
 
         Launcher launcher = fs.getLauncher();
@@ -161,15 +160,6 @@ public class PlasticSCMFile extends SCMFile {
                 Files.delete(tempFile);
             }
         }
-    }
-
-    private static PlasticSCM.WorkspaceInfo getWorkspaceInfo(
-            PlasticSCM scm, String workspaceName){
-        for (PlasticSCM.WorkspaceInfo workspace : scm.getAllWorkspaces()) {
-            if (workspaceName.equals(workspace.getWorkspaceName()))
-                return workspace;
-        }
-        return null;
     }
 
     private static String getWorkspaceNameFromScriptPath(String scriptPath){

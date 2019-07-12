@@ -47,6 +47,9 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.workspaceDir = "/";
     }
 
+    /**
+     * Copy constructor.
+     */
     public ChangeSet(ChangeSet o) {
         this.version = o.version;
         this.repoName = o.repoName;
@@ -129,9 +132,6 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.repoServer = repoServer;
     }
 
-    /**
-     * @deprecated Returned value does not follow RepSpec format
-     */
     @Exported
     @Deprecated
     public String getRepository() {
@@ -213,6 +213,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         super.setParent(parent);
     }
 
+    @Exported
+    public String getCsetSpec() {
+        return String.format("cs:%s@%s@%s", version, repoName, repoServer);
+    }
+
     @ExportedBean(defaultVisibility=999)
     public static class Item implements ChangeLogSet.AffectedFile, Serializable {
         private static final long serialVersionUID = -197448462344216883L;
@@ -234,6 +239,9 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
             this.status = status;
         }
 
+        /**
+         * Copy constructor.
+         */
         public Item(Item o) {
             setPath(o.path);
             this.revId = o.revId;

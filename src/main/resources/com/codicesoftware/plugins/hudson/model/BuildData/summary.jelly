@@ -1,0 +1,15 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <t:summary icon="/plugin/plasticscm-plugin/images/48x48/plasticscm.png">
+    <b>${it.changeset.csetSpec}</b>
+    <p>
+      <b>${%Branch}</b>: ${it.changeset.branch}<br/>
+      <b>${%Comment}</b>: ${it.changeset.msgAnnotated}<br/>
+      <b>${%Author}</b>: ${it.changeset.author}<br/>
+      <b>${%Date}</b>: ${it.changeset.date}<br/>
+      <b>${%Workspace}</b>: ${it.workspace.name}<br/>
+	</p>
+  </t:summary>
+
+</j:jelly>

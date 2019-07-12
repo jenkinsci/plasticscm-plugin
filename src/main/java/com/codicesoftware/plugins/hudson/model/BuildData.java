@@ -1,28 +1,36 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import hudson.model.Action;
+import hudson.model.Run;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.Serializable;
-
-import static java.lang.String.format;
 
 @ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
 
     private static final long serialVersionUID = -3335648855305648577L;
 
-    public Workspace workspace;
-    public ChangeSet builtCset;
+    private Workspace workspace;
+    private ChangeSet changeset;
+
+    /**
+     * Avoids URL ambiguity when having multiple {@link BuildData} actions.
+     */
+    private int index;
 
     @SuppressWarnings("unused")
     public BuildData() {
     }
 
-    public BuildData(Workspace workspace, ChangeSet builtCset) {
+    public BuildData(Workspace workspace, ChangeSet changeset) {
         this.workspace = workspace;
-        this.builtCset = builtCset;
+        this.changeset = changeset;
     }
 
     @Exported
@@ -35,27 +43,45 @@ public class BuildData implements Action, Serializable, Cloneable {
     }
 
     @Exported
-    public ChangeSet getBuiltCset() {
-        return builtCset;
+    public ChangeSet getChangeset() {
+        return changeset;
     }
 
-    public void setBuiltCset(ChangeSet builtCset) {
-        this.builtCset = builtCset;
+    public void setChangeset(ChangeSet changeset) {
+        this.changeset = changeset;
     }
 
     @Override
     public String getIconFileName() {
-        return null;
+        return "/plugin/plasticscm-plugin/images/24x24/plasticscm.png";
     }
 
     @Override
     public String getDisplayName() {
-        return format("Workspace '%s', built cset: %s", workspace.getName(), getCsetSpec());
+        return index == 0 ? "Plastic SCM": "Plastic SCM #" + index;
     }
 
     @Override
     public String getUrlName() {
-        return "platicscm";
+        return index == 0 ? "plasticscm-plugin" : "plasticscm-plugin-" + index;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused")
+    public Run<?,?> getOwningRun() {
+        StaplerRequest req = Stapler.getCurrentRequest();
+        if (req == null) {
+            return null;
+        }
+        return req.findAncestorObject(Run.class);
     }
 
     @Override
@@ -68,13 +94,7 @@ public class BuildData implements Action, Serializable, Cloneable {
         }
 
         result.setWorkspace(new Workspace(workspace));
-        result.setBuiltCset(new ChangeSet(builtCset));
+        result.setChangeset(new ChangeSet(changeset));
         return result;
-    }
-
-    private String getCsetSpec() {
-        if (builtCset == null)
-            return "NONE";
-        return format("cs:%s@%s", builtCset.getCommitId(), builtCset.getRepository());
     }
 }

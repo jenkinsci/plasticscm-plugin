@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Workspace implements Serializable {
 
     private final String name;
-    private final FilePath path;
+    private transient final FilePath path;
     private final String guid;
 
     public Workspace(String name, String path, String guid) {
@@ -17,6 +17,9 @@ public class Workspace implements Serializable {
         this.guid = guid;
     }
 
+    /**
+     * Copy constructor.
+     */
     public Workspace(Workspace o) {
         this.name = o.name;
         this.path = o.path;

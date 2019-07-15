@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class DeleteOnCloseFileInputStream extends FileInputStream {
     public DeleteOnCloseFileInputStream(String fileName) throws FileNotFoundException{
@@ -23,7 +24,7 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
             super.close();
         } finally {
             if (file != null) {
-                file.delete();
+                Files.delete(file.toPath());
                 file = null;
             }
         }

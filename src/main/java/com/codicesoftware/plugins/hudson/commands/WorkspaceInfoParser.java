@@ -1,16 +1,13 @@
 package com.codicesoftware.plugins.hudson.commands;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.text.ParseException;
-
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 
 public class WorkspaceInfoParser {
-    public static final String DEFAULT_SEPARATOR = "def#_#sep";
 
-    public static WorkspaceInfo parse(String line){
+    public static final String DEFAULT_SEPARATOR = "def#_#sep";
+    private static final String ERROR_MSG_PREFIX = "ERROR";
+
+    public static WorkspaceInfo parse(String line) {
         if (line == null)
             return null;
 
@@ -39,6 +36,4 @@ public class WorkspaceInfoParser {
 
         return new WorkspaceInfo(repoName, branch, label, changeset);
     }
-
-    private static final String ERROR_MSG_PREFIX = "ERROR";
 }

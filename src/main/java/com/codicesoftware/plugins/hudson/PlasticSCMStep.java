@@ -2,17 +2,31 @@ package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import hudson.Extension;
+import hudson.Util;
+import hudson.model.Item;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
 import org.jenkinsci.plugins.workflow.steps.scm.SCMStep;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 
 public class PlasticSCMStep extends SCMStep {
+
+    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
+
+    private String branch = DescriptorImpl.defaultBranch;
+    private String repository = DescriptorImpl.defaultRepository;
+    private String server = DescriptorImpl.defaultServer;
+
+    private boolean useUpdate = true;
+    private boolean useMultipleWorkspaces = false;
+    private String workspaceName = DescriptorImpl.defaultWorkspaceName;
+    private String directory = "";
 
     @DataBoundConstructor
     public PlasticSCMStep() {
@@ -63,6 +77,15 @@ public class PlasticSCMStep extends SCMStep {
         this.workspaceName = workspaceName;
     }
 
+    public String getDirectory() {
+        return directory;
+    }
+
+    @DataBoundSetter
+    public void setDirectory(String directory) {
+        this.directory = directory;
+    }
+
     public boolean isUseMultipleWorkspaces() {
         return useMultipleWorkspaces;
     }
@@ -76,30 +99,19 @@ public class PlasticSCMStep extends SCMStep {
     @Override
     protected SCM createSCM() {
         return new PlasticSCM(
-            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null);
+            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null, directory);
     }
 
     String buildSelector() {
         return String.format(SELECTOR_FORMAT, repository, server, branch);
     }
 
-    private String branch = PlasticStepDescriptor.defaultBranch;
-    private String repository = PlasticStepDescriptor.defaultRepository;
-    private String server = PlasticStepDescriptor.defaultServer;
-
-    private boolean useUpdate = true;
-    private boolean useMultipleWorkspaces = false;
-    private String workspaceName = "";
-
-    private static final String SELECTOR_FORMAT =
-            "rep \"%s@%s\"\n  path \"/\"\n    smartbranch \"%s\"";
-
     @Extension
-    public static final class PlasticStepDescriptor extends SCMStepDescriptor {
-        public static final String defaultBranch = "/main";
-        public static final String defaultRepository = "default";
-        public static final String defaultServer = "localhost:8087";
-        public static final String defaultWorkspaceName = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
+    public static final class DescriptorImpl extends SCMStepDescriptor {
+        public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
+        public static final String defaultRepository = PlasticSCM.DEFAULT_REPOSITORY;
+        public static final String defaultServer = PlasticSCM.DEFAULT_SERVER;
+        public static final String defaultWorkspaceName = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
 
         @Override
         public String getFunctionName() {
@@ -111,20 +123,32 @@ public class PlasticSCMStep extends SCMStep {
             return "Plastic SCM";
         }
 
+        @RequirePOST
         public FormValidation doCheckWorkspaceName(@QueryParameter String value) {
             return FormChecker.doCheckWorkspaceName(value);
         }
 
+        @RequirePOST
         public FormValidation doCheckBranch(@QueryParameter String value) {
             return FormChecker.doCheckBranch(value);
         }
 
+        @RequirePOST
         public FormValidation doCheckRepository(@QueryParameter String value) {
             return FormChecker.doCheckRepository(value);
         }
 
+        @RequirePOST
         public FormValidation doCheckServer(@QueryParameter String value) {
             return FormChecker.doCheckServer(value);
+        }
+
+        @RequirePOST
+        public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
+            if (Util.fixEmpty(value) == null) {
+                return FormValidation.ok();
+            }
+            return FormChecker.doCheckDirectory(value, item);
         }
     }
 }

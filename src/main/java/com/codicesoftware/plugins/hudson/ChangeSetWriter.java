@@ -2,14 +2,12 @@ package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.List;
-
 import org.apache.commons.io.IOUtils;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.List;
 
 /**
  * Plastic SCM change log writer, based on tfs version.
@@ -25,7 +23,7 @@ public class ChangeSetWriter {
      * @param changelogFile file to write change sets to
      */
     public void write(List<ChangeSet> changeSets, File changelogFile) throws IOException {
-        FileWriter writer = new FileWriter(changelogFile);
+        BufferedWriter writer = Files.newBufferedWriter(changelogFile.toPath(), StandardCharsets.UTF_8);
         try {
             write(changeSets, writer);
         } finally {

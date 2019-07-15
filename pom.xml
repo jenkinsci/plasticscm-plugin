@@ -3,23 +3,28 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.580.1</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>3.46</version>
+    <relativePath/>
   </parent>
 
   <artifactId>plasticscm-plugin</artifactId>
   <name>PlasticSCM Plugin</name>
-  <version>2.24-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <description>Integrates Jenkins to Plastic SCM</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>
 
   <scm>
-      <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
-      <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>
-      <url>https://github.com/jenkinsci/plasticscm-plugin</url>
-      <tag>HEAD</tag>
+    <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/plasticscm-plugin</url>
+    <tag>HEAD</tag>
   </scm>
+
+  <properties>
+    <jenkins.version>2.60.3</jenkins.version>
+    <java.level>8</java.level>
+  </properties>
 
   <build>
     <plugins>
@@ -37,34 +42,34 @@
   </build>
 
   <developers>
-      <developer>
-          <id>mig42</id>
-          <name>Miguel Gonzalez</name>
-          <email>mgonzalez@codicesoftware.com</email>
-          <organization>Codice Software</organization>
-          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
-      </developer>
-      <developer>
-          <id>miryamgsm</id>
-          <name>Miryam Gomez</name>
-          <email>mgomez@codicesoftware.com</email>
-          <organization>Codice Software</organization>
-          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
-      </developer>
-      <developer>
-          <id>rubarax</id>
-          <name>Ruben de Alba</name>
-          <email>rdealba@codicesoftware.com</email>
-          <organization>Codice Software</organization>
-          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
-      </developer>
-      <developer>
-          <id>jemagoga</id>
-          <name>Jesus Manuel Gonzalez</name>
-          <email>jgonzalez@codicesoftware.com</email>
-          <organization>Codice Software</organization>
-          <organizationUrl>http://www.codicesoftware.com</organizationUrl>
-      </developer>
+    <developer>
+      <id>mig42</id>
+      <name>Miguel Gonzalez</name>
+      <email>mgonzalez@codicesoftware.com</email>
+      <organization>Codice Software</organization>
+      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>miryamgsm</id>
+      <name>Miryam Gomez</name>
+      <email>mgomez@codicesoftware.com</email>
+      <organization>Codice Software</organization>
+      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>rubarax</id>
+      <name>Ruben de Alba</name>
+      <email>rdealba@codicesoftware.com</email>
+      <organization>Codice Software</organization>
+      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>jemagoga</id>
+      <name>Jesus Manuel Gonzalez</name>
+      <email>jgonzalez@codicesoftware.com</email>
+      <organization>Codice Software</organization>
+      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+    </developer>
   </developers>
 
   <distributionManagement>
@@ -77,31 +82,31 @@
       <url>http://repo.jenkins-ci.org/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
-  
-   <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-    
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <dependencies>
-      <dependency>
-          <groupId>org.jenkins-ci.plugins</groupId>
-          <artifactId>scm-api</artifactId>
-          <version>2.2.6</version>
-      </dependency>
     <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-scm-step</artifactId>
-        <version>1.6</version>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>scm-api</artifactId>
+      <version>2.2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-scm-step</artifactId>
+      <version>1.6</version>
     </dependency>
   </dependencies>
 </project>

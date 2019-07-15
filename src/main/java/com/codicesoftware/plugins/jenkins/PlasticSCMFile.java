@@ -1,33 +1,30 @@
 package com.codicesoftware.plugins.jenkins;
 
-import javax.annotation.Nonnull;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
-
+import com.codicesoftware.plugins.hudson.PlasticSCM;
+import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.commands.GetFileCommand;
+import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
+import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
+import com.codicesoftware.plugins.hudson.util.DeleteOnCloseFileInputStream;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Run;
 import jenkins.scm.api.SCMFile;
-import hudson.AbortException;
 
-import com.codicesoftware.plugins.hudson.PlasticSCM;
-import com.codicesoftware.plugins.hudson.commands.GetFileCommand;
-import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
-import com.codicesoftware.plugins.hudson.PlasticTool;
-import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
-import com.codicesoftware.plugins.hudson.util.DeleteOnCloseFileInputStream;
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 public class PlasticSCMFile extends SCMFile {
     public PlasticSCMFile(PlasticSCMFileSystem fs) {
@@ -135,17 +132,17 @@ public class PlasticSCMFile extends SCMFile {
     private static String getRepObjectSpecFromSelector(
             PlasticTool tool, String selectorText)
             throws IOException, InterruptedException {
-        File tempFile = null;
+        Path tempFile = null;
         BufferedWriter out = null;
         try {
-            tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp");
+            tempFile = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
 
-            out = new BufferedWriter(new FileWriter(tempFile));
+            out = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8);
             out.write(selectorText);
             out.close();
             out = null;
 
-            WorkspaceInfo workspaceInfo = getSelectorSpec(tool, tempFile.getPath());
+            WorkspaceInfo workspaceInfo = getSelectorSpec(tool, tempFile.toString());
             return workspaceInfo.getRepObjectSpec();
         } catch (AbortException e) {
             logger.severe(e.getMessage());
@@ -160,8 +157,9 @@ public class PlasticSCMFile extends SCMFile {
             if (out != null)
                 out.close();
 
-            if (tempFile != null)
-                tempFile.delete();
+            if (tempFile != null) {
+                Files.delete(tempFile);
+            }
         }
     }
 

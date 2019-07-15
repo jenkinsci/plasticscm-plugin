@@ -4,14 +4,11 @@ import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.model.*;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.File;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import hudson.FilePath;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 public class ChangesetsRetriever {
@@ -56,7 +53,7 @@ public class ChangesetsRetriever {
         return list;
     }
 
-    private static String GetBranchFromWorkspaceInfo(
+    private static String getBranchFromWorkspaceInfo(
             PlasticTool tool, WorkspaceInfo wi)
             throws InterruptedException, ParseException, IOException {
         String branch = wi.getBranch();
@@ -65,23 +62,23 @@ public class ChangesetsRetriever {
 
         String label = wi.getLabel();
         if (label != null && !label.isEmpty())
-            return GetBranchFromLabel(tool, label, wi.getRepoName());
+            return getBranchFromLabel(tool, label, wi.getRepoName());
 
         String changeset = wi.getChangeset();
         if (changeset != null && !changeset.isEmpty())
-            return GetBranchFromChangeset(tool, changeset, wi.getRepoName());
+            return getBranchFromChangeset(tool, changeset, wi.getRepoName());
 
         return "";
     }
 
-    private static String GetBranchFromLabel(PlasticTool tool, String label, String repositoryName)
+    private static String getBranchFromLabel(PlasticTool tool, String label, String repositoryName)
             throws InterruptedException, ParseException, IOException {
         GetBranchForLabelCommand brCommand = new GetBranchForLabelCommand(
                 label, repositoryName);
         return CommandRunner.executeAndRead(tool, brCommand, brCommand);
     }
 
-    private static String GetBranchFromChangeset(PlasticTool tool, String id, String repositoryName)
+    private static String getBranchFromChangeset(PlasticTool tool, String id, String repositoryName)
             throws InterruptedException, ParseException, IOException {
         GetBranchForChangesetCommand brCommand = new GetBranchForChangesetCommand(
                 id, repositoryName);

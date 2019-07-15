@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.hudson.util;
 
 import hudson.Util;
+import hudson.model.Item;
 import hudson.util.FormValidation;
 
 import java.util.regex.Pattern;
@@ -14,12 +15,9 @@ public class FormChecker {
         + "(label|lb)\\s+\"(.*)\")(\\s+(checkout|co)\\s+\"(.*\"))?)|(branchpertask\\s+"
         + "\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$",
         Pattern.MULTILINE|Pattern.CASE_INSENSITIVE);
-
     private static final Pattern NO_AT_CHAR_REGEX = Pattern.compile("^[^@]+$");
     private static final Pattern SERVER_REGEX = Pattern.compile("^.+:[0-9]+$");
-
-    private static final String DEFAULT_SELECTOR =
-        "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
+    private static final Pattern DIRECTORY_REGEX = Pattern.compile("^[A-Za-z0-9\\-\\_]+$");
 
     public static FormValidation doCheckWorkspaceName(String value) {
         return doRegexCheck(WORKSPACE_REGEX, "Workspace name should not include @, #, / or :",
@@ -55,6 +53,15 @@ public class FormChecker {
             value);
     }
 
+    public static FormValidation doCheckDirectory(String value, Item item) {
+        item.checkPermission(Item.CONFIGURE);
+        return doRegexCheck(
+                DIRECTORY_REGEX,
+                "Directory name is not in a valid format (only A-Z, a-z, 0-9, '-' and '_' are allowed)",
+                "The directory name is mandatory",
+                value);
+    }
+
     private static FormValidation doRegexCheck(
             final Pattern regex,
             final String noMatchText,
@@ -76,10 +83,6 @@ public class FormChecker {
         } else {
             return FormValidation.respond(FormValidation.Kind.OK, "<div class=\"info greenbold\">" + text + "</div>");
         }
-    }
-
-    public static String getDefaultSelector() {
-        return DEFAULT_SELECTOR;
     }
 
 }

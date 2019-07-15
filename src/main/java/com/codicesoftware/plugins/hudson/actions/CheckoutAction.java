@@ -105,12 +105,15 @@ public final class CheckoutAction {
         }
     }
 
-    private static boolean isSamePath(String expected, String actual) {
-        Matcher windowsPathMatcher = windowsPathPattern.matcher(actual);
+    private static boolean isSameWorkspacePath(String actual, String expected) {
+        String actualFixed = actual.replaceAll("\\\\", "/");
+        String expectedFixed = expected.replaceAll("\\\\", "/");
+
+        Matcher windowsPathMatcher = windowsPathPattern.matcher(expectedFixed);
         if (windowsPathMatcher.matches()) {
-            return actual.equalsIgnoreCase(expected);
+            return actualFixed.equalsIgnoreCase(expectedFixed);
         }
-        return actual.equals(expected);
+        return actualFixed.equals(expectedFixed);
     }
 
     private static void deleteWorkspace(
@@ -134,7 +137,7 @@ public final class CheckoutAction {
     private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath workspacePath)
     {
         for (Workspace workspace : workspaces) {
-            if (isSamePath(workspace.getPath().getRemote(), workspacePath.getRemote()))
+            if (isSameWorkspacePath(workspace.getPath().getRemote(), workspacePath.getRemote()))
                 return workspace;
         }
         return null;
@@ -146,11 +149,11 @@ public final class CheckoutAction {
 
         for (Workspace workspace : workspaces) {
             String parentPath = FilenameUtils.getFullPathNoEndSeparator(workspace.getPath().getRemote());
-            if (isSamePath(parentPath, workspacePath.getRemote()))
+            if (isSameWorkspacePath(parentPath, workspacePath.getRemote()))
                 result.add(workspace);
         }
         return result;
     }
 
-    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:\\\\.*$");
+    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:/.*$");
 }

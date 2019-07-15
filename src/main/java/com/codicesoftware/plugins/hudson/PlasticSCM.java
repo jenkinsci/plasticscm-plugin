@@ -375,9 +375,9 @@ public class PlasticSCM extends SCM {
                         !cset.getRepoServer().equals(oldCset.getRepoServer())) {
                     continue;
                 }
-                int csetId = StringUtil.tryParse(cset.getVersion(), -1);
-                int oldCsetId = StringUtil.tryParse(oldCset.getVersion(), -1);
-                if (csetId < 0 || oldCsetId < 0) {
+                int csetId = cset.getId();
+                int oldCsetId = oldCset.getId();
+                if (csetId <= 0 || oldCsetId <= 0) {
                     return null;
                 }
                 if (oldCsetId < csetId) {

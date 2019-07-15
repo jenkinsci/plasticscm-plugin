@@ -21,6 +21,15 @@ public class SelectorParametersResolver {
             }
         }
 
-        return Util.replaceMacro(text, parametersMap);
+        return Util.replaceMacro(
+            resolveLegacyFormat(text, parametersMap), parametersMap);
+    }
+
+    static String resolveLegacyFormat(String text, Map<String, String> parametersMap) {
+        String result = text;
+        for (Map.Entry<String, String> entry : parametersMap.entrySet()) {
+            result = result.replaceAll("%" + entry.getKey() + "%", entry.getValue());
+        }
+        return result;
     }
 }

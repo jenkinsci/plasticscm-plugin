@@ -47,30 +47,30 @@ public class BuildVariableResolver implements VariableResolver<String> {
         lazyResolvers.put("JOB_NAME", new LazyResolver() {
             public String getValue() {
                 return job.getName();
-            }            
+            }
         });
     }
-    
+
     public BuildVariableResolver(final Job<?, ?> project, final Computer computer, final FilePath workspace) {
         this.computer = computer;
         lazyResolvers.put("JOB_NAME", new LazyResolver() {
             public String getValue() {
                 return project.getName();
-            }            
+            }
         });
         lazyResolvers.put("NODE_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) {
                 if (computer ==  null || Util.fixEmpty(computer.getName()) == null)
                     return "master";
                 return computer.getName();
-            }            
+            }
         });
         lazyResolvers.put("USER_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) throws IOException, InterruptedException {
                 if (computer == null)
                     return "DEFAULT";
                 return (String) computer.getSystemProperties().get("user.name");
-            }            
+            }
         });
         lazyResolvers.put("EXECUTOR_NUMBER", new LazyComputerResolver() {
             public String getValue(Computer computer) throws IOException, InterruptedException {
@@ -95,7 +95,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
 //            otherResolvers.add(new VariableResolver.ByMap<String>(envVars));
 //        }
 //    }
-    
+
     public String resolve(String variable) {
         try {
             if (lazyResolvers.containsKey(variable)) {

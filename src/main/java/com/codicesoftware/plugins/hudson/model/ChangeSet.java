@@ -123,7 +123,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     public int getId() {
-        return StringUtil.tryParse(version, 0);
+        return StringUtil.tryParse(version, -1);
     }
 
     public void setVersion(String version) {

@@ -1,7 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.util.DateUtil;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -53,7 +52,7 @@ public class ChangeSetWriter {
     }
 
     private void write(ChangeSet changeSet, PrintWriter writer) {
-        writer.println(String.format("\t\t<date>%s</date>", DateUtil.PLASTICSCM_DATETIME_FORMATTER.get().format(changeSet.getDate())));
+        writer.println(String.format("\t\t<date>%s</date>", escapeForXml(changeSet.getXmlDate())));
         writer.println(String.format("\t\t<user>%s</user>", escapeForXml(changeSet.getUser())));
         writer.println(String.format("\t\t<comment>%s</comment>", escapeForXml(changeSet.getComment())));
         writer.println(String.format("\t\t<branch>%s</branch>", escapeForXml(changeSet.getBranch())));

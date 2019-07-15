@@ -38,9 +38,11 @@ public class ChangesetDetailsCommand implements ParseableCommand<ChangeSet>, Com
         digester.addObjectCreate("LogList/Changeset", ChangeSet.class);
         digester.addBeanPropertySetter("LogList/Changeset/ChangesetId", "version");
         digester.addBeanPropertySetter("LogList/Changeset/Comment", "comment");
-        digester.addBeanPropertySetter("LogList/Changeset/Date", "changesetDateStr");
+        digester.addBeanPropertySetter("LogList/Changeset/Date", "xmlDate");
         digester.addBeanPropertySetter("LogList/Changeset/Branch", "branch");
         digester.addBeanPropertySetter("LogList/Changeset/Owner", "user");
+        // no "*/CHANGESET/REPNAME" tag
+        // no "*/CHANGESET/REPSERVER" tag
         digester.addBeanPropertySetter("LogList/Changeset/GUID", "guid");
         digester.addSetNext("LogList/Changeset", "add");
 

@@ -6,8 +6,10 @@ import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSetID;
 import com.codicesoftware.plugins.hudson.model.Workspace;
+import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.*;
 import hudson.model.*;
 import hudson.scm.*;
@@ -159,7 +161,14 @@ public class PlasticSCM extends SCM {
             cset.setRepoName(csetId.getRepository());
             cset.setRepoServer(csetId.getHost());
 
-            changeLogItems.add(cset);
+            ChangeSet previousCset = retrievePreviouslyBuildChangeset(run, cset);
+            if (previousCset == null) {
+                changeLogItems.add(cset);
+            } else {
+                List<ChangeSet> changeSetItems = retrieveMultipleChangesetDetails(tool, listener,
+                        previousCset.getId(), cset.getId(), cset.getBranch(), cset.getRepoName());
+                changeLogItems.addAll(changeSetItems);
+            }
 
             BuildData buildData = new BuildData(plasticWorkspace, cset);
 
@@ -290,29 +299,30 @@ public class PlasticSCM extends SCM {
         return new FilePath(jenkinsWorkspacePath, workspaceInfo.getDirectory());
     }
 
-//    private String resolveWorkspaceNameParameters(
-//            FilePath workspacePath,
-//            WorkspaceInfo workspaceInfo,
-//            Run<?,?> build) {
-//        String result = workspaceName;
-//
-//        if (Util.fixEmpty(result) == null) {
-//            result = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
-//        }
-//
-//        if (build != null) {
-//            result = replaceBuildParameter(build, result);
-//            BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
-//                build.getParent(), Computer.currentComputer(), workspacePath);
-//            result = Util.replaceMacro(result, buildVariableResolver);
-//        }
-//
-//        if (Util.fixEmpty(workspaceInfo.getDirectory()) != null) {
-//            result += "-" + workspaceInfo.getDirectory();
-//        }
-//        result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
-//        return result.replaceAll("[\\.\\s]+$", "_");
-//    }
+    private String resolveWorkspaceNameParameters(
+            Run<?,?> build,
+            FilePath workspacePath,
+            String workspaceName,
+            WorkspaceInfo workspaceInfo) {
+        String result = workspaceName;
+
+        if (Util.fixEmpty(result) == null) {
+            result = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
+        }
+
+        if (build != null) {
+            result = replaceBuildParameter(build, result);
+            BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
+                build.getParent(), Computer.currentComputer(), workspacePath);
+            result = Util.replaceMacro(result, buildVariableResolver);
+        }
+
+        if (Util.fixEmpty(workspaceInfo.getDirectory()) != null) {
+            result += "-" + workspaceInfo.getDirectory();
+        }
+        result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
+        return result.replaceAll("[\\.\\s]+$", "_");
+    }
 
     private String replaceBuildParameter(Run<?,?> run, String text) {
         if (run instanceof AbstractBuild<?,?>) {
@@ -325,27 +335,9 @@ public class PlasticSCM extends SCM {
         return text;
     }
 
-    private static List<ChangeSet> findChangesets(
-            Run<?, ?> build,
-            PlasticTool tool,
-            TaskListener listener,
-            FilePath workspacePath,
-            String branchName,
-            String repository)
-            throws IOException, InterruptedException {
-        Calendar previousBuildDate = getPreviousBuildDate(build);
-        if (previousBuildDate == null)
-            return new ArrayList<>();
-
-        try {
-            return ChangesetsRetriever.getDetailedHistory(
-                tool, workspacePath, branchName, repository,
-                previousBuildDate, build.getTimestamp());
-        } catch (ParseException e) {
-            throw buildAbortException(listener, e);
-        }
-    }
-
+    /**
+     * Returns changeset identifier for the given workspace.
+     */
     private static ChangeSetID determineCurrentChangeset(
             PlasticTool tool,
             TaskListener listener,
@@ -363,23 +355,83 @@ public class PlasticSCM extends SCM {
         }
     }
 
+    /**
+     * Finds changeset of the last completed build for the same branch as the given changeset.
+     * Returns null if not found or is newer than the currently build.
+     */
+    private static ChangeSet retrievePreviouslyBuildChangeset(Run<?, ?> build, ChangeSet cset) {
+        if (cset == null || Util.fixEmpty(cset.getBranch()) == null ||
+                Util.fixEmpty(cset.getRepoName()) == null || Util.fixEmpty(cset.getRepoServer()) == null) {
+            return null;
+        }
+        while (build != null) {
+            for (BuildData buildData : build.getActions(BuildData.class)) {
+                ChangeSet oldCset = buildData.getChangeset();
+                if (oldCset == null) {
+                    continue;
+                }
+                if (!cset.getBranch().equals(oldCset.getBranch()) ||
+                        !cset.getRepoName().equals(oldCset.getRepoName()) ||
+                        !cset.getRepoServer().equals(oldCset.getRepoServer())) {
+                    continue;
+                }
+                int csetId = StringUtil.tryParse(cset.getVersion(), -1);
+                int oldCsetId = StringUtil.tryParse(oldCset.getVersion(), -1);
+                if (csetId < 0 || oldCsetId < 0) {
+                    return null;
+                }
+                if (oldCsetId < csetId) {
+                    return oldCset;
+                }
+                return null;
+            }
+            build = build.getPreviousCompletedBuild();
+        }
+        return null;
+    }
+
     private static ChangeSet retrieveChangesetDetails(
             PlasticTool tool,
             TaskListener listener,
             int csetId)
             throws IOException, InterruptedException {
         try {
-            ParseableCommand<ChangeSet> changesetDetailsCommand = new ChangesetDetailsCommand("cs:" + csetId);
-            return CommandRunner.executeAndRead(tool, changesetDetailsCommand, changesetDetailsCommand);
+            ParseableCommand<ChangeSet> command = new ChangesetDetailsCommand("cs:" + csetId);
+            return CommandRunner.executeAndRead(tool, command, command);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }
     }
 
+    private static ChangeSet retrieveSingleChangesetDetails(
+            PlasticTool tool,
+            TaskListener listener,
+            int csetId,
+            String branch,
+            String repository)
+            throws IOException, InterruptedException {
+        try {
+            ParseableCommand<ChangeSet> command = new ChangesetHistoryCommand(csetId, branch, repository);
+            return CommandRunner.executeAndRead(tool, command, command);
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        }
+    }
 
-    private static Calendar getPreviousBuildDate(Run<?, ?> build) {
-        Run<?, ?> previousBuild = build.getPreviousBuild();
-        return previousBuild == null ? null : previousBuild.getTimestamp();
+    private static List<ChangeSet> retrieveMultipleChangesetDetails(
+            PlasticTool tool,
+            TaskListener listener,
+            int afterCsetId,
+            int toCsetId,
+            String branch,
+            String repository)
+            throws IOException, InterruptedException {
+        try {
+            ParseableCommand<List<ChangeSet>> command = new ChangesetListHistoryCommand(afterCsetId + 1, toCsetId, branch, repository);
+            return CommandRunner.executeAndRead(tool, command, command);
+        } catch (ParseException e) {
+            throw buildAbortException(listener, e);
+        }
     }
 
     private static AbortException buildAbortException(
@@ -460,29 +512,6 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
-//    @Nullable
-//    private ChangeSet getLastChangeSet(@Nonnull final List<ChangeSet> csets) {
-//        ChangeSet result = null;
-//        for (ChangeSet cset : csets) {
-//            if (result == null || result.getDate().before(cset.getDate()))
-//                result = cset;
-//        }
-//        return result;
-//    }
-
-//    @CheckForNull
-//    private WorkspaceInfo findWorkspaceInfoFromName(
-//            @CheckForNull final String wkName, @Nonnull final List<WorkspaceInfo> wkInfos) {
-//        if (wkName == null)
-//            return getFirstWorkspace();
-//
-//        for (WorkspaceInfo wkInfo : wkInfos) {
-//            if (wkName.equals(wkInfo.getWorkspaceName()))
-//                return wkInfo;
-//        }
-//        return null;
-//    }
-
     private void populateEnvironmentVariables(
             @Nonnull final ChangeSet cset,
             @Nonnull final Map<String, String> environment,
@@ -494,52 +523,7 @@ public class PlasticSCM extends SCM {
         environment.put(prefix + REPSPEC, cset.getRepository());
     }
 
-//    @Nonnull
-//    private String getEnvironmentVariablePrefix(
-//            @CheckForNull final String wkName,
-//            @CheckForNull final List<WorkspaceInfo> allWorkspaces) {
-//        WorkspaceInfo wkInfo = findWorkspaceInfoFromName(wkName, allWorkspaces);
-//        if (wkInfo == null)
-//            return PLASTIC_ENV_UNKNOWN_PREFIX;
-//
-//        int index = allWorkspaces.indexOf(wkInfo);
-//        if(index == -1)
-//            return PLASTIC_ENV_UNKNOWN_PREFIX;
-//
-//        if(index == 0)
-//            return PLASTIC_ENV_PREFIX;
-//
-//        return PLASTIC_ENV_PREFIX + index + "_";
-//    }
-
-//    private static ChangeSet getBuildChangeSet(Run build, String wkName){
-//        while (build != null) {
-//            for (BuildData buildData : build.getActions(BuildData.class)) {
-//                if (buildData == null)
-//                    continue;
-//
-//                if (wkName == null && buildData.getWorkspace().getName() != null)
-//                    continue;
-//
-//                if (wkName != null && !wkName.equals(buildData.getWorkspace().getName()))
-//                    continue;
-//
-//                if (buildData.getChangeset() == null)
-//                    continue;
-//
-//                return buildData.getChangeset();
-//            }
-//
-//            build = build.getPreviousBuild();
-//        }
-//
-//        return null;
-//    }
-
     private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
-    private static final String PLASTIC_ENV_UNKNOWN_PREFIX =
-        PLASTIC_ENV_PREFIX + "UNKNOWN";
-
     private static final String CHANGESET_ID = "CHANGESET_ID";
     private static final String CHANGESET_GUID = "CHANGESET_GUID";
     private static final String BRANCH = "BRANCH";

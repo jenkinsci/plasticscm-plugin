@@ -24,4 +24,25 @@ public class SelectorParametersResolverTest {
         assertEquals("sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters));
     }
 
+    @Test
+    public void testLegacyParamsResolver() {
+        List<ParameterValue> parameters = new LinkedList<>();
+        parameters.add(new StringParameterValue("PARAM", "VALUE"));
+        parameters.add(new BooleanParameterValue("BOOL", true));
+
+        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample %PARAM% text", parameters));
+        assertEquals("sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters));
+        assertEquals("sample true text", SelectorParametersResolver.resolve("sample %BOOL% text", parameters));
+    }
+
+    @Test
+    public void testMixedFormatsResolver() {
+        List<ParameterValue> parameters = new LinkedList<>();
+        parameters.add(new StringParameterValue("PARAM", "VALUE"));
+        parameters.add(new BooleanParameterValue("BOOL", true));
+
+        assertEquals("sample VALUE VALUE text", SelectorParametersResolver.resolve("sample %PARAM% $PARAM text", parameters));
+        assertEquals("sample VALUE VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} %PARAM% text", parameters));
+        assertEquals("sample true true text", SelectorParametersResolver.resolve("sample $BOOL %BOOL% text", parameters));
+    }
 }

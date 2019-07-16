@@ -44,8 +44,4 @@ public class ChangeSetID {
     public boolean isSslProtocol() {
         return "ssl".equals(protocol);
     }
-
-    public String getRepositorySpec() {
-        return "rep:" + repository + "@repserver:" + protocol + "://" + host + ":" + port;
-    }
 }

@@ -149,7 +149,6 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     @Exported
-    @Deprecated
     public String getRepository() {
         return repoName + "@" + repoServer;
     }

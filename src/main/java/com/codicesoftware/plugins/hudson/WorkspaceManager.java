@@ -1,6 +1,5 @@
-package com.codicesoftware.plugins.hudson.actions;
+package com.codicesoftware.plugins.hudson;
 
-import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.commands.*;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import hudson.FilePath;
@@ -10,7 +9,7 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
-public class Workspaces {
+public class WorkspaceManager {
 
     public static List<Workspace> loadWorkspaces(PlasticTool tool)
             throws IOException, InterruptedException, ParseException {

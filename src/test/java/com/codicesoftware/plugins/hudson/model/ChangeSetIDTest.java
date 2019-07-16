@@ -2,7 +2,7 @@ package com.codicesoftware.plugins.hudson.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ChangeSetIDTest {
 
@@ -15,7 +15,6 @@ public class ChangeSetIDTest {
         assertEquals(1234, underTest.getPort());
         assertEquals("plastic", underTest.getProtocol());
         assertEquals(false, underTest.isSslProtocol());
-        assertEquals("rep:testing@repserver:plastic://domain.com:1234", underTest.getRepositorySpec());
     }
 
     @Test
@@ -27,7 +26,6 @@ public class ChangeSetIDTest {
         assertEquals(1234, underTest.getPort());
         assertEquals("ssl", underTest.getProtocol());
         assertEquals(true, underTest.isSslProtocol());
-        assertEquals("rep:testing@repserver:ssl://domain.com:1234", underTest.getRepositorySpec());
     }
 
 }

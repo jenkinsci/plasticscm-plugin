@@ -13,14 +13,14 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FindChangesetsCommand implements ParseableCommand<List<ChangeSet>>, Command {
+public class FindChangesetRangeCommand implements ParseableCommand<List<ChangeSet>>, Command {
 
     private final int csetIdFrom;
     private final int csetIdTo;
     private final String branch;
     private final String repository;
 
-    public FindChangesetsCommand(int csetIdFrom, int csetIdTo, String branch, String repository) {
+    public FindChangesetRangeCommand(int csetIdFrom, int csetIdTo, String branch, String repository) {
         this.csetIdFrom = csetIdFrom;
         this.csetIdTo = csetIdTo;
         this.branch = branch;

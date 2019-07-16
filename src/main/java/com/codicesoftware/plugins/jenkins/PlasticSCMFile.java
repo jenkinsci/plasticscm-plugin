@@ -75,13 +75,6 @@ public class PlasticSCMFile extends SCMFile {
             if (workspaceName == null || serverFile == null)
                 throw new FileNotFoundException("The pipeline script path is not valid. " +
                     "Maybe you didn't use '/' as directory separator.");
-
-//            workspaceInfo = getWorkspaceInfo(fs.getSCM(), workspaceName);
-//            if (workspaceInfo == null) {
-//                throw new FileNotFoundException(String.format(
-//                    "The pipeline script path must start by a valid workspace name. " +
-//                    "The workspace '%s' was not found.", workspaceName));
-//            }
         }
 
         Launcher launcher = fs.getLauncher();

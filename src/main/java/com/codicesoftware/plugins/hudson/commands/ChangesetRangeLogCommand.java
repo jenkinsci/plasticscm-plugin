@@ -12,11 +12,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChangesetsLogCommand implements ParseableCommand<List<ChangeSet>>, Command {
+public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet>>, Command {
     private final String csetSpecFrom;
     private final String csetSpecTo;
 
-    public ChangesetsLogCommand(String csetSpecFrom, String csetSpecTo) {
+    public ChangesetRangeLogCommand(String csetSpecFrom, String csetSpecTo) {
         this.csetSpecFrom = csetSpecFrom;
         this.csetSpecTo = csetSpecTo;
     }

@@ -10,7 +10,7 @@
         <j:forEach var="cs" items="${it.logs}" varStatus="loop">
           <li>
             <j:out value="${cs.msgAnnotated}"/>
-            (<a href="changes#details${loop.index}">${%details}</a>)
+            (<a href="changes#${cs.guid}">${%details}</a>)
           </li>
         </j:forEach>
       </ol>

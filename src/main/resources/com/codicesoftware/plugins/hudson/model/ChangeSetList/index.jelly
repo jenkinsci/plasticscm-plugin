@@ -14,7 +14,7 @@
     <j:forEach var="cs" items="${it.items}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
-          <div class="changeset-message" id="details${loop.index}">
+          <div class="changeset-message" id="${cs.guid}">
             <b>${%Changeset}: <a href="${browser.getChangeSetLink(cs)}">${cs.version}</a></b> |
             <b>${%Author}: <a href="${rootURL}/${cs.author.url}/">${cs.user}</a></b> |
             <b>${%Branch}: ${cs.branch}</b> |

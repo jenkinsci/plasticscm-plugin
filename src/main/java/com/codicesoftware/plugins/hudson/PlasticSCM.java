@@ -139,7 +139,6 @@ public class PlasticSCM extends SCM {
         ParametersAction parameters = run.getAction(ParametersAction.class);
         List<ParameterValue> parameterValues = parameters == null ? Collections.emptyList() : parameters.getParameters();
 
-        int workspaceIndex = 0;
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
 
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
@@ -174,12 +173,10 @@ public class PlasticSCM extends SCM {
             }
 
             BuildData buildData = new BuildData(plasticWorkspace, cset);
-
-            workspaceIndex++;
-            if (isUseMultipleWorkspaces()) {
-                buildData.setIndex(workspaceIndex);
+            List<BuildData> actions = run.getActions(BuildData.class);
+            if (!actions.isEmpty()) {
+                buildData.setIndex(actions.size()+1);
             }
-
             run.addAction(buildData);
         }
 

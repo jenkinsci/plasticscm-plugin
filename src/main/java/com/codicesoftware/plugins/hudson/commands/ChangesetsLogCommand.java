@@ -12,24 +12,27 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChangesetDetailsCommand implements ParseableCommand<ChangeSet>, Command {
-    private final String csetSpec;
+public class ChangesetsLogCommand implements ParseableCommand<List<ChangeSet>>, Command {
+    private final String csetSpecFrom;
+    private final String csetSpecTo;
 
-    public ChangesetDetailsCommand(String csetSpec) {
-        this.csetSpec = csetSpec;
+    public ChangesetsLogCommand(String csetSpecFrom, String csetSpecTo) {
+        this.csetSpecFrom = csetSpecFrom;
+        this.csetSpecTo = csetSpecTo;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("log");
-        arguments.add(csetSpec);
+        arguments.add("--from=" + csetSpecFrom);
+        arguments.add("" + csetSpecTo);
         arguments.add("--xml");
 
         return arguments;
     }
 
-    public ChangeSet parse(Reader reader) throws IOException, ParseException {
+    public List<ChangeSet> parse(Reader reader) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();
 
         Digester digester = new Digester2();
@@ -59,9 +62,6 @@ public class ChangesetDetailsCommand implements ParseableCommand<ChangeSet>, Com
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }
 
-        if (!csetList.isEmpty()) {
-            return csetList.get(0);
-        }
-        return null;
+        return csetList;
     }
 }

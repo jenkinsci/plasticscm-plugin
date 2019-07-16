@@ -11,18 +11,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 
-public class ChangesetListHistoryCommand implements ParseableCommand<List<ChangeSet>>, Command {
+public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Command {
 
-    private final int csetIdFrom;
-    private final int csetIdTo;
+    private final int csetId;
     private final String branch;
     private final String repository;
 
-    public ChangesetListHistoryCommand(int csetIdFrom, int csetIdTo, String branch, String repository) {
-        this.csetIdFrom = csetIdFrom;
-        this.csetIdTo = csetIdTo;
+    public FindChangesetCommand(int csetId, String branch, String repository) {
+        this.csetId = csetId;
         this.branch = branch;
         this.repository = repository;
     }
@@ -35,11 +32,7 @@ public class ChangesetListHistoryCommand implements ParseableCommand<List<Change
         arguments.add("where");
         arguments.add("branch='" + branch + "'");
         arguments.add("and");
-        arguments.add("changesetid");
-        arguments.add("between");
-        arguments.add(csetIdFrom);
-        arguments.add("and");
-        arguments.add(csetIdTo);
+        arguments.add("changesetid=" + csetId);
         arguments.add("on");
         arguments.add("repository");
         arguments.add("'" + repository + "'");
@@ -50,7 +43,7 @@ public class ChangesetListHistoryCommand implements ParseableCommand<List<Change
         return arguments;
     }
 
-    public List<ChangeSet> parse(Reader reader) throws IOException, ParseException {
+    public ChangeSet parse(Reader reader) throws IOException, ParseException {
         ArrayList<ChangeSet> csetList = new ArrayList<>();
 
         Digester digester = new Digester2();
@@ -73,6 +66,9 @@ public class ChangesetListHistoryCommand implements ParseableCommand<List<Change
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }
 
-        return csetList;
+        if (!csetList.isEmpty()) {
+            return csetList.get(0);
+        }
+        return null;
     }
 }

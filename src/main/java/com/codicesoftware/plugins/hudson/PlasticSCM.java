@@ -9,7 +9,6 @@ import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
-import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.*;
 import hudson.model.*;
 import hudson.scm.*;
@@ -166,7 +165,11 @@ public class PlasticSCM extends SCM {
                 changeLogItems.add(cset);
             } else {
                 List<ChangeSet> changeSetItems = retrieveMultipleChangesetDetails(tool, listener,
-                        previousCset.getId(), cset.getId(), cset.getBranch(), cset.getRepoName());
+                        previousCset.getId(), cset.getId());
+                for (ChangeSet it : changeSetItems) {
+                    it.setRepoName(csetId.getRepository());
+                    it.setRepoServer(csetId.getHost());
+                }
                 changeLogItems.addAll(changeSetItems);
             }
 
@@ -396,22 +399,7 @@ public class PlasticSCM extends SCM {
             int csetId)
             throws IOException, InterruptedException {
         try {
-            ParseableCommand<ChangeSet> command = new ChangesetDetailsCommand("cs:" + csetId);
-            return CommandRunner.executeAndRead(tool, command, command);
-        } catch (ParseException e) {
-            throw buildAbortException(listener, e);
-        }
-    }
-
-    private static ChangeSet retrieveSingleChangesetDetails(
-            PlasticTool tool,
-            TaskListener listener,
-            int csetId,
-            String branch,
-            String repository)
-            throws IOException, InterruptedException {
-        try {
-            ParseableCommand<ChangeSet> command = new ChangesetHistoryCommand(csetId, branch, repository);
+            ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId);
             return CommandRunner.executeAndRead(tool, command, command);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
@@ -421,13 +409,11 @@ public class PlasticSCM extends SCM {
     private static List<ChangeSet> retrieveMultipleChangesetDetails(
             PlasticTool tool,
             TaskListener listener,
-            int afterCsetId,
-            int toCsetId,
-            String branch,
-            String repository)
+            int csetIdFrom,
+            int csetIdTo)
             throws IOException, InterruptedException {
         try {
-            ParseableCommand<List<ChangeSet>> command = new ChangesetListHistoryCommand(afterCsetId + 1, toCsetId, branch, repository);
+            ParseableCommand<List<ChangeSet>> command = new ChangesetsLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo);
             return CommandRunner.executeAndRead(tool, command, command);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);

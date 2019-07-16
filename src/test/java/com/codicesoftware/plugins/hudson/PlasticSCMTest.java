@@ -30,7 +30,7 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, "test", false, false, null, "");
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, false, false, null, "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();

@@ -1,7 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.util.DateUtil;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -53,17 +52,22 @@ public class ChangeSetWriter {
     }
 
     private void write(ChangeSet changeSet, PrintWriter writer) {
-        writer.println(String.format("\t\t<date>%s</date>", DateUtil.PLASTICSCM_DATETIME_FORMATTER.get().format(changeSet.getDate())));
+        writer.println(String.format("\t\t<date>%s</date>", escapeForXml(changeSet.getXmlDate())));
         writer.println(String.format("\t\t<user>%s</user>", escapeForXml(changeSet.getUser())));
         writer.println(String.format("\t\t<comment>%s</comment>", escapeForXml(changeSet.getComment())));
+        writer.println(String.format("\t\t<branch>%s</branch>", escapeForXml(changeSet.getBranch())));
         writer.println(String.format("\t\t<repname>%s</repname>", escapeForXml(changeSet.getRepoName())));
         writer.println(String.format("\t\t<repserver>%s</repserver>", escapeForXml(changeSet.getRepoServer())));
+        writer.println(String.format("\t\t<guid>%s</guid>", escapeForXml(changeSet.getGuid())));
         if (changeSet.getItems().size() > 0) {
             writer.println("\t\t<items>");
             for (ChangeSet.Item item : changeSet.getItems()) {
-                writer.println(String.format("\t\t\t<item revno=\"%s\" parentRevno=\"%s\">%s</item>",
-                        escapeForXml(item.getRevno()), escapeForXml(item.getParentRevno()),
-                        escapeForXml(item.getPath(changeSet.getWorkspaceDir()))));
+                writer.println(String.format("\t\t\t<item revId=\"%s\" parentRevId=\"%s\" status=\"%s\">%s</item>",
+                        escapeForXml(item.getRevId()),
+                        escapeForXml(item.getParentRevId()),
+                        escapeForXml(item.getStatus()),
+                        escapeForXml(item.getPath(changeSet.getWorkspaceDir()))
+                ));
             }
             writer.println("\t\t</items>");
         }

@@ -1,15 +1,14 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
-import hudson.FilePath;
 
 public class SetSelectorCommand implements Command {
-    private final String workspaceName;
-    private final FilePath selectorFile;
 
-    public SetSelectorCommand(String workspaceName,
-            FilePath selectorFile) {
-        this.workspaceName = workspaceName;
+    private final String workspacePath;
+    private final String selectorFile;
+
+    public SetSelectorCommand(String workspacePath, String selectorFile) {
+        this.workspacePath = workspacePath;
         this.selectorFile = selectorFile;
     }
 
@@ -17,8 +16,8 @@ public class SetSelectorCommand implements Command {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("sts");
-        arguments.add("--file=" + selectorFile.getRemote());
-        arguments.add("wk:" + workspaceName);
+        arguments.add("--file=" + selectorFile);
+        arguments.add(workspacePath);
 
         return arguments;
     }

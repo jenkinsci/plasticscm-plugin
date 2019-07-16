@@ -1,0 +1,33 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <l:layout title="${it.displayName}">
+    <j:set var="build" value="${it.owningRun}"/>
+    <j:if test="${build!=null}">
+      <st:include page="sidepanel" it="${build}" optional="true"/>
+    </j:if>
+    <l:main-panel>
+      <h1>${%Plastic SCM Build Data}</h1>
+      <p>
+        <b>${%Object Spec}</b>: ${it.changeset.csetSpec}
+      </p>
+      <h2>${%Changeset}</h2>
+      <p>
+        <b>${%ID}</b>: ${it.changeset.version}<br/>
+        <b>${%Comment}</b>: ${it.changeset.msgAnnotated}<br/>
+        <b>${%Author}</b>: ${it.changeset.author}<br/>
+        <b>${%Date}</b>: ${it.changeset.dateTimeUniversal}<br/>
+        <b>${%Branch}</b>: ${it.changeset.branch}<br/>
+        <b>${%Repository}</b>: ${it.changeset.repoName}<br/>
+        <b>${%Server}</b>: ${it.changeset.repoServer}<br/>
+        <b>${%GUID}</b>: ${it.changeset.guid}<br/>
+      </p>
+      <h2>${%Workspace}</h2>
+      <p>
+        <b>${%Name}</b>: ${it.workspace.name}<br/>
+        <b>${%GUID}</b>: ${it.workspace.guid}<br/>
+      </p>
+    </l:main-panel>
+  </l:layout>
+
+</j:jelly>

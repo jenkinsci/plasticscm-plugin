@@ -17,15 +17,15 @@ import javax.annotation.Nonnull;
 
 public class PlasticSCMStep extends SCMStep {
 
+    private static final long serialVersionUID = 1L;
+
     public static final String SELECTOR_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
 
     private String branch = DescriptorImpl.defaultBranch;
     private String repository = DescriptorImpl.defaultRepository;
     private String server = DescriptorImpl.defaultServer;
-
     private boolean useUpdate = true;
     private boolean useMultipleWorkspaces = false;
-    private String workspaceName = DescriptorImpl.defaultWorkspaceName;
     private String directory = "";
 
     @DataBoundConstructor
@@ -68,15 +68,6 @@ public class PlasticSCMStep extends SCMStep {
         this.useUpdate = useUpdate;
     }
 
-    public String getWorkspaceName() {
-        return useMultipleWorkspaces ? workspaceName : "";
-    }
-
-    @DataBoundSetter
-    public void setWorkspaceName(String workspaceName) {
-        this.workspaceName = workspaceName;
-    }
-
     public String getDirectory() {
         return directory;
     }
@@ -99,7 +90,7 @@ public class PlasticSCMStep extends SCMStep {
     @Override
     protected SCM createSCM() {
         return new PlasticSCM(
-            buildSelector(), workspaceName, useUpdate, useMultipleWorkspaces, null, directory);
+            buildSelector(), useUpdate, useMultipleWorkspaces, null, directory);
     }
 
     String buildSelector() {
@@ -111,7 +102,6 @@ public class PlasticSCMStep extends SCMStep {
         public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
         public static final String defaultRepository = PlasticSCM.DEFAULT_REPOSITORY;
         public static final String defaultServer = PlasticSCM.DEFAULT_SERVER;
-        public static final String defaultWorkspaceName = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
 
         @Override
         public String getFunctionName() {
@@ -121,11 +111,6 @@ public class PlasticSCMStep extends SCMStep {
         @Override
         public String getDisplayName() {
             return "Plastic SCM";
-        }
-
-        @RequirePOST
-        public FormValidation doCheckWorkspaceName(@QueryParameter String value) {
-            return FormChecker.doCheckWorkspaceName(value);
         }
 
         @RequirePOST

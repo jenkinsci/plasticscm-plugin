@@ -1,9 +1,11 @@
 package com.codicesoftware.plugins.hudson.model;
 
 import hudson.model.Run;
+import hudson.scm.ChangeLogSet;
 import hudson.scm.RepositoryBrowser;
+import org.kohsuke.stapler.export.Exported;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,26 +16,22 @@ import java.util.List;
  * @author Erik Ramfelt
  * @author Dick Porter
  */
-public class ChangeSetList extends hudson.scm.ChangeLogSet<ChangeSet> {
+public class ChangeSetList extends ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;
 
     public ChangeSetList(
-            Run<?, ?> run, RepositoryBrowser<?> browser, List<ChangeSet> changesets) {
+            Run<?, ?> run, RepositoryBrowser<?> browser, List<ChangeSet> changesetList) {
         super(run, browser);
-        this.changesets = changesets;
+        this.changesets = Collections.unmodifiableList(changesetList);
         for (ChangeSet changeset : changesets) {
             changeset.setParent(this);
         }
     }
 
-    public ChangeSetList(
-            Run<?, ?> run, RepositoryBrowser<?> browser, ChangeSet[] changesetArray) {
-        super(run, browser);
-        changesets = new ArrayList<ChangeSet>();
-        for (ChangeSet changeset : changesetArray) {
-            changeset.setParent(this);
-            changesets.add(changeset);
-        }
+    @Exported
+    @Override
+    public String getKind() {
+        return "plasticscm";
     }
 
     @Override
@@ -41,7 +39,13 @@ public class ChangeSetList extends hudson.scm.ChangeLogSet<ChangeSet> {
         return changesets.isEmpty();
     }
 
+    @Override
     public Iterator<ChangeSet> iterator() {
         return changesets.iterator();
+    }
+
+    @SuppressWarnings("unused")
+    public List<ChangeSet> getLogs() {
+        return changesets;
     }
 }

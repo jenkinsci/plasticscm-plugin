@@ -1,13 +1,12 @@
 package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
-import hudson.FilePath;
 
 public class UndoCheckoutCommand implements Command {
 
-    private final FilePath workspacePath;
+    private final String workspacePath;
 
-    public UndoCheckoutCommand(FilePath workspacePath) {
+    public UndoCheckoutCommand(String workspacePath) {
         this.workspacePath = workspacePath;
     }
 
@@ -17,7 +16,7 @@ public class UndoCheckoutCommand implements Command {
 
         arguments.add("unco");
         arguments.add("--all");
-        arguments.add(workspacePath.getRemote());
+        arguments.add(workspacePath);
 
         return arguments;
     }

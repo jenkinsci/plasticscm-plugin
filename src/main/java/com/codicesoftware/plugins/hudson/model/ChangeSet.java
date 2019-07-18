@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@ExportedBean(defaultVisibility=999)
+@ExportedBean(defaultVisibility = 999)
 public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -95,6 +95,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     @Override
+    protected void setParent(ChangeLogSet parent) {
+        super.setParent(parent);
+    }
+
+    @Override
     public User getAuthor() {
         return User.get(user);
     }
@@ -122,12 +127,12 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         return version;
     }
 
-    public int getId() {
-        return StringUtil.tryParse(version, -1);
-    }
-
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public int getId() {
+        return StringUtil.tryParse(version, -1);
     }
 
     @Exported
@@ -255,17 +260,12 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         items.add(item);
     }
 
-    @Override
-    protected void setParent(ChangeLogSet parent) {
-        super.setParent(parent);
-    }
-
     @Exported
     public String getCsetSpec() {
         return String.format("cs:%s@%s@%s", version, repoName, repoServer);
     }
 
-    @ExportedBean(defaultVisibility=999)
+    @ExportedBean(defaultVisibility = 999)
     public static class Item implements ChangeLogSet.AffectedFile, Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -296,17 +296,17 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
             this.status = o.status;
         }
 
-        @Exported
-        @Override
-        public String getPath() {
-            return path;
+        public static String formatPath(String path) {
+            path = path.replace('\\', '/');
+
+            return path.startsWith("/")
+                    ? path.replaceFirst("^/*", "")
+                    : path;
         }
 
         @Exported
-        public String getPath(String base) {
-            if (path.startsWith(base))
-                return formatPath(path.substring(base.length()));
-
+        @Override
+        public String getPath() {
             return path;
         }
 
@@ -314,12 +314,13 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
             this.path = formatPath(path);
         }
 
-        static String formatPath(String path) {
-            path = path.replace('\\', '/');
+        @Exported
+        public String getPath(String base) {
+            if (path.startsWith(base)) {
+                return formatPath(path.substring(base.length()));
+            }
 
-            return path.startsWith("/")
-                ? path.replaceFirst("^/*", "")
-                : path;
+            return path;
         }
 
         @Exported

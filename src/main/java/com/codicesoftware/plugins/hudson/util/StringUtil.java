@@ -2,6 +2,8 @@ package com.codicesoftware.plugins.hudson.util;
 
 public class StringUtil {
 
+    private StringUtil() { }
+
     public static int tryParse(String value) {
         return tryParse(value, 0);
     }

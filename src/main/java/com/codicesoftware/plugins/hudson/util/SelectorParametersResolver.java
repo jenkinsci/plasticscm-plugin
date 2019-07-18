@@ -9,6 +9,8 @@ import java.util.Map;
 
 public class SelectorParametersResolver {
 
+    private SelectorParametersResolver() { }
+
     public static String resolve(String text, List<ParameterValue> parameters) {
         if (parameters == null) {
             return text;
@@ -22,7 +24,7 @@ public class SelectorParametersResolver {
         }
 
         return Util.replaceMacro(
-            resolveLegacyFormat(text, parametersMap), parametersMap);
+                resolveLegacyFormat(text, parametersMap), parametersMap);
     }
 
     static String resolveLegacyFormat(String text, Map<String, String> parametersMap) {

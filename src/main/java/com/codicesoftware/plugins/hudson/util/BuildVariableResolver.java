@@ -1,20 +1,17 @@
 package com.codicesoftware.plugins.hudson.util;
 
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.Computer;
+import hudson.model.Job;
+import hudson.util.VariableResolver;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.Computer;
-import hudson.model.Job;
-import hudson.model.TaskListener;
-import hudson.util.VariableResolver;
 
 /**
  * A {@link VariableResolver} that resolves certain Build variables.
@@ -27,21 +24,16 @@ import hudson.util.VariableResolver;
  * <li> NODE_NAME - The name of the node the current build is running on</li>
  * <li> EXECUTOR_NUMBER - The unique number that identifies the current executor</li>
  * <li> Any environment variable that is set on the Node that the Launcher is
- * being executed on (slave or master)</li> 
- * </ul> 
- * 
- * @author Erik Ramfelt
+ * being executed on (slave or master)</li>
+ * </ul>
  */
 public class BuildVariableResolver implements VariableResolver<String> {
-    
-    private Map<String,LazyResolver> lazyResolvers = new HashMap<String, LazyResolver>();
-    
-    private List<VariableResolver<String>> otherResolvers = new ArrayList<VariableResolver<String>>();
-    
-    private final Computer computer;
 
     private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
-    
+    private final Computer computer;
+    private Map<String, LazyResolver> lazyResolvers = new HashMap<>();
+    private List<VariableResolver<String>> otherResolvers = new ArrayList<>();
+
     public BuildVariableResolver(final Job<?, ?> job) {
         computer = null;
         lazyResolvers.put("JOB_NAME", new LazyResolver() {
@@ -60,15 +52,17 @@ public class BuildVariableResolver implements VariableResolver<String> {
         });
         lazyResolvers.put("NODE_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) {
-                if (computer ==  null || Util.fixEmpty(computer.getName()) == null)
+                if (computer == null || Util.fixEmpty(computer.getName()) == null) {
                     return "master";
+                }
                 return computer.getName();
             }
         });
         lazyResolvers.put("USER_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) throws IOException, InterruptedException {
-                if (computer == null)
+                if (computer == null) {
                     return "DEFAULT";
+                }
                 return (String) computer.getSystemProperties().get("user.name");
             }
         });
@@ -79,32 +73,15 @@ public class BuildVariableResolver implements VariableResolver<String> {
         });
     }
 
-//    /**
-//     * Constructor that can be used with a {@linkplain AbstractBuild} instance.
-//     * <p>
-//     * This constructor should not be called in a method that may be called by
-//     * {@link AbstractBuild#getEnvVars()}.
-//     * @param build used to get the project and the build env vars
-//     */
-//    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer)
-//            throws IOException, InterruptedException {
-//        this(build.getProject(), computer);
-//
-//        final Map<String, String> envVars = build.getEnvironment(TaskListener.NULL);
-//        if (envVars != null) {
-//            otherResolvers.add(new VariableResolver.ByMap<String>(envVars));
-//        }
-//    }
-
     public String resolve(String variable) {
         try {
             if (lazyResolvers.containsKey(variable)) {
                 return lazyResolvers.get(variable).getValue();
             } else {
                 if (computer != null) {
-                    otherResolvers.add(new VariableResolver.ByMap<String>(computer.getEnvironment()));
+                    otherResolvers.add(new VariableResolver.ByMap<>(computer.getEnvironment()));
                 }
-                return new VariableResolver.Union<String>(otherResolvers).resolve(variable);
+                return new VariableResolver.Union<>(otherResolvers).resolve(variable);
             }
         } catch (Exception e) {
             LOGGER.warning("Variable name '" + variable + "' look up failed because of " + e);
@@ -118,13 +95,15 @@ public class BuildVariableResolver implements VariableResolver<String> {
     private interface LazyResolver {
         String getValue() throws IOException, InterruptedException;
     }
-    
+
     /**
      * Class to handle cases when a Launcher was not created from a computer.
-     * @see Launcher#getComputer()
+     *
+     * @see hudson.Launcher#getComputer()
      */
     private abstract class LazyComputerResolver implements LazyResolver {
         protected abstract String getValue(Computer computer) throws IOException, InterruptedException;
+
         public String getValue() throws IOException, InterruptedException {
             return getValue(computer);
         }

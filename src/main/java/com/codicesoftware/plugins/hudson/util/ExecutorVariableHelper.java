@@ -8,11 +8,10 @@ import java.util.regex.Pattern;
 
 public class ExecutorVariableHelper {
 
-    private static final String COMBINATOR = System.getProperty(WorkspaceList.class.getName(), "@");
     public static final String UNKNOWN_EXECUTOR = "1";
+    private static final String COMBINATOR = System.getProperty(WorkspaceList.class.getName(), "@");
 
-    private ExecutorVariableHelper() {
-    }
+    private ExecutorVariableHelper() { }
 
     public static String getExecutorID(FilePath workspace) {
         String id = UNKNOWN_EXECUTOR;

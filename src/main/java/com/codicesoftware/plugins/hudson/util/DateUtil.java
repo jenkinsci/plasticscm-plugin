@@ -5,11 +5,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
-/**
- * Adapted from the tfs plugin.
- */
 public class DateUtil {
 
     public static final String DEFAULT_SORTABLE_FORMAT = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
@@ -22,17 +24,16 @@ public class DateUtil {
     public static final DateTimeFormatter DATETIME_LOCAL_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
-    private DateUtil() {
-    }
-
     public static final ThreadLocal<SimpleDateFormat> PLASTICSCM_DATETIME_FORMATTER = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
             SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_SORTABLE_FORMAT);
-            dateFormat.setTimeZone(new SimpleTimeZone(0,"GMT"));
+            dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT"));
             return dateFormat;
         }
     };
+
+    private DateUtil() { }
 
     public static Date parseDate(String dateString) throws ParseException {
         return parseDate(dateString, Locale.getDefault(), TimeZone.getDefault());
@@ -40,14 +41,16 @@ public class DateUtil {
 
     public static Date parseDate(String dateString, Locale locale, TimeZone timezone) throws ParseException {
         Date date = tryParseDefaultFormat(dateString);
-        
-        if (date != null)
+
+        if (date != null) {
             return date;
+        }
 
         date = tryParseUnknownFormat(dateString);
 
-        if (date != null)
+        if (date != null) {
             return date;
+        }
 
         // The old fashioned way did not work. Let's try it using a more
         // complex alternative.
@@ -55,18 +58,14 @@ public class DateUtil {
         return parseWithFormats(dateString, formats);
     }
 
-    static Date tryParseDefaultFormat(String dateString)
-    {
-        try
-        {
+    static Date tryParseDefaultFormat(String dateString) {
+        try {
             return PLASTICSCM_DATETIME_FORMATTER.get().parse(dateString);
-        }
-        catch (ParseException e)
-        {
+        } catch (ParseException e) {
             return null;
         }
     }
-    
+
     static Date tryParseUnknownFormat(String dateString) {
         dateString = dateString.replaceAll("(p|P)\\.(m|M)\\.", "PM").replaceAll("(a|A)\\.(m|M)\\.", "AM");
         try {

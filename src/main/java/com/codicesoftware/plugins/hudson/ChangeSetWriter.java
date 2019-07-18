@@ -3,16 +3,17 @@ package com.codicesoftware.plugins.hudson;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
 /**
  * Plastic SCM change log writer, based on tfs version.
- * 
- * @author Erik Ramfelt
- * @author Dick Porter
  */
 public class ChangeSetWriter {
 
@@ -34,19 +35,19 @@ public class ChangeSetWriter {
      * Writes the list of change sets to the writer
      * @param changeSets list of change sets
      * @param output output writer
-     */    
+     */
     public void write(List<ChangeSet> changeSets, Writer output) {
         PrintWriter writer = new PrintWriter(output);
-        
+
         writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<changelog>");
-        
+
         for (ChangeSet changeSet : changeSets) {
             writer.println(String.format("\t<changeset version=\"%s\">", changeSet.getVersion()));
             write(changeSet, writer);
             writer.println("\t</changeset>");
         }
-        
+
         writer.println("</changelog>");
         writer.flush();
     }
@@ -74,17 +75,14 @@ public class ChangeSetWriter {
     }
 
     /**
-     * 
      * Converts the input in the way that it can be written to the XML.
      * Special characters are converted to XML understandable way.
-     * 
+     *
      * @param object The object to be escaped.
      * @return Escaped string that can be written to XML.
      */
-    private String escapeForXml(Object object)
-    {
-        if(object == null)
-        {
+    private String escapeForXml(Object object) {
+        if (object == null) {
             return null;
         }
 
@@ -93,18 +91,27 @@ public class ChangeSetWriter {
         int size = string.length();
         char ch;
         StringBuilder escapedString = new StringBuilder(size);
-        for(int index = 0;index < size;index ++)
-        {
+        for (int index = 0; index < size; index++) {
             //Convert special chars.
             ch = string.charAt(index);
-            switch(ch)
-            {
-                case '&'  : escapedString.append("&amp;");  break;
-                case '<'  : escapedString.append("&lt;");   break;
-                case '>'  : escapedString.append("&gt;");   break;
-                case '\'' : escapedString.append("&apos;"); break;
-                case '\"' : escapedString.append("&quot;");break;
-                default:    escapedString.append(ch);
+            switch (ch) {
+                case '&':
+                    escapedString.append("&amp;");
+                    break;
+                case '<':
+                    escapedString.append("&lt;");
+                    break;
+                case '>':
+                    escapedString.append("&gt;");
+                    break;
+                case '\'':
+                    escapedString.append("&apos;");
+                    break;
+                case '\"':
+                    escapedString.append("&quot;");
+                    break;
+                default:
+                    escapedString.append(ch);
             }
         }
 

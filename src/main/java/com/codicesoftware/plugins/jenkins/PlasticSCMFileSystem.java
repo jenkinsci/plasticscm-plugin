@@ -1,12 +1,6 @@
 package com.codicesoftware.plugins.jenkins;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-
+import com.codicesoftware.plugins.hudson.PlasticSCM;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.Item;
@@ -19,26 +13,38 @@ import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 
-import com.codicesoftware.plugins.hudson.PlasticSCM;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PlasticSCMFileSystem extends SCMFileSystem {
+
+    private static final Logger LOGGER = Logger.getLogger(PlasticSCMFileSystem.class.getName());
+
+    private final PlasticSCM scm;
+    private Item owner;
+    private Launcher launcher;
 
     protected PlasticSCMFileSystem(@Nonnull Item owner, @Nonnull PlasticSCM scm, @CheckForNull SCMRevision rev) {
         super(rev);
         this.owner = owner;
         this.scm = scm;
-        this.launcher = new Launcher.LocalLauncher(
-            new LogTaskListener(LOGGER, Level.ALL));
+        this.launcher = new Launcher.LocalLauncher(new LogTaskListener(LOGGER, Level.ALL));
     }
 
     public Run<?, ?> getLastBuildFromFirstJob() {
         Collection<? extends Job> jobs = owner.getAllJobs();
         for (Job job : jobs) {
-            if (job == null)
+            if (job == null) {
                 continue;
+            }
             Run<?, ?> run = job.getLastBuild();
-            if (run != null)
+            if (run != null) {
                 return run;
+            }
         }
         return null;
     }
@@ -65,6 +71,10 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
     @Extension
     public static class BuilderImpl extends SCMFileSystem.Builder {
 
+        private static boolean isPlasticSCM(SCM scm) {
+            return scm instanceof PlasticSCM;
+        }
+
         @Override
         public boolean supports(SCM source) {
             return isPlasticSCM(source);
@@ -77,26 +87,18 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
         @Override
         public SCMFileSystem build(
-            @Nonnull Item owner,
-            @Nonnull SCM scm,
-            @CheckForNull SCMRevision rev){
-            if (scm == null)
+                @Nonnull Item owner,
+                @Nonnull SCM scm,
+                @CheckForNull SCMRevision rev) {
+            if (scm == null) {
                 return null;
+            }
 
-             if (!isPlasticSCM(scm))
-                 return null;
+            if (!isPlasticSCM(scm)) {
+                return null;
+            }
 
-            return new PlasticSCMFileSystem(owner, (PlasticSCM)scm, rev);
-        }
-
-        private static boolean isPlasticSCM(SCM scm){
-            return scm instanceof PlasticSCM;
+            return new PlasticSCMFileSystem(owner, (PlasticSCM) scm, rev);
         }
     }
-
-    private Item owner;
-    private Launcher launcher;
-    private final PlasticSCM scm;
-
-    private static final Logger LOGGER = Logger.getLogger(PlasticSCMFileSystem.class.getName());
 }

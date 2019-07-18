@@ -7,17 +7,23 @@ public class WorkspaceInfoParser {
     public static final String DEFAULT_SEPARATOR = "def#_#sep";
     private static final String ERROR_MSG_PREFIX = "ERROR";
 
+    private WorkspaceInfoParser() {
+    }
+
     public static WorkspaceInfo parse(String line) {
-        if (line == null)
+        if (line == null) {
             return null;
+        }
 
         String[] fields = line.split(DEFAULT_SEPARATOR, -1);
 
-        if (fields.length == 0)
+        if (fields.length == 0) {
             return null;
+        }
 
-        if (ERROR_MSG_PREFIX.equals(fields[0]))
+        if (ERROR_MSG_PREFIX.equals(fields[0])) {
             return null;
+        }
 
         String key = fields[0];
         String value = fields[1];
@@ -27,12 +33,13 @@ public class WorkspaceInfoParser {
         String label = "";
         String changeset = "";
 
-        if (key.equals("BR"))
+        if (key.equals("BR")) {
             branch = value;
-        else if (key.equals("LB"))
+        } else if (key.equals("LB")) {
             label = value;
-        else if (key.equals("CS"))
+        } else if (key.equals("CS")) {
             changeset = value;
+        }
 
         return new WorkspaceInfo(repoName, branch, label, changeset);
     }

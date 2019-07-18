@@ -12,9 +12,6 @@ import java.util.List;
 /**
  * ChangeSetList for the Plastic SCM
  * The log set will set the parent of the log entries in the constructor.
- *
- * @author Erik Ramfelt
- * @author Dick Porter
  */
 public class ChangeSetList extends ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;

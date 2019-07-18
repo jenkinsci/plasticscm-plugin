@@ -11,7 +11,7 @@ public class Workspace implements Serializable {
 
     private final String name;
     @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-    private transient final FilePath path;
+    private final transient FilePath path;
     private final String pathStr;
     private final String guid;
 

@@ -10,8 +10,7 @@ public class NodeVariableHelper {
     private static final String UNKNOWN_NODE_NAME = "unknown";
     private static final String MASTER_NODE_NAME = "master";
 
-    private NodeVariableHelper() {
-    }
+    private NodeVariableHelper() { }
 
     /**
      * Helper: find the node name used for the build

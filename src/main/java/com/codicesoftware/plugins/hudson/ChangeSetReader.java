@@ -21,10 +21,7 @@ import java.util.List;
 
 /**
  * Plastic SCM change log reader, based on tfs version.
- * 
- * @author Erik Ramfelt
- * @author Dick Porter
- */ 
+ */
 public class ChangeSetReader extends ChangeLogParser {
 
     @Override
@@ -40,7 +37,7 @@ public class ChangeSetReader extends ChangeLogParser {
     }
 
     public ChangeSetList parse(
-            Run<?,?> run, RepositoryBrowser<?> browser, Reader reader)
+            Run<?, ?> run, RepositoryBrowser<?> browser, Reader reader)
             throws IOException, SAXException {
         List<ChangeSet> changesetList = new ArrayList<>();
         Digester digester = new Digester2();

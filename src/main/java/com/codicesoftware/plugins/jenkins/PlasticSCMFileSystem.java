@@ -7,11 +7,13 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.scm.SCM;
+import hudson.scm.SCMDescriptor;
 import hudson.util.LogTaskListener;
 import jenkins.scm.api.SCMFile;
 import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
+import jenkins.scm.api.SCMSourceDescriptor;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -76,18 +78,7 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         }
 
         @Override
-        public boolean supports(SCM source) {
-            return isPlasticSCM(source);
-        }
-
-        @Override
-        public boolean supports(SCMSource source) {
-            return false;
-        }
-
-        @Override
-        public SCMFileSystem build(
-                @Nonnull Item owner,
+        public SCMFileSystem build(@Nonnull Item owner,
                 @Nonnull SCM scm,
                 @CheckForNull SCMRevision rev) {
             if (scm == null) {
@@ -100,5 +91,26 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
             return new PlasticSCMFileSystem(owner, (PlasticSCM) scm, rev);
         }
+
+        @Override
+        public boolean supports(SCM source) {
+            return isPlasticSCM(source);
+        }
+
+        @Override
+        public boolean supports(SCMSource source) {
+            return false;
+        }
+
+        @Override
+        protected boolean supportsDescriptor(SCMDescriptor descriptor) {
+            return descriptor instanceof PlasticSCM.DescriptorImpl;
+        }
+
+        @Override
+        protected boolean supportsDescriptor(SCMSourceDescriptor descriptor) {
+            return false;
+        }
+
     }
 }

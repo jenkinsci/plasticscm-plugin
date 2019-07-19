@@ -1,7 +1,12 @@
 package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
-import com.codicesoftware.plugins.hudson.commands.*;
+import com.codicesoftware.plugins.hudson.commands.ChangesetLogCommand;
+import com.codicesoftware.plugins.hudson.commands.ChangesetRangeLogCommand;
+import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
+import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.commands.GetWorkspaceStatusCommand;
+import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSetID;
@@ -9,9 +14,29 @@ import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
-import hudson.*;
-import hudson.model.*;
-import hudson.scm.*;
+import hudson.AbortException;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Computer;
+import hudson.model.Descriptor;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.scm.ChangeLogParser;
+import hudson.scm.PollingResult;
+import hudson.scm.RepositoryBrowser;
+import hudson.scm.SCM;
+import hudson.scm.SCMDescriptor;
+import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
@@ -29,7 +54,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,12 +68,10 @@ import static hudson.scm.PollingResult.NO_CHANGES;
 
 /**
  * SCM for Plastic SCM
- *
- * Based on the tfs plugin by Erik Ramfelt
- *
- * @author Dick Porter
  */
 public class PlasticSCM extends SCM {
+
+    private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
     public static final String DEFAULT_BRANCH = "/main";
     public static final String DEFAULT_REPOSITORY = "default";
@@ -53,20 +80,19 @@ public class PlasticSCM extends SCM {
 
     public static final String WORKSPACE_NAME_PARAMETRIZED = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
 
-    public final String selector;
-    public final boolean useUpdate;
-    public final boolean useWorkspaceSubdirectory;
-    private final List<WorkspaceInfo> additionalWorkspaces;
-    private final WorkspaceInfo firstWorkspace;
-    public final String directory;
-
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
-        "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
+            "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
     private static final Pattern REPOSITORY_PATTERN = Pattern.compile(
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
-    private static final Logger logger = Logger.getLogger(PlasticSCM.class.getName());
-    
+    private final String selector;
+    private final boolean useUpdate;
+    private final boolean useWorkspaceSubdirectory;
+    private final List<WorkspaceInfo> additionalWorkspaces;
+    private final WorkspaceInfo firstWorkspace;
+    private final String directory;
+
+
     private PlasticSCM() {
         selector = DEFAULT_SELECTOR;
         useUpdate = true;
@@ -83,14 +109,14 @@ public class PlasticSCM extends SCM {
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             String directory) {
-        logger.info("Initializing PlasticSCM plugin");
+        LOGGER.info("Initializing PlasticSCM plugin");
         this.selector = selector;
         this.useUpdate = useUpdate;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.directory = directory;
 
         firstWorkspace = new WorkspaceInfo(this.selector, this.useUpdate, this.directory);
-        if(additionalWorkspaces == null || !useMultipleWorkspaces) {
+        if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
             return;
         }
@@ -132,12 +158,12 @@ public class PlasticSCM extends SCM {
             @Nonnull final FilePath workspace,
             @Nonnull final TaskListener listener,
             @CheckForNull final File changelogFile,
-            @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException  {
+            @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
         ParametersAction parameters = run.getAction(ParametersAction.class);
-        List<ParameterValue> parameterValues = parameters == null ? Collections.emptyList() : parameters.getParameters();
+        List<ParameterValue> parameterValues = (parameters == null) ? Collections.emptyList() : parameters.getParameters();
 
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
 
@@ -175,7 +201,7 @@ public class PlasticSCM extends SCM {
             BuildData buildData = new BuildData(plasticWorkspace, cset);
             List<BuildData> actions = run.getActions(BuildData.class);
             if (!actions.isEmpty()) {
-                buildData.setIndex(actions.size()+1);
+                buildData.setIndex(actions.size() + 1);
             }
             run.addAction(buildData);
         }
@@ -226,7 +252,7 @@ public class PlasticSCM extends SCM {
                     index++;
                 }
             } else {
-                logger.warning("Unable to populate environment variables");
+                LOGGER.warning("Unable to populate environment variables");
             }
         }
     }
@@ -242,7 +268,7 @@ public class PlasticSCM extends SCM {
 
     @Override
     public PollingResult compareRemoteRevisionWith(
-            @Nonnull final  Job<?,?> project,
+            @Nonnull final Job<?, ?> project,
             @Nullable final Launcher launcher,
             @Nullable final FilePath workspace,
             @Nonnull final TaskListener listener,
@@ -267,8 +293,9 @@ public class PlasticSCM extends SCM {
                     getSelectorBranch(resolvedSelector),
                     getSelectorRepository(resolvedSelector));
 
-            if (hasChanges)
+            if (hasChanges) {
                 return BUILD_NOW;
+            }
         }
         return NO_CHANGES;
     }
@@ -281,8 +308,9 @@ public class PlasticSCM extends SCM {
     public List<WorkspaceInfo> getAllWorkspaces() {
         List<WorkspaceInfo> result = new ArrayList<>();
         result.add(firstWorkspace);
-        if(additionalWorkspaces != null)
+        if (additionalWorkspaces != null) {
             result.addAll(additionalWorkspaces);
+        }
         return result;
     }
 
@@ -300,7 +328,7 @@ public class PlasticSCM extends SCM {
     }
 
     private String resolveWorkspaceNameParameters(
-            Run<?,?> build,
+            Run<?, ?> build,
             FilePath workspacePath,
             String workspaceName,
             WorkspaceInfo workspaceInfo) {
@@ -313,7 +341,7 @@ public class PlasticSCM extends SCM {
         if (build != null) {
             result = replaceBuildParameter(build, result);
             BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
-                build.getParent(), Computer.currentComputer(), workspacePath);
+                    build.getParent(), Computer.currentComputer(), workspacePath);
             result = Util.replaceMacro(result, buildVariableResolver);
         }
 
@@ -324,9 +352,9 @@ public class PlasticSCM extends SCM {
         return result.replaceAll("[\\.\\s]+$", "_");
     }
 
-    private String replaceBuildParameter(Run<?,?> run, String text) {
-        if (run instanceof AbstractBuild<?,?>) {
-            AbstractBuild<?,?> build = (AbstractBuild<?,?>)run;
+    private String replaceBuildParameter(Run<?, ?> run, String text) {
+        if (run instanceof AbstractBuild<?, ?>) {
+            AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
             if (build.getAction(ParametersAction.class) != null) {
                 return build.getAction(ParametersAction.class).substitute(build, text);
             }
@@ -418,10 +446,9 @@ public class PlasticSCM extends SCM {
     }
 
     private static AbortException buildAbortException(
-            TaskListener listener, Exception e)
-    {
+            TaskListener listener, Exception e) {
         listener.fatalError(e.getMessage());
-        logger.severe(e.getMessage());
+        LOGGER.severe(e.getMessage());
         return new AbortException();
     }
 
@@ -434,7 +461,7 @@ public class PlasticSCM extends SCM {
             writer.write(result, changelogFile);
         } catch (Exception e) {
             listener.fatalError(e.getMessage());
-            logger.severe(e.getMessage());
+            LOGGER.severe(e.getMessage());
             throw new AbortException();
         }
     }
@@ -447,51 +474,52 @@ public class PlasticSCM extends SCM {
             String branchName,
             String repository) {
         PlasticTool plasticTool = new PlasticTool(getDescriptor().getCmExecutable(),
-            launcher, listener, workspacePath); 
+                launcher, listener, workspacePath);
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
-                plasticTool,
-                branchName,
-                repository,
-                lastCompletedBuildTimestamp,
-                Calendar.getInstance());
+                    plasticTool,
+                    branchName,
+                    repository,
+                    lastCompletedBuildTimestamp,
+                    Calendar.getInstance());
             return changesetsFromBuild.size() > 0;
         } catch (Exception e) {
             e.printStackTrace(listener.error(workspacePath.getRemote()
-                + ": Unable to retrieve workspace status."));
+                    + ": Unable to retrieve workspace status."));
             return false;
         }
     }
 
     private List<ParameterValue> getDefaultParameterValues(Job<?, ?> project) {
-        ParametersDefinitionProperty paramDefProp = project.getProperty(
-            ParametersDefinitionProperty.class);
-        if (paramDefProp == null)
+        ParametersDefinitionProperty paramDefProp = project.getProperty(ParametersDefinitionProperty.class);
+        if (paramDefProp == null) {
             return null;
-
-        ArrayList<ParameterValue> result = new ArrayList<>();
-
-        for(ParameterDefinition paramDefinition : paramDefProp.getParameterDefinitions()) {
-            ParameterValue defaultValue = paramDefinition.getDefaultParameterValue();
-
-            if(defaultValue != null)
-                result.add(defaultValue);
         }
 
+        ArrayList<ParameterValue> result = new ArrayList<>();
+        for (ParameterDefinition paramDefinition : paramDefProp.getParameterDefinitions()) {
+            ParameterValue defaultValue = paramDefinition.getDefaultParameterValue();
+
+            if (defaultValue != null) {
+                result.add(defaultValue);
+            }
+        }
         return result;
     }
 
     private String getSelectorBranch(String selector) {
         Matcher smartbranchMatcher = BRANCH_PATTERN.matcher(selector);
-        if (smartbranchMatcher.matches())
+        if (smartbranchMatcher.matches()) {
             return smartbranchMatcher.group(3);
+        }
         return null;
     }
 
     private String getSelectorRepository(String selector) {
         Matcher matcher = REPOSITORY_PATTERN.matcher(selector);
-        if (matcher.matches())
+        if (matcher.matches()) {
             return matcher.group(2);
+        }
         return null;
     }
 
@@ -520,6 +548,26 @@ public class PlasticSCM extends SCM {
         public DescriptorImpl() {
             super(PlasticSCM.class, null);
             load();
+        }
+
+        @RequirePOST
+        public static FormValidation doCheckSelector(@QueryParameter String value) {
+            return FormChecker.doCheckSelector(value);
+        }
+
+        @RequirePOST
+        public static FormValidation doCheckDirectory(
+                @QueryParameter String value,
+                @QueryParameter boolean useMultipleWorkspaces,
+                @AncestorInPath Item item) {
+            if (Util.fixEmpty(value) == null && !useMultipleWorkspaces) {
+                return FormValidation.ok();
+            }
+            return FormChecker.doCheckDirectory(value, item);
+        }
+
+        public static String getDefaultSelector() {
+            return PlasticSCM.DEFAULT_SELECTOR;
         }
 
         public String getDisplayName() {
@@ -560,46 +608,23 @@ public class PlasticSCM extends SCM {
                 return FormChecker.createValidationResponse("Error: " + e.getMessage(), true);
             }
         }
-
-        @RequirePOST
-        public static FormValidation doCheckSelector(@QueryParameter String value) {
-            return FormChecker.doCheckSelector(value);
-        }
-
-        @RequirePOST
-        public static FormValidation doCheckDirectory(
-                @QueryParameter String value,
-                @QueryParameter boolean useMultipleWorkspaces,
-                @AncestorInPath Item item) {
-            if (Util.fixEmpty(value) == null && !useMultipleWorkspaces) {
-                return FormValidation.ok();
-            }
-            return FormChecker.doCheckDirectory(value, item);
-        }
-
-        public static String getDefaultSelector() {
-            return PlasticSCM.DEFAULT_SELECTOR;
-        }
     }
 
     @ExportedBean
     public static final class WorkspaceInfo extends AbstractDescribableImpl<WorkspaceInfo> implements Serializable {
-        private static final long serialVersionUID = -8733439331229786588L;
+        private static final long serialVersionUID = 1L;
 
         @Exported
-        public final String selector;
+        private final String selector;
 
         @Exported
-        public final boolean useUpdate;
+        private final boolean useUpdate;
 
         @Exported
-        public final String directory;
+        private final String directory;
 
         @DataBoundConstructor
-        public WorkspaceInfo(
-                String selector,
-                boolean useUpdate,
-                String directory) {
+        public WorkspaceInfo(String selector, boolean useUpdate, String directory) {
             this.selector = selector;
             this.useUpdate = useUpdate;
             this.directory = directory;
@@ -625,11 +650,6 @@ public class PlasticSCM extends SCM {
         @Extension
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
 
-            @Override
-            public String getDisplayName() {
-                return "Plastic SCM Workspace";
-            }
-
             @RequirePOST
             public static FormValidation doCheckSelector(@QueryParameter String value) {
                 return FormChecker.doCheckSelector(value);
@@ -642,6 +662,11 @@ public class PlasticSCM extends SCM {
 
             public static String getDefaultSelector() {
                 return PlasticSCM.DEFAULT_SELECTOR;
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "Plastic SCM Workspace";
             }
         }
     }

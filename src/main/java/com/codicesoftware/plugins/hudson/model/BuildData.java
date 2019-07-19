@@ -14,7 +14,7 @@ import java.io.Serializable;
 @ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
 
-    private static final long serialVersionUID = -3335648855305648577L;
+    private static final long serialVersionUID = 1L;
 
     private Workspace workspace;
     private ChangeSet changeset;
@@ -58,12 +58,12 @@ public class BuildData implements Action, Serializable, Cloneable {
 
     @Override
     public String getDisplayName() {
-        return index == 0 ? "Plastic SCM": "Plastic SCM #" + index;
+        return (index == 0) ? "Plastic SCM" : "Plastic SCM #" + index;
     }
 
     @Override
     public String getUrlName() {
-        return index == 0 ? "plasticscm-plugin" : "plasticscm-plugin-" + index;
+        return (index == 0) ? "plasticscm-plugin" : "plasticscm-plugin-" + index;
     }
 
     public int getIndex() {
@@ -76,7 +76,7 @@ public class BuildData implements Action, Serializable, Cloneable {
 
     @Restricted(NoExternalUse.class)
     @SuppressWarnings("unused")
-    public Run<?,?> getOwningRun() {
+    public Run<?, ?> getOwningRun() {
         StaplerRequest req = Stapler.getCurrentRequest();
         if (req == null) {
             return null;

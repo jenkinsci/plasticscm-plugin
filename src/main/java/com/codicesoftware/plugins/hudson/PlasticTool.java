@@ -7,29 +7,30 @@ import hudson.Proc;
 import hudson.model.TaskListener;
 import hudson.util.ForkOutputStream;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 /**
  * Class that encapsulates the Plastic SCM command client.
- *
- * @author Erik Ramfelt
- * @author Dick Porter
  */
 public class PlasticTool {
-    private final String executable;
-    private Launcher launcher;
-    private TaskListener listener;
-    private FilePath workspace;
+
+    private static final Logger LOGGER = Logger.getLogger(PlasticTool.class.getName());
 
     private static final int MAX_RETRIES = 3;
     private static final int TIME_BETWEEN_RETRIES = 500;
 
-    private static final Logger logger = Logger.getLogger(PlasticTool.class.getName());
+    private String executable;
+    private Launcher launcher;
+    private TaskListener listener;
+    private FilePath workspace;
 
-    public PlasticTool(String executable, Launcher launcher, TaskListener listener,
-            FilePath workspace) {
+    public PlasticTool(String executable, Launcher launcher, TaskListener listener, FilePath workspace) {
         this.executable = executable;
         this.launcher = launcher;
         this.listener = listener;
@@ -38,6 +39,7 @@ public class PlasticTool {
 
     /**
      * Execute the arguments, and return the console output as a Reader
+     *
      * @param arguments arguments to send to the command-line client.
      * @return a Reader containing the console output
      * @throws IOException
@@ -46,6 +48,7 @@ public class PlasticTool {
     public Reader execute(String[] arguments) throws IOException, InterruptedException {
         return execute(arguments, null);
     }
+
     public Reader execute(String[] arguments, FilePath executionPath) throws IOException, InterruptedException {
         String[] cmdArgs = getToolArguments(arguments);
         String cliLine = getCliLine(cmdArgs);
@@ -53,13 +56,14 @@ public class PlasticTool {
         int retries = 0;
         while (retries < MAX_RETRIES) {
             Reader result = tryExecute(cmdArgs, executionPath);
-            if (result != null)
+            if (result != null) {
                 return result;
+            }
 
             retries++;
-            logger.warning(String.format(
-                "The cm command '%s' failed. Retrying after %d ms... (%d)",
-                cliLine, TIME_BETWEEN_RETRIES, retries));
+            LOGGER.warning(String.format(
+                    "The cm command '%s' failed. Retrying after %d ms... (%d)",
+                    cliLine, TIME_BETWEEN_RETRIES, retries));
             Thread.sleep(TIME_BETWEEN_RETRIES);
         }
 
@@ -79,16 +83,18 @@ public class PlasticTool {
     private String getCliLine(String[] args) {
         StringBuilder builder = new StringBuilder();
         for (String arg : args) {
-            if (builder.length() != 0)
+            if (builder.length() != 0) {
                 builder.append(' ');
+            }
             builder.append(arg);
         }
         return builder.toString();
     }
 
     private Reader tryExecute(String[] cmdArgs, FilePath executionPath) throws IOException, InterruptedException {
-        if(executionPath == null)
+        if (executionPath == null) {
             executionPath = workspace;
+        }
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
         Proc proc = launcher.launch().cmds(cmdArgs)
                 .stdout(new ForkOutputStream(consoleStream, listener.getLogger()))

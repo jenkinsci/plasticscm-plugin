@@ -2,21 +2,22 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import hudson.FilePath;
-import hudson.model.Computer;
-import hudson.remoting.VirtualChannel;
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
 public class CommandRunner {
+
+    private CommandRunner() { }
+
     public static Reader execute(PlasticTool tool, Command cmd) throws IOException, InterruptedException {
         return execute(tool, cmd, null);
     }
 
-    public static Reader execute(PlasticTool tool, Command cmd, FilePath executionPath) throws IOException, InterruptedException {
+    public static Reader execute(PlasticTool tool, Command cmd, FilePath executionPath)
+            throws IOException, InterruptedException {
         return tool.execute(cmd.getArguments().toCommandArray(), executionPath);
     }
 

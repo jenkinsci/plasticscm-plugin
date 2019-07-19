@@ -7,14 +7,12 @@ import java.text.ParseException;
 /**
  * Command that issues a cm command line client command.
  *
- * @author Erik Ramfelt
- * @author Dick Porter
- *
  * @param <T> the return type when parsing the output from the command line client.
  */
 public interface ParseableCommand<T> extends Command {
     /**
      * Returns data from parsing the command line client output in reader
+     *
      * @param reader reader containing the output from the command line client
      * @return parsed data
      * @throws ParseException thrown if there was a problem parsing the data

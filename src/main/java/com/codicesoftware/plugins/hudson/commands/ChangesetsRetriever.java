@@ -14,6 +14,9 @@ import java.util.Calendar;
 import java.util.List;
 
 public class ChangesetsRetriever {
+
+    private ChangesetsRetriever() { }
+
     public static List<ChangeSet> getChangesets(
             PlasticTool tool,
             String branchName,
@@ -25,6 +28,7 @@ public class ChangesetsRetriever {
 
         return CommandRunner.executeAndRead(tool, histCommand, histCommand);
     }
+
     public static List<ChangeSet> getDetailedHistory(
             PlasticTool tool,
             FilePath wkPath,
@@ -32,13 +36,12 @@ public class ChangesetsRetriever {
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(
-            tool, branchName, repoSpec, fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(tool, branchName, repoSpec, fromTimestamp, toTimestamp);
 
         GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath.getRemote());
         Workspace workspace = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
 
-        for(ChangeSet cs : list) {
+        for (ChangeSet cs : list) {
             cs.setWorkspaceDir(workspace.getPath().getRemote());
 
             GetChangesetRevisionsCommand revs = new GetChangesetRevisionsCommand(
@@ -59,16 +62,19 @@ public class ChangesetsRetriever {
             PlasticTool tool, WorkspaceInfo wi)
             throws InterruptedException, ParseException, IOException {
         String branch = wi.getBranch();
-        if (branch != null && !branch.isEmpty())
+        if (branch != null && !branch.isEmpty()) {
             return branch;
+        }
 
         String label = wi.getLabel();
-        if (label != null && !label.isEmpty())
+        if (label != null && !label.isEmpty()) {
             return getBranchFromLabel(tool, label, wi.getRepoName());
+        }
 
         String changeset = wi.getChangeset();
-        if (changeset != null && !changeset.isEmpty())
+        if (changeset != null && !changeset.isEmpty()) {
             return getBranchFromChangeset(tool, changeset, wi.getRepoName());
+        }
 
         return "";
     }

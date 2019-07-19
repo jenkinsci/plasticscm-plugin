@@ -7,6 +7,7 @@ import hudson.util.FormValidation;
 import java.util.regex.Pattern;
 
 public class FormChecker {
+
     private static final Pattern WORKSPACE_REGEX = Pattern.compile("^[^@#/:]+$");
     private static final Pattern SELECTOR_REGEX = Pattern.compile(
         "^(\\s*(rep|repository)\\s+\"(.*)\"(\\s+mount\\s+\"(.*)\")?(\\s+path\\s+"
@@ -14,10 +15,12 @@ public class FormChecker {
         + "(\"\\d+\"|LAST|FIRST)|changeset\\s+\"\\S+\"))?(\\s+(label|lb)\\s+\"(.*)\")?)|"
         + "(label|lb)\\s+\"(.*)\")(\\s+(checkout|co)\\s+\"(.*\"))?)|(branchpertask\\s+"
         + "\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$",
-        Pattern.MULTILINE|Pattern.CASE_INSENSITIVE);
+        Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
     private static final Pattern NO_AT_CHAR_REGEX = Pattern.compile("^[^@]+$");
     private static final Pattern SERVER_REGEX = Pattern.compile("^.+:[0-9]+$");
     private static final Pattern DIRECTORY_REGEX = Pattern.compile("^[A-Za-z0-9\\-\\_]+$");
+
+    private FormChecker() { }
 
     public static FormValidation doCheckWorkspaceName(String value) {
         return doRegexCheck(WORKSPACE_REGEX, "Workspace name should not include @, #, / or :",
@@ -68,12 +71,12 @@ public class FormChecker {
             final String nullText,
             String value) {
         value = Util.fixEmpty(value);
-        if (value == null)
+        if (value == null) {
             return FormValidation.error(nullText);
-
-        if (regex.matcher(value).matches())
+        }
+        if (regex.matcher(value).matches()) {
             return FormValidation.ok();
-
+        }
         return FormValidation.error(noMatchText);
     }
 

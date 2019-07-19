@@ -22,7 +22,7 @@ public class GetChangesetRevisionsCommand implements Command {
 
         arguments.add("diff");
         arguments.add(String.format("cs:%s@%s", csVersion, repoName));
-        arguments.add(String.format("--format={path}%1$s{revid}%1$s{parentrevid}%1$s{status}", SEPARATOR ));
+        arguments.add(String.format("--format={path}%1$s{revid}%1$s{parentrevid}%1$s{status}", SEPARATOR));
         arguments.add("--repositorypaths");
 
         return arguments;

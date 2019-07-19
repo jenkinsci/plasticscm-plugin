@@ -4,6 +4,9 @@ import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.util.Digester2;
+import org.apache.commons.digester.Digester;
+import org.xml.sax.SAXException;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
@@ -11,8 +14,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import org.apache.commons.digester.Digester;
-import org.xml.sax.SAXException;
 
 public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>, Command {
     private final Calendar fromTimestamp;
@@ -21,7 +22,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
     private final String repository;
 
     private final SimpleDateFormat dateFormatter =
-    		new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
+            new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
 
     public DetailedHistoryCommand(
             Calendar fromTimestamp, Calendar toTimestamp, String branch, String repository) {
@@ -47,10 +48,10 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
         arguments.add("on");
         arguments.add("repositories");
         arguments.add("'" + repository + "'");
-        
+
         arguments.add("--xml");
         arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
-        
+
 
         return arguments;
     }

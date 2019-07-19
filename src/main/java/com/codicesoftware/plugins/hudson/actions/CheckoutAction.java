@@ -14,9 +14,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class CheckoutAction {
+public class CheckoutAction {
 
-    private static final Logger logger = Logger.getLogger(CheckoutAction.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CheckoutAction.class.getName());
+    private static final Pattern WINDOWS_PATH_PATTERN = Pattern.compile("^[a-zA-Z]:/.*$");
+
+    private CheckoutAction() { }
 
     public static Workspace checkout(
             PlasticTool tool,
@@ -44,7 +47,7 @@ public final class CheckoutAction {
         Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
 
         if (workspace != null) {
-            logger.fine("Reusing existing workspace");
+            LOGGER.fine("Reusing existing workspace");
             WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
 
             if (mustUpdateSelector(tool, workspace.getName(), selector)) {
@@ -55,7 +58,7 @@ public final class CheckoutAction {
             return workspace;
         }
 
-        logger.fine("Creating new workspace");
+        LOGGER.fine("Creating new workspace");
         String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
 
         workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
@@ -67,8 +70,7 @@ public final class CheckoutAction {
     }
 
     private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
-        String wkSelector = removeNewLinesFromSelector(
-            WorkspaceManager.loadSelector(tool, name));
+        String wkSelector = removeNewLinesFromSelector(WorkspaceManager.loadSelector(tool, name));
         String currentSelector = removeNewLinesFromSelector(selector);
 
         return !wkSelector.equals(currentSelector);
@@ -110,7 +112,7 @@ public final class CheckoutAction {
         String actualFixed = actual.replaceAll("\\\\", "/");
         String expectedFixed = expected.replaceAll("\\\\", "/");
 
-        Matcher windowsPathMatcher = windowsPathPattern.matcher(expectedFixed);
+        Matcher windowsPathMatcher = WINDOWS_PATH_PATTERN.matcher(expectedFixed);
         if (windowsPathMatcher.matches()) {
             return actualFixed.equalsIgnoreCase(expectedFixed);
         }
@@ -126,35 +128,33 @@ public final class CheckoutAction {
     }
 
     @Deprecated
-    private static Workspace findWorkspaceByName(List<Workspace> workspaces, String workspaceName)
-    {
+    private static Workspace findWorkspaceByName(List<Workspace> workspaces, String workspaceName) {
         for (Workspace workspace : workspaces) {
-            if(workspace.getName().equals(workspaceName))
+            if (workspace.getName().equals(workspaceName)) {
                 return workspace;
+            }
         }
         return null;
     }
 
-    private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath workspacePath)
-    {
+    private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath workspacePath) {
         for (Workspace workspace : workspaces) {
-            if (isSameWorkspacePath(workspace.getPath().getRemote(), workspacePath.getRemote()))
+            if (isSameWorkspacePath(workspace.getPath().getRemote(), workspacePath.getRemote())) {
                 return workspace;
+            }
         }
         return null;
     }
 
-    private static List<Workspace> findWorkspacesInsidePath(List<Workspace> workspaces, FilePath workspacePath)
-    {
+    private static List<Workspace> findWorkspacesInsidePath(List<Workspace> workspaces, FilePath workspacePath) {
         List<Workspace> result = new ArrayList<>();
 
         for (Workspace workspace : workspaces) {
             String parentPath = FilenameUtils.getFullPathNoEndSeparator(workspace.getPath().getRemote());
-            if (isSameWorkspacePath(parentPath, workspacePath.getRemote()))
+            if (isSameWorkspacePath(parentPath, workspacePath.getRemote())) {
                 result.add(workspace);
+            }
         }
         return result;
     }
-
-    private static Pattern windowsPathPattern = Pattern.compile("^[a-zA-Z]:/.*$");
 }

@@ -1,14 +1,12 @@
 package com.codicesoftware.plugins.hudson.util;
 
 import hudson.util.ArgumentListBuilder;
+
 import java.util.Collection;
 import java.util.HashSet;
 
 /**
  * ArgumentListBuilder that supports marking arguments as masked.
- *
- * @author Erik Ramfelt
- * @author Dick Porter
  */
 public class MaskedArgumentListBuilder extends ArgumentListBuilder {
     private static final long serialVersionUID = 1L;

@@ -14,7 +14,7 @@ import java.io.Serializable;
 @ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
 
-    private static final long serialVersionUID = -3335648855305648577L;
+    private static final long serialVersionUID = 1L;
 
     private Workspace workspace;
     private ChangeSet changeset;

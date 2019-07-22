@@ -3,15 +3,14 @@
   <j:set var="browser" value="${it.build.parent.scm.effectiveBrowser}"/>
   <h2><a name="top">${%Summary}</a></h2>
   <ol>
-    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+    <j:forEach var="cs" items="${it.items}">
       <li>
-        <j:out value="${cs.msgAnnotated}"/>
-        (<a href="#details${loop.index}">${%details}</a>)
+        <j:out value="${cs.msgAnnotated}"/> (<a href="#${cs.guid}">${%details}</a>)
       </li>
     </j:forEach>
   </ol>
   <table class="pane" style="border:none">
-    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+    <j:forEach var="cs" items="${it.items}">
       <tr class="pane">
         <td colspan="2" class="changeset">
           <div class="changeset-message" id="${cs.guid}">

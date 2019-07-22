@@ -146,11 +146,17 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ChangeLogParser createChangeLogParser() {
         return new ChangeSetReader();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void checkout(
             @Nonnull final Run<?, ?> run,
@@ -233,14 +239,22 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    // Pre Jenkins 2.60
+    /**
+     * Jenkins older than 2.60
+     * {@inheritDoc}
+     *
+     */
     @Override
     public void buildEnvVars(@Nonnull AbstractBuild<?, ?> build, @Nonnull Map<String, String> env) {
         super.buildEnvVars(build, env);
         buildEnvironment(build, env);
     }
 
-    // Post Jenkins 2.60
+    /**
+     * Jenkins 2.60 and newer
+     * {@inheritDoc}
+     */
+    @Override
     public void buildEnvironment(@Nonnull Run<?, ?> build, @Nonnull Map<String, String> env) {
         int index = 1;
         for (BuildData buildData : build.getActions(BuildData.class)) {
@@ -257,6 +271,9 @@ public class PlasticSCM extends SCM {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SCMRevisionState calcRevisionsFromBuild(
             @Nonnull final Run<?, ?> run,
@@ -266,6 +283,9 @@ public class PlasticSCM extends SCM {
         return SCMRevisionState.NONE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PollingResult compareRemoteRevisionWith(
             @Nonnull final Job<?, ?> project,

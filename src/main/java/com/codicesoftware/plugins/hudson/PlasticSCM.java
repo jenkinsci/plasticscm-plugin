@@ -85,22 +85,12 @@ public class PlasticSCM extends SCM {
     private static final Pattern REPOSITORY_PATTERN = Pattern.compile(
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
-    private final String selector;
-    private final boolean useUpdate;
-    private final boolean useWorkspaceSubdirectory;
-    private final List<WorkspaceInfo> additionalWorkspaces;
-    private final WorkspaceInfo firstWorkspace;
-    private final String directory;
-
-
-    private PlasticSCM() {
-        selector = DEFAULT_SELECTOR;
-        useUpdate = true;
-        firstWorkspace = null;
-        additionalWorkspaces = null;
-        useWorkspaceSubdirectory = false;
-        directory = null;
-    }
+    public final String selector;
+    public final boolean useUpdate;
+    public final boolean useWorkspaceSubdirectory;
+    public final List<WorkspaceInfo> additionalWorkspaces;
+    public final WorkspaceInfo firstWorkspace;
+    public final String directory;
 
     @DataBoundConstructor
     public PlasticSCM(
@@ -635,13 +625,13 @@ public class PlasticSCM extends SCM {
         private static final long serialVersionUID = 1L;
 
         @Exported
-        private final String selector;
+        public final String selector;
 
         @Exported
-        private final boolean useUpdate;
+        public final boolean useUpdate;
 
         @Exported
-        private final String directory;
+        public final String directory;
 
         @DataBoundConstructor
         public WorkspaceInfo(String selector, boolean useUpdate, String directory) {

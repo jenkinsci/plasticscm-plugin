@@ -85,12 +85,12 @@ public class PlasticSCM extends SCM {
     private static final Pattern REPOSITORY_PATTERN = Pattern.compile(
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
-    public final String selector;
-    public final boolean useUpdate;
-    public final boolean useWorkspaceSubdirectory;
-    public final List<WorkspaceInfo> additionalWorkspaces;
-    public final WorkspaceInfo firstWorkspace;
-    public final String directory;
+    private final String selector;
+    private final boolean useUpdate;
+    private final boolean useWorkspaceSubdirectory;
+    private final List<WorkspaceInfo> additionalWorkspaces;
+    private final WorkspaceInfo firstWorkspace;
+    private final String directory;
 
     @DataBoundConstructor
     public PlasticSCM(
@@ -113,16 +113,34 @@ public class PlasticSCM extends SCM {
         this.additionalWorkspaces = additionalWorkspaces;
     }
 
+    @Exported
+    public String getSelector() {
+        return selector;
+    }
+
+    @Exported
+    public boolean isUseUpdate() {
+        return useUpdate;
+    }
+
+    @Exported
     public boolean isUseMultipleWorkspaces() {
         return useWorkspaceSubdirectory;
     }
 
+    @Exported
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
         return additionalWorkspaces;
     }
 
+    @Exported
     public WorkspaceInfo getFirstWorkspace() {
         return firstWorkspace;
+    }
+
+    @Exported
+    public String getDirectory() {
+        return directory;
     }
 
     @Override
@@ -173,7 +191,7 @@ public class PlasticSCM extends SCM {
                     listener,
                     plasticWorkspacePath,
                     resolvedSelector,
-                    workspaceInfo.getUseUpdate());
+                    workspaceInfo.isUseUpdate());
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
@@ -624,14 +642,11 @@ public class PlasticSCM extends SCM {
     public static final class WorkspaceInfo extends AbstractDescribableImpl<WorkspaceInfo> implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        @Exported
-        public final String selector;
+        private final String selector;
 
-        @Exported
-        public final boolean useUpdate;
+        private final boolean useUpdate;
 
-        @Exported
-        public final String directory;
+        private final String directory;
 
         @DataBoundConstructor
         public WorkspaceInfo(String selector, boolean useUpdate, String directory) {
@@ -645,14 +660,17 @@ public class PlasticSCM extends SCM {
             return (DescriptorImpl) super.getDescriptor();
         }
 
+        @Exported
         public String getSelector() {
             return selector;
         }
 
-        public boolean getUseUpdate() {
+        @Exported
+        public boolean isUseUpdate() {
             return useUpdate;
         }
 
+        @Exported
         public String getDirectory() {
             return directory;
         }

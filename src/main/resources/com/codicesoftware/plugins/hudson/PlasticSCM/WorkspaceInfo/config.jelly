@@ -1,15 +1,15 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="Selector" help="/plugin/plasticscm-plugin/selector.html" field="selector">
+  <f:entry title="${%Selector}" field="selector" help="/plugin/plasticscm-plugin/selector.html">
     <f:textarea default="${descriptor.getDefaultSelector()}" checkMethod="post" />
   </f:entry>
 
-  <f:entry title="Use update" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
+  <f:entry title="${%Use update}" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
     <f:checkbox default="true" />
   </f:entry>
 
-  <f:entry title="Subdirectory" field="directory" help="/plugin/plasticscm-plugin/directory.html">
+  <f:entry title="${%Subdirectory}" field="directory" help="/plugin/plasticscm-plugin/directory.html">
     <f:textbox checkMethod="post" />
   </f:entry>
 

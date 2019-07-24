@@ -143,9 +143,17 @@ public class PlasticSCM extends SCM {
         return directory;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getKey() {
-        return selector;
+        StringBuilder builder = new StringBuilder("Plastic SCM");
+        for (WorkspaceInfo workspace : getAllWorkspaces()) {
+            builder.append(" ");
+            builder.append(Util.fixNull(workspace.getSelector()).replaceAll("\\s+", " "));
+        }
+        return builder.toString();
     }
 
     @Override

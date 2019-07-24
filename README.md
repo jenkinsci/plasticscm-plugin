@@ -9,6 +9,10 @@ This plugin integrates [Jenkins](https://jenkins.io/) with [Plastic SCM](https:/
 * Jenkins `2.60.3` or newer
 * Plastic SCM command line client `8.0.16.3400` or newer
 
+## Configuration
+
+See [plugin website](https://plugins.jenkins.io/plasticscm-plugin) for instructions how to setup and use the plugin.
+
 ## Development
 
 ### Building the Plugin

@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
 
   <l:layout title="${it.displayName}">
     <j:set var="build" value="${it.owningRun}"/>
@@ -16,7 +16,8 @@
         <b>${%ID}</b>: ${it.changeset.version}<br/>
         <b>${%Comment}</b>: ${it.changeset.msgAnnotated}<br/>
         <b>${%Author}</b>: ${it.changeset.author}<br/>
-        <b>${%Date}</b>: ${it.changeset.dateTimeUniversal}<br/>
+        <b>${%Date}</b>: <j:if test="${it.changeset.getDateObject()!=null}"><i:formatDate value="${it.changeset.getDateObject()}" type="both" dateStyle="medium" timeStyle="medium"/></j:if><br/>
+        <b>${%Universal Date}</b>: ${it.changeset.getDateTimeUniversal()}<br/>
         <b>${%Branch}</b>: ${it.changeset.branch}<br/>
         <b>${%Repository}</b>: ${it.changeset.repoName}<br/>
         <b>${%Server}</b>: ${it.changeset.repoServer}<br/>

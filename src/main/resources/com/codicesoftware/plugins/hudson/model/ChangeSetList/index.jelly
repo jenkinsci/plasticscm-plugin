@@ -1,25 +1,29 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
   <j:set var="browser" value="${it.build.parent.scm.effectiveBrowser}"/>
   <h2><a name="top">${%Summary}</a></h2>
   <ol>
-    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+    <j:forEach var="cs" items="${it.items}">
       <li>
-        <j:out value="${cs.msgAnnotated}"/>
-        (<a href="#details${loop.index}">${%details}</a>)
+        <j:out value="${cs.msgAnnotated}"/> (<a href="#${cs.guid}">${%details}</a>)
       </li>
     </j:forEach>
   </ol>
   <table class="pane" style="border:none">
-    <j:forEach var="cs" items="${it.items}" varStatus="loop">
+    <j:forEach var="cs" items="${it.items}">
       <tr class="pane">
         <td colspan="2" class="changeset">
           <div class="changeset-message" id="${cs.guid}">
-            <b>${%Changeset}: <a href="${browser.getChangeSetLink(cs)}">${cs.version}</a></b> |
-            <b>${%Author}: <a href="${rootURL}/${cs.author.url}/">${cs.user}</a></b> |
-            <b>${%Branch}: ${cs.branch}</b> |
-            <b>${%Repository}: ${cs.repoName}</b> |
-            <b>${%Server}: ${cs.repoServer}</b>
+            ${%Changeset}: <b><a href="${browser.getChangeSetLink(cs)}">${cs.version}</a></b> |
+            ${%Branch}: <b>${cs.branch}</b> |
+            ${%Repository}: <b>${cs.repoName}</b> |
+            ${%Server}: <b>${cs.repoServer}</b>
+            <br/>
+            ${%by} <b><a href="${rootURL}/${cs.author.url}/">${cs.user}</a></b>
+            <j:if test="${cs.getDateObject()!=null}">
+              ${%on} <b><i:formatDate value="${cs.getDateObject()}" type="both" dateStyle="medium" timeStyle="medium"/></b>
+            </j:if>
+            <hr/>
             <pre><j:out value="${cs.msgAnnotated}"/></pre>
           </div>
         </td>

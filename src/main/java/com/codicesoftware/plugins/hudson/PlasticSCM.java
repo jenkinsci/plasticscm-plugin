@@ -92,16 +92,6 @@ public class PlasticSCM extends SCM {
     private final WorkspaceInfo firstWorkspace;
     private final String directory;
 
-
-    private PlasticSCM() {
-        selector = DEFAULT_SELECTOR;
-        useUpdate = true;
-        firstWorkspace = null;
-        additionalWorkspaces = null;
-        useWorkspaceSubdirectory = false;
-        directory = null;
-    }
-
     @DataBoundConstructor
     public PlasticSCM(
             String selector,
@@ -123,21 +113,47 @@ public class PlasticSCM extends SCM {
         this.additionalWorkspaces = additionalWorkspaces;
     }
 
+    @Exported
+    public String getSelector() {
+        return selector;
+    }
+
+    @Exported
+    public boolean isUseUpdate() {
+        return useUpdate;
+    }
+
+    @Exported
     public boolean isUseMultipleWorkspaces() {
         return useWorkspaceSubdirectory;
     }
 
+    @Exported
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
         return additionalWorkspaces;
     }
 
+    @Exported
     public WorkspaceInfo getFirstWorkspace() {
         return firstWorkspace;
     }
 
+    @Exported
+    public String getDirectory() {
+        return directory;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getKey() {
-        return selector;
+        StringBuilder builder = new StringBuilder("Plastic SCM");
+        for (WorkspaceInfo workspace : getAllWorkspaces()) {
+            builder.append(" ");
+            builder.append(Util.fixNull(workspace.getSelector()).replaceAll("\\s+", " "));
+        }
+        return builder.toString();
     }
 
     @Override
@@ -146,11 +162,17 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ChangeLogParser createChangeLogParser() {
         return new ChangeSetReader();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void checkout(
             @Nonnull final Run<?, ?> run,
@@ -177,7 +199,7 @@ public class PlasticSCM extends SCM {
                     listener,
                     plasticWorkspacePath,
                     resolvedSelector,
-                    workspaceInfo.getUseUpdate());
+                    workspaceInfo.isUseUpdate());
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
@@ -233,14 +255,22 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    // Pre Jenkins 2.60
+    /**
+     * Jenkins older than 2.60
+     * {@inheritDoc}
+     *
+     */
     @Override
     public void buildEnvVars(@Nonnull AbstractBuild<?, ?> build, @Nonnull Map<String, String> env) {
         super.buildEnvVars(build, env);
         buildEnvironment(build, env);
     }
 
-    // Post Jenkins 2.60
+    /**
+     * Jenkins 2.60 and newer
+     * {@inheritDoc}
+     */
+    @Override
     public void buildEnvironment(@Nonnull Run<?, ?> build, @Nonnull Map<String, String> env) {
         int index = 1;
         for (BuildData buildData : build.getActions(BuildData.class)) {
@@ -257,6 +287,9 @@ public class PlasticSCM extends SCM {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SCMRevisionState calcRevisionsFromBuild(
             @Nonnull final Run<?, ?> run,
@@ -266,6 +299,9 @@ public class PlasticSCM extends SCM {
         return SCMRevisionState.NONE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PollingResult compareRemoteRevisionWith(
             @Nonnull final Job<?, ?> project,
@@ -614,13 +650,10 @@ public class PlasticSCM extends SCM {
     public static final class WorkspaceInfo extends AbstractDescribableImpl<WorkspaceInfo> implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        @Exported
         private final String selector;
 
-        @Exported
         private final boolean useUpdate;
 
-        @Exported
         private final String directory;
 
         @DataBoundConstructor
@@ -635,14 +668,17 @@ public class PlasticSCM extends SCM {
             return (DescriptorImpl) super.getDescriptor();
         }
 
+        @Exported
         public String getSelector() {
             return selector;
         }
 
-        public boolean getUseUpdate() {
+        @Exported
+        public boolean isUseUpdate() {
             return useUpdate;
         }
 
+        @Exported
         public String getDirectory() {
             return directory;
         }

@@ -11,16 +11,19 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 @ExportedBean(defaultVisibility = 999)
 public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(ChangeSet.class.getName());
 
     private String version;
     private String repoName;
@@ -28,7 +31,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private String user;
     private String branch;
     @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-    private transient ZonedDateTime dateTime;
+    private transient OffsetDateTime dateTime;
     private String dateTimeStr;
     private String comment;
     private String guid;
@@ -62,7 +65,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.version = o.version;
         this.repoName = o.repoName;
         this.repoServer = o.repoServer;
-        this.dateTime = (dateTime != null) ? ZonedDateTime.from(dateTime) : null;
+        this.dateTime = (dateTime != null) ? OffsetDateTime.from(dateTime) : null;
         this.dateTimeStr = o.dateTimeStr;
         this.comment = o.comment;
         this.branch = o.branch;
@@ -177,40 +180,46 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     @Exported
-    public ZonedDateTime getDateTime() {
-        if (dateTime != null) {
-            return dateTime;
+    public OffsetDateTime getDateTime() {
+        if ((dateTime == null) && (Util.fixEmpty(dateTimeStr) != null)) {
+            try {
+                dateTime = OffsetDateTime.parse(dateTimeStr);
+            } catch (Exception e) {
+                LOGGER.warning("Invalid date format: " + e.getMessage());
+            }
         }
-        return null;
+        return dateTime;
     }
 
     /**
      * Used for XML date parsing.
      */
     public String getXmlDate() {
-        if (Util.fixEmpty(dateTimeStr) != null) {
-            return dateTimeStr;
+        if (Util.fixEmpty(dateTimeStr) == null) {
+            return "";
         }
-        if (dateTime != null) {
-            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime);
-        }
-        return "";
+        return dateTimeStr;
     }
 
     /**
      * Used for XML date formatting.
      */
     public void setXmlDate(String dateTimeStr) {
-        this.dateTimeStr = dateTimeStr;
-        if (Util.fixEmpty(dateTimeStr) != null) {
-            ZonedDateTime dateTime = ZonedDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        if (Util.fixEmpty(dateTimeStr) == null) {
+            return;
+        }
+        try {
+            OffsetDateTime dateTime = OffsetDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             this.dateTime = dateTime;
+            this.dateTimeStr = DateUtil.DATETIME_XML_FORMATTER.format(dateTime);
+        } catch (Exception e) {
+            LOGGER.warning("Invalid date format: " + e.getMessage());
         }
     }
 
     @Exported
     public String getDateTimeUniversal() {
-        if (dateTime != null) {
+        if (getDateTime() != null) {
             return DateUtil.DATETIME_UNIVERSAL_FORMATTER.format(dateTime);
         }
         return "";
@@ -218,10 +227,18 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @Exported
     public String getDateTimeLocal() {
-        if (dateTime != null) {
+        if (getDateTime() != null) {
             return DateUtil.DATETIME_LOCAL_FORMATTER.format(dateTime);
         }
         return "";
+    }
+
+    @Exported
+    public Date getDateObject() {
+        if (getDateTime() != null) {
+            return Date.from(dateTime.toInstant());
+        }
+        return null;
     }
 
     @Exported

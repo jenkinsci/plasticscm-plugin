@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.model;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.FilePath;
+import hudson.Util;
 
 import java.io.File;
 import java.io.Serializable;
@@ -9,11 +10,11 @@ import java.io.Serializable;
 public class Workspace implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final String name;
+    private String name;
     @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-    private final transient FilePath path;
-    private final String pathStr;
-    private final String guid;
+    private transient FilePath path;
+    private String pathStr;
+    private String guid;
 
     public Workspace(String name, String path, String guid) {
         this.name = name;
@@ -37,6 +38,9 @@ public class Workspace implements Serializable {
     }
 
     public FilePath getPath() {
+        if ((path == null) && (Util.fixEmpty(pathStr) != null)) {
+            path = new FilePath(new File(pathStr));
+        }
         return path;
     }
 

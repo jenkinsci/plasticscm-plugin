@@ -65,7 +65,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
         digester.addObjectCreate("*/CHANGESET", ChangeSet.class);
         digester.addBeanPropertySetter("*/CHANGESET/CHANGESETID", "version");
         digester.addBeanPropertySetter("*/CHANGESET/COMMENT", "comment");
-        digester.addBeanPropertySetter("*/CHANGESET/DATE", "changesetDateStr");
+        digester.addBeanPropertySetter("*/CHANGESET/DATE", "xmlDate");
         digester.addBeanPropertySetter("*/CHANGESET/BRANCH", "branch");
         digester.addBeanPropertySetter("*/CHANGESET/OWNER", "user");
         digester.addBeanPropertySetter("*/CHANGESET/REPNAME", "repoName");

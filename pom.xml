@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>plasticscm-plugin</artifactId>
-  <version>3.1</version>
+  <version>3.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>PlasticSCM Plugin</name>
   <description>Integrates Jenkins with Plastic SCM</description>
@@ -26,7 +26,7 @@
     <connection>scm:git:ssh://github.com/jenkinsci/plasticscm-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/plasticscm-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/plasticscm-plugin</url>
-    <tag>plasticscm-plugin-3.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>

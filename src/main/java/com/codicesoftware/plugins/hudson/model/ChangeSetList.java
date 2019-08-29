@@ -4,6 +4,7 @@ import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.RepositoryBrowser;
 import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import java.util.List;
  * ChangeSetList for the Plastic SCM
  * The log set will set the parent of the log entries in the constructor.
  */
+@ExportedBean(defaultVisibility = 999)
 public class ChangeSetList extends ChangeLogSet<ChangeSet> {
     private final List<ChangeSet> changesets;
 

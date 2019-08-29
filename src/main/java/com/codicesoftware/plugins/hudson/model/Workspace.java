@@ -3,10 +3,13 @@ package com.codicesoftware.plugins.hudson.model;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.FilePath;
 import hudson.Util;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.File;
 import java.io.Serializable;
 
+@ExportedBean(defaultVisibility = 999)
 public class Workspace implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -33,6 +36,7 @@ public class Workspace implements Serializable {
         this.guid = o.guid;
     }
 
+    @Exported
     public String getName() {
         return name;
     }
@@ -44,6 +48,12 @@ public class Workspace implements Serializable {
         return path;
     }
 
+    @Exported(name = "path")
+    public String getLocalPath() {
+        return getPath().getRemote();
+    }
+
+    @Exported
     public String getGuid() {
         return guid;
     }

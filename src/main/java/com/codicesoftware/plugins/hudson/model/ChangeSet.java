@@ -179,7 +179,6 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.user = user;
     }
 
-    @Exported
     public OffsetDateTime getDateTime() {
         if ((dateTime == null) && (Util.fixEmpty(dateTimeStr) != null)) {
             try {
@@ -233,7 +232,6 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         return "";
     }
 
-    @Exported
     public Date getDateObject() {
         if (getDateTime() != null) {
             return Date.from(dateTime.toInstant());

@@ -8,24 +8,25 @@ public class ChangeSetIDTest {
 
     @Test
     public void testConstructor() {
-        ChangeSetID underTest = new ChangeSetID(111, "testing", "domain.com", 1234);
+        ChangeSetID underTest = new ChangeSetID(111, "testing", "domain.com:8084");
         assertEquals(111, underTest.getId());
         assertEquals("testing", underTest.getRepository());
-        assertEquals("domain.com", underTest.getHost());
-        assertEquals(1234, underTest.getPort());
-        assertEquals("plastic", underTest.getProtocol());
-        assertEquals(false, underTest.isSslProtocol());
+        assertEquals("domain.com:8084", underTest.getServer());
     }
 
     @Test
     public void testConstructorSsl() {
-        ChangeSetID underTest = new ChangeSetID(111, "testing", "ssl://domain.com", 1234);
+        ChangeSetID underTest = new ChangeSetID(111, "testing", "ssl://domain.com:8088");
         assertEquals(111, underTest.getId());
         assertEquals("testing", underTest.getRepository());
-        assertEquals("domain.com", underTest.getHost());
-        assertEquals(1234, underTest.getPort());
-        assertEquals("ssl", underTest.getProtocol());
-        assertEquals(true, underTest.isSslProtocol());
+        assertEquals("ssl://domain.com:8088", underTest.getServer());
     }
 
+    @Test
+    public void testConstructorCloud() {
+        ChangeSetID underTest = new ChangeSetID(111, "testing", "myOrganization@cloud");
+        assertEquals(111, underTest.getId());
+        assertEquals("testing", underTest.getRepository());
+        assertEquals("myOrganization@cloud", underTest.getServer());
+    }
 }

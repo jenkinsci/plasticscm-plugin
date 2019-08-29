@@ -5,6 +5,7 @@ import com.codicesoftware.plugins.hudson.commands.ChangesetLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetRangeLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.commands.FindChangesetCommand;
 import com.codicesoftware.plugins.hudson.commands.GetWorkspaceStatusCommand;
 import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.BuildData;
@@ -59,6 +60,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -205,9 +207,9 @@ public class PlasticSCM extends SCM {
 
             ChangeSet cset = retrieveChangesetDetails(tool, listener, csetId.getId());
             cset.setRepoName(csetId.getRepository());
-            cset.setRepoServer(csetId.getHost());
+            cset.setRepoServer(csetId.getServer());
 
-            ChangeSet previousCset = retrievePreviouslyBuildChangeset(run, cset);
+            ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run, cset);
             if (previousCset == null) {
                 changeLogItems.add(cset);
             } else {
@@ -215,7 +217,7 @@ public class PlasticSCM extends SCM {
                         previousCset.getId(), cset.getId());
                 for (ChangeSet it : changeSetItems) {
                     it.setRepoName(csetId.getRepository());
-                    it.setRepoServer(csetId.getHost());
+                    it.setRepoServer(csetId.getServer());
                 }
                 changeLogItems.addAll(changeSetItems);
             }
@@ -423,7 +425,8 @@ public class PlasticSCM extends SCM {
      * Finds changeset of the last completed build for the same branch as the given changeset.
      * Returns null if not found or is newer than the currently build.
      */
-    private static ChangeSet retrievePreviouslyBuildChangeset(Run<?, ?> build, ChangeSet cset) {
+    private static ChangeSet retrieveLastBuiltChangeset(
+            PlasticTool tool, Run<?, ?> build, ChangeSet cset) {
         if (cset == null || Util.fixEmpty(cset.getBranch()) == null ||
                 Util.fixEmpty(cset.getRepoName()) == null || Util.fixEmpty(cset.getRepoServer()) == null) {
             return null;
@@ -434,24 +437,44 @@ public class PlasticSCM extends SCM {
                 if (oldCset == null) {
                     continue;
                 }
+
                 if (!cset.getBranch().equals(oldCset.getBranch()) ||
                         !cset.getRepoName().equals(oldCset.getRepoName()) ||
                         !cset.getRepoServer().equals(oldCset.getRepoServer())) {
                     continue;
                 }
-                int csetId = cset.getId();
+
                 int oldCsetId = oldCset.getId();
-                if (csetId <= 0 || oldCsetId <= 0) {
+                if (oldCsetId <= 0 || oldCsetId >= cset.getId()) {
                     return null;
                 }
-                if (oldCsetId < csetId) {
+
+                if (isExistingChangeset(tool, oldCset)) {
                     return oldCset;
                 }
-                return null;
             }
             build = build.getPreviousCompletedBuild();
         }
         return null;
+    }
+
+    private static boolean isExistingChangeset(PlasticTool tool, ChangeSet cset) {
+        try {
+            ParseableCommand<ChangeSet> command = new FindChangesetCommand(
+                    cset.getId(), cset.getBranch(), cset.getRepository());
+            return CommandRunner.executeAndRead(tool, command, command) != null;
+        } catch (Exception e) {
+            LOGGER.log(
+                    Level.WARNING,
+                    String.format(
+                            "Unable to determine whether cset cs:%d@%s@%s exists: %s",
+                            cset.getId(),
+                            cset.getBranch(),
+                            cset.getRepository(),
+                            e.getMessage()),
+                    e);
+            return false;
+        }
     }
 
     private static ChangeSet retrieveChangesetDetails(

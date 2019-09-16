@@ -5,6 +5,10 @@
     <f:textbox default="${descriptor.defaultBranch}" checkMethod="post" />
   </f:entry>
 
+  <f:entry field="changeset" title="Changeset" help="/plugin/plasticscm-plugin/changeset.html">
+    <f:number default=""/>
+  </f:entry>
+
   <f:entry field="repository" title="Repository" help="/plugin/plasticscm-plugin/repository.html">
     <f:textbox default="${descriptor.defaultRepository}" checkMethod="post" />
   </f:entry>

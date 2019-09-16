@@ -17,15 +17,14 @@ import javax.annotation.Nonnull;
 
 public class PlasticSCMStep extends SCMStep {
 
-    private static final long serialVersionUID = 1L;
-
-    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
+    public static final String SELECTOR_BRANCH_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
+    public static final String SELECTOR_CHANGESET_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
 
     private String branch = DescriptorImpl.defaultBranch;
-    private String repository = DescriptorImpl.defaultRepository;
-    private String server = DescriptorImpl.defaultServer;
+    private String changeset = "";
+    private String repository = "";
+    private String server = "";
     private boolean useUpdate = true;
-    private boolean useMultipleWorkspaces = false;
     private String directory = "";
 
     @DataBoundConstructor
@@ -39,6 +38,15 @@ public class PlasticSCMStep extends SCMStep {
     @DataBoundSetter
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getChangeset() {
+        return changeset;
+    }
+
+    @DataBoundSetter
+    public void setChangeset(String changeset) {
+        this.changeset = changeset;
     }
 
     public String getRepository() {
@@ -77,31 +85,24 @@ public class PlasticSCMStep extends SCMStep {
         this.directory = directory;
     }
 
-    public boolean isUseMultipleWorkspaces() {
-        return useMultipleWorkspaces;
-    }
-
-    @DataBoundSetter
-    public void setUseMultipleWorkspaces(boolean useMultipleWorkspaces) {
-        this.useMultipleWorkspaces = useMultipleWorkspaces;
-    }
-
     @Nonnull
     @Override
     protected SCM createSCM() {
         return new PlasticSCM(
-            buildSelector(), useUpdate, useMultipleWorkspaces, null, directory);
+            buildSelector(), useUpdate, false, null, directory);
     }
 
-    String buildSelector() {
-        return String.format(SELECTOR_FORMAT, repository, server, branch);
+    private String buildSelector() {
+        if (Util.fixEmptyAndTrim(changeset) == null) {
+            return String.format(SELECTOR_BRANCH_FORMAT, repository, server, branch);
+        } else {
+            return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
+        }
     }
 
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {
         public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
-        public static final String defaultRepository = PlasticSCM.DEFAULT_REPOSITORY;
-        public static final String defaultServer = PlasticSCM.DEFAULT_SERVER;
 
         @Override
         public String getFunctionName() {

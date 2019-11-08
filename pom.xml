@@ -12,7 +12,7 @@
   <packaging>hpi</packaging>
   <name>PlasticSCM Plugin</name>
   <description>Integrates Jenkins with Plastic SCM</description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>
+  <url>https://github.com/jenkinsci/plasticscm-plugin</url>
 
   <licenses>
     <license>

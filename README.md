@@ -48,7 +48,7 @@ This field is mandatory if you want to use multiple workspaces.
 If you want to keep the workspace between builds, check the **Use update box**. Otherwise, the
 Plastic SCM workspace and its contents will be deleted before each build.
 
-![Freestyle configuration](img/doc/freestyle-configuration.png)
+![Freestyle configuration](doc/img/freestyle-configuration.png)
 
 
 ### Selector format

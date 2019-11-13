@@ -1,6 +1,16 @@
 # Release notes
 
-## Version 3.2 (29 Aug 2019 )
+## Version 3.3 (13 Nov 2019)
+
+### Improvements
+
+* We migrated the Plastic SCM plugin documentation to GitHub!
+
+### Fixes
+
+* The `log` command now explicitly specifies the XML output encoding.
+
+## Version 3.2 (29 Aug 2019)
 
 ### Fixes
 
@@ -12,14 +22,14 @@
   Now the plugin will keep going back the build history until it detects a built changeset that
   still exists.
 
-## Version 3.1 (26 Aug 2019 )
+## Version 3.1 (26 Aug 2019)
 
 ### Fixes
 
 * SCM Polling was broken in the previous release: deserialization was inconsistent for the command
   that calculates the new changesets between last build and current polling iteration.
 
-## Version 3.0 (19 Aug 2019 )
+## Version 3.0 (19 Aug 2019)
 
 Version 3 is out! This new major version enhances build information and improves SCM configuration
 parameters. Big shout-out to Housemarque, who contributed enormously to this new batch of changes.
@@ -106,7 +116,7 @@ Now, you can check the available ones here: <https://{your-jenkins}/env-vars.htm
 * The find changeset operation used a wrong branch when the specified branch value was different
   from the default one in parameterized builds. Fixed.
 
-## Version 2.17 (03 Jul 2018 )
+## Version 2.17 (03 Jul 2018)
 
 * The checkout process will undo all local changes in the workspace if there are any, to make sure
   the update operation won't fail.
@@ -115,18 +125,18 @@ Now, you can check the available ones here: <https://{your-jenkins}/env-vars.htm
 * The Plastic SCM plugin didn't work with pipeline projects. This is a regression of 2.16 version.
   Fixed.
 
-## Version 2.16 (08 Jun 2018 )
+## Version 2.16 (08 Jun 2018)
 
 The Plastic SCM plugin had a file path issue that prevented it from working as expected when the
  master and slave instances had different OS. Fixed.
 
-## Version 2.15 (16 May 2018 )
+## Version 2.15 (16 May 2018)
 
 The parameters of the plastic workspace name were not correctly resolved. It means, it used the
 exact workspace name string (e.g. `Jenkins-${JOB_NAME}-${NODE_NAME}`) without resolving the
 parameters JOB_NAME and NODE_NAME (e.g. `Jenkins-project-MASTER`). Fixed.
 
-## Version 2.14 (03 May 2018 )
+## Version 2.14 (03 May 2018)
 
 The Plastic SCM plugin can work with multiple plastic workspaces or just a single plastic workspace.
 Now, the jenkins workspace and the plastic workspace paths will match in the single workspace mode.
@@ -134,23 +144,23 @@ Now, the jenkins workspace and the plastic workspace paths will match in the sin
 Therefore, some jenkins features (such as pipeline shared libraries) that need both paths to match
  will correctly work.
 
-## Version 2.13 (20 Apr 2018 )
+## Version 2.13 (20 Apr 2018)
 
 * Added support for the lightweight checkout feature in the pipeline jobs. It requires that the
 latest version of `cm` is installed.
 * The environment variables were not published when there were no new changes in the build. Fixed.
 
-## Version 2.12 (10 Apr 2018 )
+## Version 2.12 (10 Apr 2018)
 
 Blue Ocean only rendered the first changeset in the details if more than one were built. Also,
 the commit and timestamp info was missing. Fixed.
 
-## Version 2.11 (23 Mar 2018 )
+## Version 2.11 (23 Mar 2018)
 
 Reduced the number of duplicated builds that can happen using the Plastic SCM plugin. Now, the scm
 polling takes into account the current build, avoiding to start a new build for the same changeset.
 
-## Version 2.10 (11 Jan 2018 )
+## Version 2.10 (11 Jan 2018)
 
 We fixed an issue configuring existing pipeline projects: the PlasticSCM entry didn't appear in the
 SCM dropdown list if the pipeline was set to get the script from SCM.
@@ -158,7 +168,7 @@ SCM dropdown list if the pipeline was set to get the script from SCM.
 Also, now the Plastic SCM configuration will automatically propose a default workspace name for the
 first (mandatory) workspace.
 
-## Version 2.9 (17 Mar 2017 )
+## Version 2.9 (17 Mar 2017)
 
 From now on, each build will publish environment variables containing the data of the built
 changeset for each configured workspace. These are the variables exposed by the main workspace
@@ -177,7 +187,7 @@ Additional workspaces will include their position in the list, like this:
 * `PLASTICSCM_9_CHANGESET_ID`
 * etc.
 
-## Version 2.8 (16 Feb 2017 )
+## Version 2.8 (16 Feb 2017)
 
 * The required core version is now 1.580.1
 * Added support for pipelines
@@ -228,7 +238,7 @@ cm(
 * Cross-platform setups (linux server + windows agents) were deleting workspaces before each build,
   regardless of the actual "Use update" checkbox value. Fixed.
 
-## Version 2.4 (29 Feb 2016 )
+## Version 2.4 (29 Feb 2016)
 
 * Workspaces were being deleted before each build on Windows, regardless of the actual value of the
  "Use update" checkbox. Fixed.

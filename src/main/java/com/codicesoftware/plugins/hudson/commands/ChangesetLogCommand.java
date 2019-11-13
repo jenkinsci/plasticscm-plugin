@@ -25,6 +25,7 @@ public class ChangesetLogCommand implements ParseableCommand<ChangeSet>, Command
         arguments.add("log");
         arguments.add(csetSpec);
         arguments.add("--xml");
+        arguments.add("--encoding=utf-8");
 
         return arguments;
     }

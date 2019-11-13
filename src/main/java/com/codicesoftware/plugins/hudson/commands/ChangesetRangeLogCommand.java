@@ -28,6 +28,7 @@ public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet
         arguments.add("--from=" + csetSpecFrom);
         arguments.add("" + csetSpecTo);
         arguments.add("--xml");
+        arguments.add("--encoding=utf-8");
 
         return arguments;
     }

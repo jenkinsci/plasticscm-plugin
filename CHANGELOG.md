@@ -1,6 +1,7 @@
 # Release notes
 
 ## Version 3.2 (29 Aug 2019 )
+
 ### Fixes
 
 * The REST API returned serialization errors. We adapted the Plastic SCM Build Data class and its
@@ -11,13 +12,12 @@
   Now the plugin will keep going back the build history until it detects a built changeset that
   still exists.
 
-
 ## Version 3.1 (26 Aug 2019 )
+
 ### Fixes
 
 * SCM Polling was broken in the previous release: deserialization was inconsistent for the command
   that calculates the new changesets between last build and current polling iteration.
-
 
 ## Version 3.0 (19 Aug 2019 )
 
@@ -35,8 +35,8 @@ plugin.
   This allows you full control over where Plastic SCM will download the contens without having to
   worry about workspace name duplicity. Workspace names are now randomly generated every time the
   CLI client needs to create a workspace.
-    * The Subdirectory parameter has smart validation: it can be empty if there's only a single
-      workspace but required if additional workspaces are selected.
+  * The Subdirectory parameter has smart validation: it can be empty if there's only a single
+    workspace but required if additional workspaces are selected.
 * All builds will have a "last changeset info" now, even if an old build is re-run or there aren't
   any new changes in the Plastic SCM server.
 * Show Plastic SCM changeset information in the *Job status* view.
@@ -56,10 +56,9 @@ plugin.
   subdirectory to check out the sources and the workspace name is randomly generated.
 * All parameters have a default value when an additional workspace is added.
 * Changelog calculations:
-    * Branch is now taken into account to show incremental changes
-    * Fixed issues when the Plastic SCM server and the Jenkins server are in different time zones
-    * Fixed issues when the build was performed in separate Agents
-
+  * Branch is now taken into account to show incremental changes
+  * Fixed issues when the Plastic SCM server and the Jenkins server are in different time zones
+  * Fixed issues when the build was performed in separate Agents
 
 ## Version 2.23 (08 Jul 2019)
 
@@ -98,7 +97,7 @@ Fixed an incompatibility with other plugins if they require the SCM plugin to su
 
 Added support to SCM environment variables for pipelines.
 
-Now, you can check the available ones here: https://<your-jenkins>/env-vars.html
+Now, you can check the available ones here: <https://{your-jenkins}/env-vars.html>
 
 ## Version 2.18 (19 Jul 2018)
 
@@ -106,7 +105,6 @@ Now, you can check the available ones here: https://<your-jenkins>/env-vars.html
   a build if the workspace had been previously removed. Fixed.
 * The find changeset operation used a wrong branch when the specified branch value was different
   from the default one in parameterized builds. Fixed.
-
 
 ## Version 2.17 (03 Jul 2018 )
 
@@ -116,7 +114,6 @@ Now, you can check the available ones here: https://<your-jenkins>/env-vars.html
   Fixed.
 * The Plastic SCM plugin didn't work with pipeline projects. This is a regression of 2.16 version.
   Fixed.
-
 
 ## Version 2.16 (08 Jun 2018 )
 
@@ -142,7 +139,6 @@ Therefore, some jenkins features (such as pipeline shared libraries) that need b
 * Added support for the lightweight checkout feature in the pipeline jobs. It requires that the
 latest version of `cm` is installed.
 * The environment variables were not published when there were no new changes in the build. Fixed.
-
 
 ## Version 2.12 (10 Apr 2018 )
 
@@ -181,7 +177,6 @@ Additional workspaces will include their position in the list, like this:
 * `PLASTICSCM_9_CHANGESET_ID`
 * etc.
 
-
 ## Version 2.8 (16 Feb 2017 )
 
 * The required core version is now 1.580.1
@@ -192,60 +187,70 @@ Additional workspaces will include their position in the list, like this:
 The pipeline script syntax for Plastic SCM is:
 
 ```groovy
-cm branch: '<full-branch-name>', changelog: (true|false), poll: (true|false), repository: '<rep-name>', server: '<server-address>:<server-port>, useUpdate: (true|false), workspaceName: '<wk-name-using-jenkins-variables>'
+cm(
+    branch: '<full-branch-name>',
+    changelog: (true|false),
+    poll: (true|false),
+    repository: '<rep-name>',
+    server: '<server-address>:<server-port>',
+    useUpdate: (true|false),
+    workspaceName: '<wk-name-using-jenkins-variables>'
+)
 ```
 
 For example:
 
 ```groovy
-cm branch: '/main', changelog: true, poll: true, repository: 'default', server: 'localhost:8087', useUpdate: true, workspaceName: 'Jenkins-${JOB_NAME}-${NODE_NAME}'
+cm(
+    branch: '/main',
+    changelog: true,
+    poll: true,
+    repository: 'default',
+    server: 'localhost:8087',
+    useUpdate: true,
+    workspaceName: 'Jenkins-${JOB_NAME}-${NODE_NAME}'
+)
 ```
-
 
 ## Version 2.7 (10 Oct 2016)
 
 * Fixed a problem causing parameterized builds to have their workspaces deleted before each
   build run.
 
-
 ## Version 2.6 (26 Jul 2016)
 
 * Replaced all relative paths (implicit or explicit) with full, explicit paths. This fixed several
-  issues on Mac OS X since apparently the current working directory for VCS commands is being set to '/' by Jenkins.
-
+  issues on Mac OS X since apparently the current working directory for VCS commands is being set to
+  `/` by Jenkins.
 
 ## Version 2.5 (25 Apr 2016)
 
 * Cross-platform setups (linux server + windows agents) were deleting workspaces before each build,
   regardless of the actual "Use update" checkbox value. Fixed.
 
-
 ## Version 2.4 (29 Feb 2016 )
 
 * Workspaces were being deleted before each build on Windows, regardless of the actual value of the
  "Use update" checkbox. Fixed.
 
-
 ## Version 2.3 (21 Oct 2015)
 
 * Added build parameters support in the Plastic SCM selector. Jenkins allows to define build
-  parameters (https://wiki.jenkins-ci.org/display/JENKINS/Parameterized+Build), and Plastic SCM
+  parameters (<https://wiki.jenkins-ci.org/display/JENKINS/Parameterized+Build>), and Plastic SCM
   now can use those parameters in its selector.
 * **IMPORTANT NOTE**: When using parametrized builds, maybe the Poll SCM feature may not work as
   expected because Jenkins performs the poll with the LAST USED workspace. So maybe the selector is
   not placed in the branch you expect the poll is performed.
 * When using parametrized builds we recommend setting up two Jenkins projects:
-    * One for the parametrized build
-    * Other, with an static selector to perform the poll.
+  * One for the parametrized build
+  * Other, with an static selector to perform the poll.
 
 * Fixed: When a changeset was a result of a merge, Jenkins was not able to properly present modified
   elements in 'Changes' chapter.
 
-
 ## Version 2.2 (09 Dec 2014)
 
 * The Jenkins workspaces now support multiple Plastic SCM workspaces.
-
 
 ## Version 2.1 (02 Sep 2014)
 
@@ -255,11 +260,9 @@ cm branch: '/main', changelog: true, poll: true, repository: 'default', server: 
 * The plugin did not reuse Plastic SCM workspaces correctly when the 'Use update' preference was
   set. Fixed.
 
-
 ## Version 2.0 (20 Jan 2012)
 
 * Plugin adapted to Plastic SCM version 4.
-
 
 ## Version 1.0 (29 Mar 2011)
 

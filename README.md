@@ -8,12 +8,12 @@
 
 ---
 
-
 ![Plugin Version](https://img.shields.io/jenkins/plugin/v/plasticscm-plugin.svg?label=version)
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/plasticscm-plugin/master)](https://ci.jenkins.io/job/Plugins/job/plasticscm-plugin/job/master/)
 ![Installs](https://img.shields.io/jenkins/plugin/i/plasticscm-plugin.svg?color=blue)
 
 ## Configuration
+
 ### System configuration
 
 In order to configure the plugin, you need the `cm` executable installed in the Jenkins server
@@ -30,10 +30,10 @@ machine. Then, please follow these steps:
 
 ![Configure System](doc/img/configure_system.png)
 
-
 ![Configure cm](doc/img/configuration-cm.png)
 
 ## Job configuration
+
 ### Freestyle projects
 
 Scroll down to the Source Code Management section and select "Plastic SCM" (see screenshot below).
@@ -50,28 +50,30 @@ Plastic SCM workspace and its contents will be deleted before each build.
 
 ![Freestyle configuration](doc/img/freestyle-configuration.png)
 
-
 ### Selector format
 
 The selector accepts branches, changesets or labels. You can setup not only branches (which is the
 normal case), but labels as well as changesets in the selector.
 
 **Branch selector:**
-```
+
+```text
 repository "myRepo@my.plasticscm.server.com:8087"
   path "/"
     smartbranch "/main/scm1773"
 ```
 
 **Changeset selector:**
-```
+
+```text
 repository "myRepo@my.plasticscm.server.com:8087"
   path "/"
     smartbranch "/main/scm1773" changeset "7030383"
 ```
 
 **Label selector:**
-```
+
+```text
 repository "myRepo@my.plasticscm.server.com:8087"
   path "/"
     label "1.0.32-preview_997"
@@ -86,7 +88,7 @@ Example: Let's say that you defined two build parameters in your project:
 Then you can use those parameters in the Plastic SCM selector using the macro pattern
 `$parameter_name`:
 
-```
+```text
 repository '$repositoryname'
     path "/"
         smartbranch '$branchname'
@@ -114,16 +116,30 @@ If you use scripted pipelines or you want to specify the pipeline script directl
 configuration, you can take advantage of the cm command inside the groovy script:
 
 **cm command syntax:**
+
 ```groovy
-cm branch: '<full-branch-name>', repository: '<rep-name>', server: '<server-address>:<server-port>, useUpdate: (true|false), directory: '<subdirectory-name>'
+cm(
+    branch: '<full-branch-name>',
+    repository: '<rep-name>',
+    server: '<server-address>:<server-port>',
+    useUpdate: (true|false),
+    directory: '<subdirectory-name>'
+)
 ```
 
 As you see, there's a one-to-one parameter mapping. To use multiple workspaces you simply need to
 add multiple `cm` statements, paying attention to the value of the `directory` parameter.
 
-**cm command example**
+**cm command example:**
+
 ```groovy
-cm branch: '/hotfix', repository: 'assets-repo', server: 'my.plasticscm.server.com:8087', useUpdate: true, directory: 'assets'
+cm(
+    branch: '/hotfix',
+    repository: 'assets-repo',
+    server: 'my.plasticscm.server.com:8087',
+    useUpdate: true,
+    directory: 'assets'
+)
 ```
 
 If you'd rather use declarative pipelines (selecting the **Pipeline script from SCM** option),
@@ -143,6 +159,7 @@ Enabling **lightweight checkout** lets Jenkins retrieve the pipeline script file
 full Plastic SCM update.
 
 ## Build information
+
 ### Summary
 
 The build summary includes a reference to the Plastic SCM changeset spec that was built.
@@ -155,7 +172,6 @@ The changes page in each build will have details about each of the changesets th
 the build, linked from the summary list.
 
 ![Changes summary](doc/img/changes-summary.png)
-
 
 ### Plastic SCM Build Data
 
@@ -198,11 +214,13 @@ download all workspaces in the same directory!
 
 ### Building the Plugin
 
-To build the plugin you will need
+To build the plugin you will need:
+
 * [Maven](https://maven.apache.org/) version `3.5` or newer
 * [Java Development Kit (JDK)](https://jdk.java.net/) version `8`
 
-Run the following command to build the plugin
+Run the following command to build the plugin:
+
 ```shell
 mvn package
 ```
@@ -218,7 +236,8 @@ Use the [Jenkins SCM API coding style guide](https://github.com/jenkinsci/scm-ap
 for new code.
 
 Before submitting a pull request please check if your code passes code quality and style checks by
-running
+running:
+
 ```shell
 mvn verify
 ```
@@ -226,12 +245,11 @@ mvn verify
 All pull requests will be evaluated by
 [Jenkins CI](https://ci.jenkins.io/job/Plugins/job/plasticscm-plugin/).
 
-
 ## Plugin information
 
 This plugin is developed and maintained by Codice Software S.L., owner of the Plastic SCM product.
 
-Visit us at https://www.plasticscm.com
+Visit us at <https://www.plasticscm.com>
 
 You can meet the team [here](https://www.plasticscm.com/company/team)!
 
@@ -240,4 +258,5 @@ We really appreciate PR and contributions!
 Feel the power of merging branches easier than ever with [SemanticMerge](https://semanticmerge.com)!
 
 ## Change log
+
 You can find it [here](CHANGELOG.md)

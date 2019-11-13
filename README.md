@@ -197,6 +197,86 @@ Additional workspaces will include their position in the list, like this:
 3. `PLASTICSCM_9_CHANGESET_ID`
 4. etc.
 
+#### Pipelines
+
+Please have in mind that running the `cm` command in a pipeline script won't automatically set the
+environment variables above! This command, as do all VCS commands, returns a dictionary that
+contains the environment values set as expected.
+
+To take advantage of that, you should do something like this:
+
+```groovy
+pipeline {
+  agent any
+
+  environment {
+    PLASTICSCM_WORKSPACE_NAME = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}"
+    PLASTICSCM_TARGET_SERVER = "192.168.1.73:8087"
+    PLASTICSCM_TARGET_REPOSITORY = "default"
+  }
+
+  stages {
+    stage('SCM Checkout') {
+      steps {
+        script {
+          def plasticVars = cm(
+            branch: "main",
+            changelog: true,
+            repository: env.PLASTICSCM_TARGET_REPOSITORY,
+            server: env.PLASTICSCM_TARGET_SERVER,
+            useUpdate: false
+          )
+
+          plasticVars.each {
+            key, value -> println("${key} = ${value}");
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+In the code above, the `plasticVars` dictionary would only be available in the `script` block
+inside the 'SCM Checkout' stage. If you'd like access it across different scripts, steps or stages,
+you can define the variable in the global scope:
+
+```groovy
+def plasticVars
+
+pipeline {
+  agent any
+
+  environment {
+    PLASTICSCM_WORKSPACE_NAME = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}"
+    PLASTICSCM_TARGET_SERVER = "192.168.1.73:8087"
+    PLASTICSCM_TARGET_REPOSITORY = "default"
+  }
+
+  stages {
+    stage('SCM Checkout') {
+      steps {
+        script {
+          plasticVars = cm(
+            branch: "main",
+            changelog: true,
+            repository: env.PLASTICSCM_TARGET_REPOSITORY,
+            server: env.PLASTICSCM_TARGET_SERVER,
+            useUpdate: false
+          )
+        }
+
+        script {
+          plasticVars.each {
+            key, value -> println("${key} = ${value}");
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ## Requirements
 
 * Jenkins `2.60.3` or newer

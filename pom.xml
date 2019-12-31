@@ -8,11 +8,11 @@
   </parent>
 
   <artifactId>plasticscm-plugin</artifactId>
-  <version>3.3-SNAPSHOT</version>
+  <version>3.4-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>PlasticSCM Plugin</name>
   <description>Integrates Jenkins with Plastic SCM</description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/PlasticSCM+Plugin</url>
+  <url>https://github.com/jenkinsci/plasticscm-plugin</url>
 
   <licenses>
     <license>
@@ -99,11 +99,11 @@
   <distributionManagement>
     <repository>
       <id>maven.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/releases</url>
+      <url>https://repo.jenkins-ci.org/releases</url>
     </repository>
     <snapshotRepository>
       <id>maven.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/snapshots</url>
+      <url>https://repo.jenkins-ci.org/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
 

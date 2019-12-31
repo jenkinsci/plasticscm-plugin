@@ -16,6 +16,7 @@ public class UndoCheckoutCommand implements Command {
 
         arguments.add("unco");
         arguments.add("--all");
+        arguments.add("--silent");
         arguments.add(workspacePath);
 
         return arguments;

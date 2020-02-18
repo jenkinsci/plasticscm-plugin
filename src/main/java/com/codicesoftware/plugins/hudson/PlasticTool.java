@@ -23,7 +23,7 @@ public class PlasticTool {
     private static final Logger LOGGER = Logger.getLogger(PlasticTool.class.getName());
 
     private static final int MAX_RETRIES = 3;
-    private static final int TIME_BETWEEN_RETRIES = 500;
+    private static final int TIME_BETWEEN_RETRIES = 1000;
 
     private String executable;
     private Launcher launcher;
@@ -46,16 +46,16 @@ public class PlasticTool {
      * @throws InterruptedException
      */
     public Reader execute(String[] arguments) throws IOException, InterruptedException {
-        return execute(arguments, null);
+        return execute(arguments, null, true);
     }
 
-    public Reader execute(String[] arguments, FilePath executionPath) throws IOException, InterruptedException {
+    public Reader execute(String[] arguments, FilePath executionPath, boolean printOutput) throws IOException, InterruptedException {
         String[] cmdArgs = getToolArguments(arguments);
         String cliLine = getCliLine(cmdArgs);
 
         int retries = 0;
         while (retries < MAX_RETRIES) {
-            Reader result = tryExecute(cmdArgs, executionPath);
+            Reader result = tryExecute(cmdArgs, executionPath, printOutput);
             if (result != null) {
                 return result;
             }
@@ -91,19 +91,23 @@ public class PlasticTool {
         return builder.toString();
     }
 
-    private Reader tryExecute(String[] cmdArgs, FilePath executionPath) throws IOException, InterruptedException {
+    private Reader tryExecute(String[] cmdArgs, FilePath executionPath, boolean printOutput)
+            throws IOException, InterruptedException {
         if (executionPath == null) {
             executionPath = workspace;
         }
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
         Proc proc = launcher.launch().cmds(cmdArgs)
-                .stdout(new ForkOutputStream(consoleStream, listener.getLogger()))
+                .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream )
                 .pwd(executionPath).start();
         consoleStream.close();
 
         if (proc.join() == 0) {
+            LOGGER.fine("Command succeeded: " + String.join(" ", cmdArgs));
             return new InputStreamReader(new ByteArrayInputStream(consoleStream.toByteArray()), StandardCharsets.UTF_8);
+        } else {
+            LOGGER.fine("Command failed: " + String.join(" ", cmdArgs));
+            return null;
         }
-        return null;
     }
 }

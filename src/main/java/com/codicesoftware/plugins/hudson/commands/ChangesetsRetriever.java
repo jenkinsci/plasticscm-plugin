@@ -31,14 +31,14 @@ public class ChangesetsRetriever {
 
     public static List<ChangeSet> getDetailedHistory(
             PlasticTool tool,
-            FilePath wkPath,
+            FilePath workspacePath,
             String branchName,
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
         List<ChangeSet> list = getChangesets(tool, branchName, repoSpec, fromTimestamp, toTimestamp);
 
-        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(wkPath.getRemote());
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
         Workspace workspace = CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
 
         for (ChangeSet cs : list) {
@@ -48,7 +48,7 @@ public class ChangesetsRetriever {
                     cs.getVersion(), cs.getRepository());
             Reader reader = null;
             try {
-                reader = tool.execute(revs.getArguments().toCommandArray());
+                reader = tool.execute(revs.getArguments().toCommandArray(), null, true);
                 revs.parse(reader, cs);
             } finally {
                 IOUtils.closeQuietly(reader);

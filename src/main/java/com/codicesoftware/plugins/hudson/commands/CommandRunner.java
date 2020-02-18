@@ -12,29 +12,35 @@ public class CommandRunner {
 
     private CommandRunner() { }
 
-    public static Reader execute(PlasticTool tool, Command cmd) throws IOException, InterruptedException {
-        return execute(tool, cmd, null);
+    public static Reader execute(PlasticTool tool, Command command) throws IOException, InterruptedException {
+        return execute(tool, command, null, true);
     }
 
-    public static Reader execute(PlasticTool tool, Command cmd, FilePath executionPath)
+    public static Reader execute(PlasticTool tool, Command command, FilePath executionPath)
             throws IOException, InterruptedException {
-        return tool.execute(cmd.getArguments().toCommandArray(), executionPath);
+        return tool.execute(command.getArguments().toCommandArray(), executionPath, true);
+    }
+
+    public static Reader execute(PlasticTool tool, Command command, FilePath executionPath, boolean printOutput)
+            throws IOException, InterruptedException {
+        return tool.execute(command.getArguments().toCommandArray(), executionPath, printOutput);
     }
 
     public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser)
             throws IOException, InterruptedException, ParseException {
-        return executeAndRead(tool, command, parser, null);
+        return executeAndRead(tool, command, parser, null, true);
     }
 
-    public static <T> T executeAndRead(
-            PlasticTool tool,
-            Command command,
-            ParseableCommand<T> parser,
-            FilePath executionPath)
+    public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser, boolean printOutput)
+            throws IOException, InterruptedException, ParseException {
+        return executeAndRead(tool, command, parser, null, printOutput);
+    }
+
+    public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser, FilePath executionPath, boolean printOutput)
             throws IOException, InterruptedException, ParseException {
         Reader reader = null;
         try {
-            reader = execute(tool, command, executionPath);
+            reader = execute(tool, command, executionPath, printOutput);
             return parser.parse(reader);
         } finally {
             IOUtils.closeQuietly(reader);

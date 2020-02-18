@@ -484,7 +484,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         try {
             ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId);
-            return CommandRunner.executeAndRead(tool, command, command);
+            return CommandRunner.executeAndRead(tool, command, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }
@@ -498,7 +498,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         try {
             ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo);
-            return CommandRunner.executeAndRead(tool, command, command);
+            return CommandRunner.executeAndRead(tool, command, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }

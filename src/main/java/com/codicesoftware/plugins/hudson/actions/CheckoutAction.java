@@ -50,8 +50,9 @@ public class CheckoutAction {
             LOGGER.fine("Reusing existing workspace");
             WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
 
-            if (mustUpdateSelector(tool, workspace.getName(), selector)) {
-                WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
+            if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
+                LOGGER.fine("Changing workspace selector to '" + selector.replaceAll("[\\n\\r\\t]", " ") + "'");
+                WorkspaceManager.setSelector(tool, workspace.getPath(), selector);
                 return workspace;
             }
             WorkspaceManager.updateWorkspace(tool, workspace.getPath());
@@ -61,7 +62,7 @@ public class CheckoutAction {
         LOGGER.fine("Creating new workspace");
         String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
 
-        workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
+        workspace = WorkspaceManager.createWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
 
         WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
         WorkspaceManager.updateWorkspace(tool, workspace.getPath());
@@ -69,15 +70,15 @@ public class CheckoutAction {
         return workspace;
     }
 
-    private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
-        String wkSelector = removeNewLinesFromSelector(WorkspaceManager.loadSelector(tool, name));
-        String currentSelector = removeNewLinesFromSelector(selector);
-
-        return !wkSelector.equals(currentSelector);
+    private static boolean mustUpdateSelector(PlasticTool tool, FilePath workspacePath, String selector)
+            throws IOException, InterruptedException, ParseException {
+        String actualSelector = removeNewLinesFromSelector(WorkspaceManager.getSelector(tool, workspacePath));
+        String expectedSelector = removeNewLinesFromSelector(selector);
+        return !actualSelector.equals(expectedSelector);
     }
 
     private static String removeNewLinesFromSelector(String selector) {
-        return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
+        return selector.trim().replaceAll("[\\n\\r]", "");
     }
 
     private static void cleanOldWorkspacesIfNeeded(

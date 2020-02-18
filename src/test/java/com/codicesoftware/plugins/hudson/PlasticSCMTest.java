@@ -16,8 +16,7 @@ public class PlasticSCMTest {
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
 
-    @Test
-    @Ignore
+    //@Test
     public void testCheckExecutable() {
         PlasticSCM.DescriptorImpl descriptor = new PlasticSCM.DescriptorImpl();
         assertEquals(FormValidation.Kind.OK, descriptor.doCheckExecutable("cm").kind);

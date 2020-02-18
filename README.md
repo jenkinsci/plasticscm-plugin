@@ -104,7 +104,7 @@ To enable this feature, check the **Use multiple workspaces** box in the SCM con
 see a new button "Add workspace..." to append a new workspace to the list of additional workspaces.
 The configuration settings are identical to the root ones.
 
-![Freestile, multiple workspaces](doc/img/freestyle-configuration-multiple-workspaces.png)
+![Freestyle, multiple workspaces](doc/img/freestyle-configuration-multiple-workspaces.png)
 
 ⚠ Be careful! ⚠ This setup requires you to specify a subdirectory value **for all
 workspaces**, and they must be different from one another. If you don't, you might risk having the

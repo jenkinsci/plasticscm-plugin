@@ -42,8 +42,8 @@ public class PlasticTool {
      *
      * @param arguments arguments to send to the command-line client.
      * @return a Reader containing the console output
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException Operation error
+     * @throws InterruptedException Process has been interrupted
      */
     public Reader execute(String[] arguments) throws IOException, InterruptedException {
         return execute(arguments, null, true);
@@ -98,7 +98,7 @@ public class PlasticTool {
         }
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
         Proc proc = launcher.launch().cmds(cmdArgs)
-                .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream )
+                .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream)
                 .pwd(executionPath).start();
         consoleStream.close();
 

@@ -3,6 +3,7 @@ package com.codicesoftware.plugins.hudson.actions;
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.WorkspaceManager;
 import com.codicesoftware.plugins.hudson.model.Workspace;
+import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.FilePath;
 import org.apache.commons.io.FilenameUtils;
 
@@ -21,11 +22,7 @@ public class CheckoutAction {
 
     private CheckoutAction() { }
 
-    public static Workspace checkout(
-            PlasticTool tool,
-            FilePath workspacePath,
-            String selector,
-            boolean useUpdate)
+    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, boolean useUpdate)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
 
@@ -38,12 +35,8 @@ public class CheckoutAction {
         return checkoutWorkspace(tool, workspacePath, selector, workspaces);
     }
 
-    private static Workspace checkoutWorkspace(
-            PlasticTool tool,
-            FilePath workspacePath,
-            String selector,
-            List<Workspace> workspaces) throws IOException, InterruptedException, ParseException {
-
+    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, List<Workspace> workspaces)
+            throws IOException, InterruptedException, ParseException {
         Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
 
         if (workspace != null) {
@@ -51,7 +44,7 @@ public class CheckoutAction {
             WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
 
             if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
-                LOGGER.fine("Changing workspace selector to '" + selector.replaceAll("[\\n\\r\\t]", " ") + "'");
+                LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
                 WorkspaceManager.setSelector(tool, workspace.getPath(), selector);
                 return workspace;
             }
@@ -72,13 +65,9 @@ public class CheckoutAction {
 
     private static boolean mustUpdateSelector(PlasticTool tool, FilePath workspacePath, String selector)
             throws IOException, InterruptedException, ParseException {
-        String actualSelector = removeNewLinesFromSelector(WorkspaceManager.getSelector(tool, workspacePath));
-        String expectedSelector = removeNewLinesFromSelector(selector);
+        String actualSelector = StringUtil.removeNewLines(WorkspaceManager.getSelector(tool, workspacePath));
+        String expectedSelector = StringUtil.removeNewLines(selector);
         return !actualSelector.equals(expectedSelector);
-    }
-
-    private static String removeNewLinesFromSelector(String selector) {
-        return selector.trim().replaceAll("[\\n\\r]", "");
     }
 
     private static void cleanOldWorkspacesIfNeeded(
@@ -126,16 +115,6 @@ public class CheckoutAction {
         WorkspaceManager.deleteWorkspace(tool, workspace.getPath());
         workspace.getPath().deleteContents();
         workspaces.remove(workspace);
-    }
-
-    @Deprecated
-    private static Workspace findWorkspaceByName(List<Workspace> workspaces, String workspaceName) {
-        for (Workspace workspace : workspaces) {
-            if (workspace.getName().equals(workspaceName)) {
-                return workspace;
-            }
-        }
-        return null;
     }
 
     private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath workspacePath) {

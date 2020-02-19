@@ -411,7 +411,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         try {
             ParseableCommand<List<ChangeSetID>> statusCommand = new GetWorkspaceStatusCommand(workspacePath.getRemote());
-            List<ChangeSetID> list = CommandRunner.executeAndRead(tool, statusCommand, statusCommand);
+            List<ChangeSetID> list = CommandRunner.executeAndRead(tool, statusCommand);
             if (list != null && !list.isEmpty()) {
                 return list.get(0);
             }
@@ -462,7 +462,7 @@ public class PlasticSCM extends SCM {
         try {
             ParseableCommand<ChangeSet> command = new FindChangesetCommand(
                     cset.getId(), cset.getBranch(), cset.getRepository());
-            return CommandRunner.executeAndRead(tool, command, command) != null;
+            return CommandRunner.executeAndRead(tool, command) != null;
         } catch (Exception e) {
             LOGGER.log(
                     Level.WARNING,
@@ -484,7 +484,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         try {
             ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId);
-            return CommandRunner.executeAndRead(tool, command, command, false);
+            return CommandRunner.executeAndRead(tool, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }
@@ -498,7 +498,7 @@ public class PlasticSCM extends SCM {
             throws IOException, InterruptedException {
         try {
             ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo);
-            return CommandRunner.executeAndRead(tool, command, command, false);
+            return CommandRunner.executeAndRead(tool, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         }

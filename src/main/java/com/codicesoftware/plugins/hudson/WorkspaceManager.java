@@ -24,7 +24,7 @@ public class WorkspaceManager {
     public static List<Workspace> loadWorkspaces(PlasticTool tool)
             throws IOException, InterruptedException, ParseException {
         ListWorkspacesCommand command = new ListWorkspacesCommand();
-        return CommandRunner.executeAndRead(tool, command, command);
+        return CommandRunner.executeAndRead(tool, command);
     }
 
     public static Workspace createWorkspace(PlasticTool tool, FilePath workspacePath, String workspaceName, String selector)
@@ -34,7 +34,7 @@ public class WorkspaceManager {
         CommandRunner.execute(tool, mkwkCommand);
         selectorPath.delete();
         GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
-        return CommandRunner.executeAndRead(tool, gwpCommand, gwpCommand);
+        return CommandRunner.executeAndRead(tool, gwpCommand);
     }
 
     public static void deleteWorkspace(PlasticTool tool, FilePath workspacePath)
@@ -58,7 +58,7 @@ public class WorkspaceManager {
     public static String getSelector(PlasticTool tool, FilePath workspacePath)
             throws IOException, InterruptedException, ParseException {
         GetSelectorCommand command = new GetSelectorCommand(workspacePath.getRemote());
-        return CommandRunner.executeAndRead(tool, command, command, false);
+        return CommandRunner.executeAndRead(tool, command, false);
     }
 
     public static void setSelector(PlasticTool tool, FilePath workspacePath, String selector)

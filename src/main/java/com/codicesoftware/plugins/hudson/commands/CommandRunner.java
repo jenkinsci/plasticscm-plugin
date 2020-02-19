@@ -26,22 +26,22 @@ public class CommandRunner {
         return tool.execute(command.getArguments().toCommandArray(), executionPath, printOutput);
     }
 
-    public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser)
+    public static <T> T executeAndRead(PlasticTool tool, ParseableCommand<T> command)
             throws IOException, InterruptedException, ParseException {
-        return executeAndRead(tool, command, parser, null, true);
+        return executeAndRead(tool, command, null, true);
     }
 
-    public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser, boolean printOutput)
+    public static <T> T executeAndRead(PlasticTool tool, ParseableCommand<T> command, boolean printOutput)
             throws IOException, InterruptedException, ParseException {
-        return executeAndRead(tool, command, parser, null, printOutput);
+        return executeAndRead(tool, command, null, printOutput);
     }
 
-    public static <T> T executeAndRead(PlasticTool tool, Command command, ParseableCommand<T> parser, FilePath executionPath, boolean printOutput)
+    public static <T> T executeAndRead(PlasticTool tool, ParseableCommand<T> command, FilePath executionPath, boolean printOutput)
             throws IOException, InterruptedException, ParseException {
         Reader reader = null;
         try {
             reader = execute(tool, command, executionPath, printOutput);
-            return parser.parse(reader);
+            return command.parse(reader);
         } finally {
             IOUtils.closeQuietly(reader);
         }

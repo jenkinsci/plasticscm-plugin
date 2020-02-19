@@ -45,7 +45,7 @@ public class CheckoutAction {
 
             if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
                 LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
-                WorkspaceManager.setSelector(tool, workspace.getPath(), selector);
+                WorkspaceManager.setSelector(tool, workspacePath, selector);
                 return workspace;
             }
             WorkspaceManager.updateWorkspace(tool, workspace.getPath());

@@ -11,6 +11,7 @@ import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSetID;
+import com.codicesoftware.plugins.hudson.model.UpdateStrategy;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
@@ -88,26 +89,31 @@ public class PlasticSCM extends SCM {
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
     private final String selector;
-    private final boolean useUpdate;
-    private final boolean useWorkspaceSubdirectory;
+
+    private UpdateStrategy updateStrategy;
+    @Deprecated
+    private transient boolean useUpdate;
+
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
+
     private final String directory;
+    private final boolean useWorkspaceSubdirectory;
 
     @DataBoundConstructor
     public PlasticSCM(
             String selector,
-            boolean useUpdate,
+            UpdateStrategy updateStrategy,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             String directory) {
-        LOGGER.info("Initializing PlasticSCM plugin");
+        LOGGER.info("Initializing Plastic SCM plugin");
         this.selector = selector;
-        this.useUpdate = useUpdate;
+        this.updateStrategy = updateStrategy;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.directory = directory;
 
-        firstWorkspace = new WorkspaceInfo(this.selector, this.useUpdate, this.directory);
+        firstWorkspace = new WorkspaceInfo(this.selector, this.updateStrategy, this.directory);
         if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
             return;
@@ -121,8 +127,9 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
-    public boolean isUseUpdate() {
-        return useUpdate;
+    public UpdateStrategy getUpdateStrategy() {
+        /** Field might be null if deserialized from older class version. */
+        return (updateStrategy != null) ? updateStrategy : convertUseUpdate(useUpdate);
     }
 
     @Exported
@@ -183,6 +190,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final TaskListener listener,
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
+        adoptOlderConfigurations();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
@@ -196,12 +204,7 @@ public class PlasticSCM extends SCM {
 
             PlasticTool tool = new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
 
-            Workspace plasticWorkspace = setupWorkspace(
-                    tool,
-                    listener,
-                    plasticWorkspacePath,
-                    resolvedSelector,
-                    workspaceInfo.isUseUpdate());
+            Workspace plasticWorkspace = setupWorkspace(tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getUpdateStrategy());
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
@@ -239,17 +242,30 @@ public class PlasticSCM extends SCM {
         return jenkinsPath.getParent().getName().endsWith("@libs");
     }
 
+    /**
+     * Backward compatibility for jobs using obsolete configurations.
+     */
+    private void adoptOlderConfigurations() {
+        if (updateStrategy == null) {
+            updateStrategy = convertUseUpdate(useUpdate);
+        }
+    }
+
+    private static UpdateStrategy convertUseUpdate(boolean useUpdate) {
+        return useUpdate ? UpdateStrategy.BASIC : UpdateStrategy.DELETE;
+    }
+
     private Workspace setupWorkspace(
             @Nonnull final PlasticTool tool,
             @Nonnull final TaskListener listener,
             @Nonnull final FilePath workspacePath,
             @Nonnull final String selector,
-            @Nonnull final boolean useUpdate) throws IOException, InterruptedException {
+            @Nonnull final UpdateStrategy strategy) throws IOException, InterruptedException {
         try {
             if (!workspacePath.exists()) {
                 workspacePath.mkdirs();
             }
-            return CheckoutAction.checkout(tool, workspacePath, selector, useUpdate);
+            return CheckoutAction.checkout(tool, workspacePath, selector, strategy);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         } catch (IOException e) {
@@ -352,7 +368,7 @@ public class PlasticSCM extends SCM {
         return result;
     }
 
-    private FilePath resolveWorkspacePath(
+    private static FilePath resolveWorkspacePath(
             FilePath jenkinsWorkspacePath,
             WorkspaceInfo workspaceInfo) {
         if (jenkinsWorkspacePath == null || workspaceInfo == null) {
@@ -365,7 +381,7 @@ public class PlasticSCM extends SCM {
         return new FilePath(jenkinsWorkspacePath, workspaceInfo.getDirectory());
     }
 
-    private String resolveWorkspaceNameParameters(
+    private static String resolveWorkspaceNameParameters(
             Run<?, ?> build,
             FilePath workspacePath,
             String workspaceName,
@@ -390,7 +406,7 @@ public class PlasticSCM extends SCM {
         return result.replaceAll("[\\.\\s]+$", "_");
     }
 
-    private String replaceBuildParameter(Run<?, ?> run, String text) {
+    private static String replaceBuildParameter(Run<?, ?> run, String text) {
         if (run instanceof AbstractBuild<?, ?>) {
             AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
             if (build.getAction(ParametersAction.class) != null) {
@@ -667,22 +683,25 @@ public class PlasticSCM extends SCM {
                 return FormChecker.createValidationResponse("Error: " + e.getMessage(), true);
             }
         }
+
     }
 
     @ExportedBean
     public static final class WorkspaceInfo extends AbstractDescribableImpl<WorkspaceInfo> implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private final String selector;
+        private String selector;
 
-        private final boolean useUpdate;
+        private UpdateStrategy updateStrategy;
+        @Deprecated
+        private transient boolean useUpdate;
 
-        private final String directory;
+        private String directory;
 
         @DataBoundConstructor
-        public WorkspaceInfo(String selector, boolean useUpdate, String directory) {
+        public WorkspaceInfo(String selector, UpdateStrategy updateStrategy, String directory) {
             this.selector = selector;
-            this.useUpdate = useUpdate;
+            this.updateStrategy = updateStrategy;
             this.directory = directory;
         }
 
@@ -697,8 +716,9 @@ public class PlasticSCM extends SCM {
         }
 
         @Exported
-        public boolean isUseUpdate() {
-            return useUpdate;
+        public UpdateStrategy getUpdateStrategy() {
+            /** Field might be null if deserialized from older class version. */
+            return (updateStrategy != null) ? updateStrategy : convertUseUpdate(useUpdate);
         }
 
         @Exported

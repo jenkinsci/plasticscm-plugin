@@ -1,9 +1,9 @@
 package com.codicesoftware.plugins.hudson;
 
+import com.codicesoftware.plugins.hudson.model.UpdateStrategy;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 public class PlasticSCMTest {
 
     @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    public JenkinsRule rule = new JenkinsRule();
 
     //@Test
     public void testCheckExecutable() {
@@ -28,8 +28,8 @@ public class PlasticSCMTest {
 
     @Test
     public void testProjectConfig() throws Exception {
-        FreeStyleProject project = jenkins.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, false, false, null, "");
+        FreeStyleProject project = rule.createFreeStyleProject();
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, UpdateStrategy.BASIC, false, null, "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();

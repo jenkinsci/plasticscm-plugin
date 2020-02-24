@@ -2,12 +2,14 @@ package com.codicesoftware.plugins.hudson.actions;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.WorkspaceManager;
+import com.codicesoftware.plugins.hudson.model.UpdateStrategy;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.FilePath;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,44 +24,42 @@ public class CheckoutAction {
 
     private CheckoutAction() { }
 
-    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, boolean useUpdate)
+    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, UpdateStrategy strategy)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
 
-        cleanOldWorkspacesIfNeeded(tool, workspacePath, useUpdate, workspaces);
+        deleteOldWorkspacesIfNeeded(tool, workspacePath, strategy, workspaces);
 
-        if (!useUpdate && workspacePath.exists()) {
-            workspacePath.deleteContents();
-        }
-
-        return checkoutWorkspace(tool, workspacePath, selector, workspaces);
+        return checkoutWorkspace(tool, workspacePath, selector, strategy, workspaces);
     }
 
-    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, List<Workspace> workspaces)
+    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, UpdateStrategy strategy, List<Workspace> workspaces)
             throws IOException, InterruptedException, ParseException {
-        Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
+        Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
 
         if (workspace != null) {
-            LOGGER.fine("Reusing existing workspace");
-            WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
+            LOGGER.fine("Using existing workspace: " + workspace.getName());
+
+            WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), strategy);
 
             if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
                 LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
                 WorkspaceManager.setSelector(tool, workspacePath, selector);
                 return workspace;
             }
-            WorkspaceManager.updateWorkspace(tool, workspace.getPath());
-            return workspace;
+
+        } else {
+            String workspaceName = WorkspaceManager.generateUniqueWorkspaceName();
+            LOGGER.fine("Creating new workspace: " + workspaceName);
+
+            if (workspacePath.exists()) {
+                workspacePath.deleteContents();
+            }
+
+            workspace = WorkspaceManager.createWorkspace(tool, workspacePath, workspaceName, selector);
         }
 
-        LOGGER.fine("Creating new workspace");
-        String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
-
-        workspace = WorkspaceManager.createWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
-
-        WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
         WorkspaceManager.updateWorkspace(tool, workspace.getPath());
-
         return workspace;
     }
 
@@ -70,35 +70,30 @@ public class CheckoutAction {
         return !actualSelector.equals(expectedSelector);
     }
 
-    private static void cleanOldWorkspacesIfNeeded(
-            PlasticTool tool,
-            FilePath workspacePath,
-            boolean shouldUseUpdate,
-            List<Workspace> workspaces) throws IOException, InterruptedException {
+    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, UpdateStrategy strategy, List<Workspace> workspaces)
+            throws IOException, InterruptedException {
 
-        // handle situation where workspace exists in parent path
-        Workspace parentWorkspace = findWorkspaceByPath(workspaces, workspacePath.getParent());
-        if (parentWorkspace != null) {
-            deleteWorkspace(tool, parentWorkspace, workspaces);
-        }
-
-        // handle situation where workspace exists in child path
-        List<Workspace> nestedWorkspaces = findWorkspacesInsidePath(workspaces, workspacePath);
-        for (Workspace workspace : nestedWorkspaces) {
+        // Handle situation where workspace exists in child path.
+        List<Workspace> innerWorkspaces = findWorkspacesInsidePath(workspacePath, workspaces);
+        for (Workspace workspace : innerWorkspaces) {
             deleteWorkspace(tool, workspace, workspaces);
         }
 
-        if (shouldUseUpdate) {
-            return;
+        // Handle situation where workspace exists in parent path.
+        List<Workspace> outerWorkspaces = findWorkspacesOutsidePath(workspacePath, workspaces);
+        for (Workspace workspace : outerWorkspaces) {
+            deleteWorkspace(tool, workspace, workspaces);
         }
 
-        Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
-        if (workspace != null) {
-            deleteWorkspace(tool, workspace, workspaces);
+        if (strategy == UpdateStrategy.DELETE) {
+            Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
+            if (workspace != null) {
+                deleteWorkspace(tool, workspace, workspaces);
+            }
         }
     }
 
-    private static boolean isSameWorkspacePath(String actual, String expected) {
+    protected static boolean isSameWorkspacePath(String actual, String expected) {
         String actualFixed = actual.replaceAll("\\\\", "/");
         String expectedFixed = expected.replaceAll("\\\\", "/");
 
@@ -109,6 +104,15 @@ public class CheckoutAction {
         return actualFixed.equals(expectedFixed);
     }
 
+    protected static boolean isNestedWorkspacePath(String topPath, String subPath) {
+        Path top = Paths.get(topPath).toAbsolutePath();
+        Path sub = Paths.get(subPath).toAbsolutePath();
+        if (sub.equals(top)) {
+            return false;
+        }
+        return sub.startsWith(top);
+    }
+
     private static void deleteWorkspace(
             PlasticTool tool, Workspace workspace, List<Workspace> workspaces)
             throws IOException, InterruptedException {
@@ -117,7 +121,7 @@ public class CheckoutAction {
         workspaces.remove(workspace);
     }
 
-    private static Workspace findWorkspaceByPath(List<Workspace> workspaces, FilePath workspacePath) {
+    protected static Workspace findWorkspaceByPath(FilePath workspacePath, List<Workspace> workspaces) {
         for (Workspace workspace : workspaces) {
             if (isSameWorkspacePath(workspace.getPath().getRemote(), workspacePath.getRemote())) {
                 return workspace;
@@ -126,12 +130,28 @@ public class CheckoutAction {
         return null;
     }
 
-    private static List<Workspace> findWorkspacesInsidePath(List<Workspace> workspaces, FilePath workspacePath) {
-        List<Workspace> result = new ArrayList<>();
+    protected static List<Workspace> findWorkspacesInsidePath(FilePath workspacePath, List<Workspace> workspaces) {
+        String basePath = workspacePath.getRemote();
 
+        List<Workspace> result = new ArrayList<>();
         for (Workspace workspace : workspaces) {
-            String parentPath = FilenameUtils.getFullPathNoEndSeparator(workspace.getPath().getRemote());
-            if (isSameWorkspacePath(parentPath, workspacePath.getRemote())) {
+            String testPath = workspace.getPath().getRemote();
+
+            if (isNestedWorkspacePath(basePath, testPath)) {
+                result.add(workspace);
+            }
+        }
+        return result;
+    }
+
+    protected static List<Workspace> findWorkspacesOutsidePath(FilePath workspacePath, List<Workspace> workspaces) {
+        String basePath = workspacePath.getRemote();
+
+        List<Workspace> result = new ArrayList<>();
+        for (Workspace workspace : workspaces) {
+            String testPath = workspace.getPath().getRemote();
+
+            if (isNestedWorkspacePath(testPath, basePath)) {
                 result.add(workspace);
             }
         }

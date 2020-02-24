@@ -5,11 +5,11 @@
     <f:textarea default="${descriptor.getDefaultSelector()}" checkMethod="post" />
   </f:entry>
 
-  <f:entry title="${%Use update}" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
-    <f:checkbox default="true" />
+  <f:entry title="${%Update method}" field="updateStrategy" help="/plugin/plasticscm-plugin/updateStrategy.html">
+    <f:enum>${it.getLabel()}</f:enum>
   </f:entry>
 
-  <f:entry title="${%Subdirectory}" field="directory" help="/plugin/plasticscm-plugin/directory.html">
+  <f:entry title="${%Directory}" field="directory" help="/plugin/plasticscm-plugin/directory.html">
     <f:textbox checkMethod="post" />
   </f:entry>
 

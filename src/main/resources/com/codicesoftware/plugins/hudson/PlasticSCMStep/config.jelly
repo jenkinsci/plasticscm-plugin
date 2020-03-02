@@ -17,8 +17,8 @@
     <f:textbox default="${descriptor.defaultServer}" checkMethod="post" />
   </f:entry>
 
-  <f:entry field="useUpdate" title="Use update" help="/plugin/plasticscm-plugin/useUpdate.html">
-    <f:checkbox default="true" />
+  <f:entry field="updateMethod" title="${%Update method}" help="/plugin/plasticscm-plugin/updateMethod.html">
+    <f:enum>${it.getLabel()}</f:enum>
   </f:entry>
 
   <f:entry field="directory" title="Subdirectory" help="/plugin/plasticscm-plugin/directory.html">

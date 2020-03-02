@@ -1,4 +1,4 @@
-package com.codicesoftware.plugins.hudson;
+package com.codicesoftware.plugins.hudson
 
 def l = namespace(lib.JenkinsTagLib)
 

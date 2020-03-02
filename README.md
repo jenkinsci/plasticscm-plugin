@@ -228,7 +228,7 @@ pipeline {
           )
 
           plasticVars.each {
-            key, value -> println("${key} = ${value}");
+            key, value -> println("${key} = ${value}")
           }
         }
       }
@@ -268,7 +268,7 @@ pipeline {
 
         script {
           plasticVars.each {
-            key, value -> println("${key} = ${value}");
+            key, value -> println("${key} = ${value}")
           }
         }
       }

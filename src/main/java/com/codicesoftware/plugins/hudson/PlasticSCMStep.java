@@ -1,6 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.codicesoftware.plugins.hudson.model.UpdateStrategy;
+import com.codicesoftware.plugins.hudson.model.UpdateMethod;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import hudson.Extension;
 import hudson.Util;
@@ -12,12 +12,14 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.Nonnull;
+import java.util.logging.Logger;
 
 public class PlasticSCMStep extends SCMStep {
+
+    private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
     public static final String SELECTOR_BRANCH_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
     public static final String SELECTOR_CHANGESET_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
@@ -27,9 +29,7 @@ public class PlasticSCMStep extends SCMStep {
     private String repository = "";
     private String server = "";
 
-    private UpdateStrategy updateStrategy = UpdateStrategy.STANDARD;
-    @Deprecated
-    private transient boolean useUpdate = true;
+    private UpdateMethod updateMethod = UpdateMethod.STANDARD;
     private String directory = "";
 
     @DataBoundConstructor
@@ -72,25 +72,20 @@ public class PlasticSCMStep extends SCMStep {
         this.server = server;
     }
 
-    @Exported
-    public UpdateStrategy getUpdateStrategy() {
-        return updateStrategy;
+    public UpdateMethod getUpdateMethod() {
+        return updateMethod;
     }
 
     @DataBoundSetter
-    public void setUpdateStrategy(String name) {
-        this.updateStrategy = UpdateStrategy.valueOf(name);
-    }
-
-    public boolean isUseUpdate() {
-        return useUpdate;
+    public void setUpdateMethod(String name) {
+        this.updateMethod = UpdateMethod.valueOf(name.toUpperCase());
     }
 
     @DataBoundSetter
+    @Deprecated
     public void setUseUpdate(boolean useUpdate) {
-        if (!useUpdate) {
-            this.updateStrategy = UpdateStrategy.DELETE;
-        }
+        LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
+        this.updateMethod = UpdateMethod.convertUseUpdate(useUpdate);
     }
 
     public String getDirectory() {
@@ -105,7 +100,7 @@ public class PlasticSCMStep extends SCMStep {
     @Nonnull
     @Override
     protected SCM createSCM() {
-        return new PlasticSCM(buildSelector(), updateStrategy, false, null, directory);
+        return new PlasticSCM(buildSelector(), updateMethod, false, null, directory);
     }
 
     private String buildSelector() {
@@ -115,6 +110,8 @@ public class PlasticSCMStep extends SCMStep {
             return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
         }
     }
+
+
 
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {

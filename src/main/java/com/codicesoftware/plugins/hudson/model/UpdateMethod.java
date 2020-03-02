@@ -1,14 +1,14 @@
 package com.codicesoftware.plugins.hudson.model;
 
-public enum UpdateStrategy {
-    BASIC("Minimal cleanup"),
+public enum UpdateMethod {
+    MINIMAL("Minimal cleanup"),
     STANDARD("Standard cleanup"),
     FULL("Full cleanup"),
     DELETE("Delete workspace");
 
     private final String label;
 
-    UpdateStrategy(String label) {
+    UpdateMethod(String label) {
         this.label = label;
     }
 
@@ -29,4 +29,7 @@ public enum UpdateStrategy {
         return (this == FULL);
     }
 
+    public static UpdateMethod convertUseUpdate(boolean useUpdate) {
+        return useUpdate ? UpdateMethod.MINIMAL : UpdateMethod.DELETE;
+    }
 }

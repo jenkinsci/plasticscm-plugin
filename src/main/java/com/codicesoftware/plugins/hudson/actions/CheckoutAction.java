@@ -2,7 +2,7 @@ package com.codicesoftware.plugins.hudson.actions;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.WorkspaceManager;
-import com.codicesoftware.plugins.hudson.model.UpdateStrategy;
+import com.codicesoftware.plugins.hudson.model.UpdateMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.FilePath;
@@ -24,23 +24,23 @@ public class CheckoutAction {
 
     private CheckoutAction() { }
 
-    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, UpdateStrategy strategy)
+    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, UpdateMethod updateMethod)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
 
-        deleteOldWorkspacesIfNeeded(tool, workspacePath, strategy, workspaces);
+        deleteOldWorkspacesIfNeeded(tool, workspacePath, updateMethod, workspaces);
 
-        return checkoutWorkspace(tool, workspacePath, selector, strategy, workspaces);
+        return checkoutWorkspace(tool, workspacePath, selector, updateMethod, workspaces);
     }
 
-    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, UpdateStrategy strategy, List<Workspace> workspaces)
+    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, UpdateMethod updateMethod, List<Workspace> workspaces)
             throws IOException, InterruptedException, ParseException {
         Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
 
         if (workspace != null) {
             LOGGER.fine("Using existing workspace: " + workspace.getName());
 
-            WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), strategy);
+            WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), updateMethod);
 
             if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
                 LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
@@ -70,7 +70,7 @@ public class CheckoutAction {
         return !actualSelector.equals(expectedSelector);
     }
 
-    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, UpdateStrategy strategy, List<Workspace> workspaces)
+    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, UpdateMethod updateMethod, List<Workspace> workspaces)
             throws IOException, InterruptedException {
 
         // Handle situation where workspace exists in child path.
@@ -85,7 +85,7 @@ public class CheckoutAction {
             deleteWorkspace(tool, workspace, workspaces);
         }
 
-        if (strategy == UpdateStrategy.DELETE) {
+        if (updateMethod == UpdateMethod.DELETE) {
             Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
             if (workspace != null) {
                 deleteWorkspace(tool, workspace, workspaces);

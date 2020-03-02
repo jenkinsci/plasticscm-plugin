@@ -13,7 +13,7 @@ public class GetWorkspaceFromPathCommand implements ParseableCommand<Workspace>,
 
     private static final Pattern parserPattern = Pattern.compile("^(.*)#(.*)#(.*)$");
 
-    private String workspacePath;
+    private final String workspacePath;
 
     public GetWorkspaceFromPathCommand(String workspacePath) {
         this.workspacePath = workspacePath;

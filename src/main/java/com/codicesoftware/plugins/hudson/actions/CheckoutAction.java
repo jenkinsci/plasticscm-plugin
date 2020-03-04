@@ -6,10 +6,9 @@ import com.codicesoftware.plugins.hudson.model.UpdateMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.FilePath;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,19 +97,23 @@ public class CheckoutAction {
         String expectedFixed = expected.replaceAll("\\\\", "/");
 
         Matcher windowsPathMatcher = WINDOWS_PATH_PATTERN.matcher(expectedFixed);
+        // Windows paths are case insensitive
         if (windowsPathMatcher.matches()) {
             return actualFixed.equalsIgnoreCase(expectedFixed);
         }
         return actualFixed.equals(expectedFixed);
     }
 
-    protected static boolean isNestedWorkspacePath(String topPath, String subPath) {
-        Path top = Paths.get(topPath).toAbsolutePath();
-        Path sub = Paths.get(subPath).toAbsolutePath();
-        if (sub.equals(top)) {
-            return false;
+    protected static boolean isNestedWorkspacePath(String base, String nested) {
+        String baseFixed = base.replaceAll("\\\\", "/") + "/";
+        String nestedFixed = nested.replaceAll("\\\\", "/");
+
+        Matcher windowsPathMatcher = WINDOWS_PATH_PATTERN.matcher(nestedFixed);
+        // Windows paths are case insensitive
+        if (windowsPathMatcher.matches()) {
+            return nestedFixed.toLowerCase().startsWith(baseFixed.toLowerCase());
         }
-        return sub.startsWith(top);
+        return nestedFixed.startsWith(baseFixed);
     }
 
     private static void deleteWorkspace(

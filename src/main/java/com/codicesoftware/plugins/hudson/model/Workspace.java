@@ -57,4 +57,9 @@ public class Workspace implements Serializable {
     public String getGuid() {
         return guid;
     }
+
+    @Override
+    public String toString() {
+        return "Workspace{name='" + name + "',path='" + path + "',pathStr='" + pathStr + "',guid='" + guid + "'}";
+    }
 }

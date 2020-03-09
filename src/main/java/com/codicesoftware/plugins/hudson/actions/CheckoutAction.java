@@ -6,7 +6,6 @@ import com.codicesoftware.plugins.hudson.model.UpdateMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import hudson.FilePath;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.text.ParseException;

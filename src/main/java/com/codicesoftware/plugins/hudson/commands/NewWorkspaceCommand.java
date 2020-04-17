@@ -20,7 +20,8 @@ public class NewWorkspaceCommand implements Command {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("mkwk");
+        arguments.add("workspace");
+        arguments.add("create");
         arguments.add(workspaceName);
         arguments.add(workspacePath.getRemote());
         arguments.add("--selector=" + selectorPath.getRemote());

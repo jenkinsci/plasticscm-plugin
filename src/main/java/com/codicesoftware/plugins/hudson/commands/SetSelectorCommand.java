@@ -15,7 +15,7 @@ public class SetSelectorCommand implements Command {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("sts");
+        arguments.add("setselector");
         arguments.add("--file=" + selectorFile);
         arguments.add(workspacePath);
 

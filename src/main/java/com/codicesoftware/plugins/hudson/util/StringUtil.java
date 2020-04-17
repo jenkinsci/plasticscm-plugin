@@ -19,7 +19,7 @@ public class StringUtil {
     }
 
     public static String singleLine(String value) {
-        return Util.fixNull(value).replaceAll("[\\n\\r\\t]", " ").trim();
+        return Util.fixNull(value).replaceAll("[\\n\\r\\t ]+", " ").trim();
     }
 
     public static String removeNewLines(String value) {

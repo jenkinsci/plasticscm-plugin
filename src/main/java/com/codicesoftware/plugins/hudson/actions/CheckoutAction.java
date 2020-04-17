@@ -37,27 +37,21 @@ public class CheckoutAction {
 
         if (workspace != null) {
             LOGGER.fine("Using existing workspace: " + workspace.getName());
-
             WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), updateMethod);
-
-            if (mustUpdateSelector(tool, workspace.getPath(), selector)) {
-                LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
-                WorkspaceManager.setSelector(tool, workspacePath, selector);
-                return workspace;
-            }
-
         } else {
             String workspaceName = WorkspaceManager.generateUniqueWorkspaceName();
             LOGGER.fine("Creating new workspace: " + workspaceName);
-
             if (workspacePath.exists()) {
                 workspacePath.deleteContents();
             }
-
             workspace = WorkspaceManager.createWorkspace(tool, workspacePath, workspaceName, selector);
         }
 
-        WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+        LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
+        WorkspaceManager.setSelector(tool, workspacePath, selector);
+        // Setting workspace selector triggers workspace update
+        // WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+
         return workspace;
     }
 

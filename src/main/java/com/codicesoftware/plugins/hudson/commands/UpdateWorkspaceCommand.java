@@ -14,6 +14,7 @@ public class UpdateWorkspaceCommand implements Command {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("update");
+        arguments.add("--changeset");
         arguments.add(workspacePath);
 
         return arguments;

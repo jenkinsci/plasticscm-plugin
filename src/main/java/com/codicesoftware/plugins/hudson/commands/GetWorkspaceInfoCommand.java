@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.commands;
 
+import com.codicesoftware.plugins.hudson.commands.parsers.WorkspaceInfoParser;
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 

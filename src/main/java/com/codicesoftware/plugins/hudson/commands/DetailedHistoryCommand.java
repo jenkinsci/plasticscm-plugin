@@ -52,7 +52,8 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
         arguments.add("repositories");
         arguments.add("'" + repository + "'");
 
-        arguments.add("--xml=" + xmlOutputPath);
+        arguments.add("--xml");
+        arguments.add("--file=" + xmlOutputPath);
         arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
 

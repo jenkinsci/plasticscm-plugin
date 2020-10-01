@@ -38,7 +38,8 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
         arguments.add("repository");
         arguments.add("'" + repository + "'");
 
-        arguments.add("--xml=" + xmlOutputPath);
+        arguments.add("--xml");
+        arguments.add("--file=" + xmlOutputPath);
         arguments.add("--dateformat=" + DateUtil.ISO_DATE_TIME_OFFSET_CSHARP_FORMAT);
 
         return arguments;

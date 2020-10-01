@@ -54,7 +54,10 @@ public class CheckoutAction {
                 WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
                 return workspace;
             }
-            WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+
+            if (SelectorNeedsUpdate(selector)) {
+                WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+            }
             return workspace;
         }
 
@@ -78,6 +81,10 @@ public class CheckoutAction {
 
     private static String removeNewLinesFromSelector(String selector) {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
+    }
+
+    private static boolean SelectorNeedsUpdate(String selector) {
+        return !selector.contains("changeset") && !selector.contains("label");
     }
 
     private static void cleanOldWorkspacesIfNeeded(

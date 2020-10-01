@@ -7,7 +7,6 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +18,13 @@ public class FindOutputParser {
     // Utility classes shouldn't have default constructors
     private FindOutputParser() { }
 
-    public static List<ChangeSet> parseReader(Reader reader) throws IOException, ParseException {
+    public static List<ChangeSet> parseReader(String path) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();
+        File xmlFile = new File(path);
+        if (!xmlFile.exists()) {
+            LOGGER.warning("Find command XML output file not found: " + path);
+            return csetList;
+        }
 
         Digester digester = new Digester2();
         digester.push(csetList);
@@ -37,7 +41,7 @@ public class FindOutputParser {
         digester.addSetNext("*/CHANGESET", "add");
 
         try {
-            digester.parse(reader);
+            digester.parse(xmlFile);
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }

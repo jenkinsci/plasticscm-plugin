@@ -15,11 +15,14 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
     private final int csetId;
     private final String branch;
     private final String repository;
+    private final String xmlOutputPath;
 
-    public FindChangesetCommand(int csetId, String branch, String repository) {
+    public FindChangesetCommand(
+        int csetId, String branch, String repository, String xmlOutputPath) {
         this.csetId = csetId;
         this.branch = branch;
         this.repository = repository;
+        this.xmlOutputPath = xmlOutputPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
@@ -35,14 +38,14 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
         arguments.add("repository");
         arguments.add("'" + repository + "'");
 
-        arguments.add("--xml");
+        arguments.add("--xml=" + xmlOutputPath);
         arguments.add("--dateformat=" + DateUtil.ISO_DATE_TIME_OFFSET_CSHARP_FORMAT);
 
         return arguments;
     }
 
     public ChangeSet parse(Reader reader) throws IOException, ParseException {
-        List<ChangeSet> csetList = FindOutputParser.parseReader(reader);
+        List<ChangeSet> csetList = FindOutputParser.parseReader(xmlOutputPath);
 
         if (!csetList.isEmpty()) {
             return csetList.get(0);

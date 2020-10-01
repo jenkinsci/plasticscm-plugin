@@ -17,16 +17,22 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
     private final Calendar toTimestamp;
     private final String branch;
     private final String repository;
+    private final String xmlOutputPath;
 
     private final SimpleDateFormat dateFormatter =
             new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
 
     public DetailedHistoryCommand(
-            Calendar fromTimestamp, Calendar toTimestamp, String branch, String repository) {
+            Calendar fromTimestamp,
+            Calendar toTimestamp,
+            String branch,
+            String repository,
+            String xmlOutputPath) {
         this.fromTimestamp = fromTimestamp;
         this.toTimestamp = toTimestamp;
         this.branch = branch;
         this.repository = repository;
+        this.xmlOutputPath = xmlOutputPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
@@ -46,7 +52,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
         arguments.add("repositories");
         arguments.add("'" + repository + "'");
 
-        arguments.add("--xml");
+        arguments.add("--xml=" + xmlOutputPath);
         arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
 
@@ -54,6 +60,6 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
     }
 
     public List<ChangeSet> parse(Reader reader) throws IOException, ParseException {
-        return FindOutputParser.parseReader(reader);
+        return FindOutputParser.parseReader(xmlOutputPath);
     }
 }

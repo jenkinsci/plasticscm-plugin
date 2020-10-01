@@ -11,9 +11,11 @@ import java.util.List;
 
 public class ChangesetLogCommand implements ParseableCommand<ChangeSet>, Command {
     private final String csetSpec;
+    private final String xmlOutputPath;
 
-    public ChangesetLogCommand(String csetSpec) {
+    public ChangesetLogCommand(String csetSpec, String xmlOutputPath) {
         this.csetSpec = csetSpec;
+        this.xmlOutputPath = xmlOutputPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
@@ -21,14 +23,14 @@ public class ChangesetLogCommand implements ParseableCommand<ChangeSet>, Command
 
         arguments.add("log");
         arguments.add(csetSpec);
-        arguments.add("--xml");
+        arguments.add("--xml=" + xmlOutputPath);
         arguments.add("--encoding=utf-8");
 
         return arguments;
     }
 
     public ChangeSet parse(Reader reader) throws IOException, ParseException {
-        List<ChangeSet> csetList = LogOutputParser.parseReader(reader);
+        List<ChangeSet> csetList = LogOutputParser.parseFile(xmlOutputPath);
 
         if (!csetList.isEmpty()) {
             return csetList.get(0);

@@ -5,15 +5,26 @@ import hudson.util.Digester2;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public final class LogOutputParser {
-    public static List<ChangeSet> parseReader(Reader reader) throws IOException, ParseException {
+    private static final Logger LOGGER = Logger.getLogger(LogOutputParser.class.getName());
+
+    // Utility classes shouldn't have default constructors
+    private LogOutputParser() { }
+
+    public static List<ChangeSet> parseFile(String path) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();
+        File xmlFile = new File(path);
+        if (!xmlFile.exists()) {
+            LOGGER.warning("Log command XML output file not found: " + path);
+            return csetList;
+        }
 
         Digester digester = new Digester2();
         digester.push(csetList);
@@ -37,7 +48,7 @@ public final class LogOutputParser {
         digester.addSetNext("LogList/Changeset/Changes/Item", "addItem");
 
         try {
-            digester.parse(reader);
+            digester.parse(xmlFile);
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }

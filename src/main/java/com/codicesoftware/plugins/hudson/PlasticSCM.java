@@ -54,12 +54,15 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -482,11 +485,15 @@ public class PlasticSCM extends SCM {
             TaskListener listener,
             int csetId)
             throws IOException, InterruptedException {
+        String xmlOutputPath = getXmlOutputTempFilePath();
         try {
-            ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId);
+            ParseableCommand<ChangeSet> command = new ChangesetLogCommand(
+                "cs:" + csetId, xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command, command);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
+        } finally {
+            safeDeleteFile(xmlOutputPath);
         }
     }
 
@@ -496,11 +503,15 @@ public class PlasticSCM extends SCM {
             int csetIdFrom,
             int csetIdTo)
             throws IOException, InterruptedException {
+        String xmlOutputPath = getXmlOutputTempFilePath();
         try {
-            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo);
+            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand(
+                "cs:" + csetIdFrom, "cs:" + csetIdTo, xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command, command);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
+        } finally {
+            safeDeleteFile(xmlOutputPath);
         }
     }
 
@@ -591,6 +602,22 @@ public class PlasticSCM extends SCM {
         environment.put(prefix + BRANCH, cset.getBranch());
         environment.put(prefix + AUTHOR, cset.getUser());
         environment.put(prefix + REPSPEC, cset.getRepository());
+    }
+
+    private static String getXmlOutputTempFilePath() {
+        return Paths
+            .get(System.getProperty("java.io.tmpdir"))
+            .resolve(UUID.randomUUID().toString() + ".xml")
+            .toString();
+    }
+
+    private static void safeDeleteFile(String path) {
+        try {
+            Files.deleteIfExists(Paths.get(path));
+        } catch (IOException e) {
+            LOGGER.log(
+                Level.SEVERE, String.format("Unable to remove file '%s'", path), e);
+        }
     }
 
     private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";

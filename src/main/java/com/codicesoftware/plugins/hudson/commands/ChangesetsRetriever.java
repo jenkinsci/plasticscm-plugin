@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.commands;
 
+import com.codicesoftware.plugins.hudson.OutputTempFile;
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.Workspace;
@@ -23,10 +24,16 @@ public class ChangesetsRetriever {
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
-                fromTimestamp, toTimestamp, branchName, repoSpec);
+        String xmlOutputFile = OutputTempFile.getPathForXml();
 
-        return CommandRunner.executeAndRead(tool, histCommand);
+        DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
+                fromTimestamp, toTimestamp, branchName, repoSpec, xmlOutputFile);
+
+        try {
+            return CommandRunner.executeAndRead(tool, histCommand);
+        } finally {
+            OutputTempFile.safeDelete(xmlOutputFile);
+        }
     }
 
     public static List<ChangeSet> getDetailedHistory(

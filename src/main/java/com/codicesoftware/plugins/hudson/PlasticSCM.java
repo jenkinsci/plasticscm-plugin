@@ -472,9 +472,9 @@ public class PlasticSCM extends SCM {
     }
 
     private static boolean isExistingChangeset(PlasticTool tool, ChangeSet cset) {
+        String xmlOutputPath = OutputTempFile.getPathForXml();
         try {
-            ParseableCommand<ChangeSet> command = new FindChangesetCommand(
-                    cset.getId(), cset.getBranch(), cset.getRepository());
+            ParseableCommand<ChangeSet> command = new FindChangesetCommand(cset.getId(), cset.getBranch(), cset.getRepository(), xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command) != null;
         } catch (Exception e) {
             LOGGER.log(
@@ -487,6 +487,8 @@ public class PlasticSCM extends SCM {
                             e.getMessage()),
                     e);
             return false;
+        } finally {
+            OutputTempFile.safeDelete(xmlOutputPath);
         }
     }
 
@@ -495,11 +497,14 @@ public class PlasticSCM extends SCM {
             TaskListener listener,
             int csetId)
             throws IOException, InterruptedException {
+        String xmlOutputPath = OutputTempFile.getPathForXml();
         try {
-            ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId);
+            ParseableCommand<ChangeSet> command = new ChangesetLogCommand("cs:" + csetId, xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
+        } finally {
+            OutputTempFile.safeDelete(xmlOutputPath);
         }
     }
 
@@ -509,11 +514,14 @@ public class PlasticSCM extends SCM {
             int csetIdFrom,
             int csetIdTo)
             throws IOException, InterruptedException {
+        String xmlOutputPath = OutputTempFile.getPathForXml();
         try {
-            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo);
+            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand("cs:" + csetIdFrom, "cs:" + csetIdTo, xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command, false);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
+        } finally {
+            OutputTempFile.safeDelete(xmlOutputPath);
         }
     }
 

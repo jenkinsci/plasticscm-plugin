@@ -79,6 +79,9 @@ repository "myRepo@my.plasticscm.server.com:8087"
     label "1.0.32-preview_997"
 ```
 
+**Important!** Don't forget to use the `ssl://` prefix in the server name if your Plastic
+Server utilizes SSL. For instance, `repository "myRepo@ssl://my.plasticscm.server.com:8088"`
+
 You can also use build parameters in the selector.
 Example: Let's say that you defined two build parameters in your project:
 
@@ -141,6 +144,9 @@ cm(
     directory: 'assets'
 )
 ```
+
+**Important!** Don't forget to use the `ssl://` prefix in the server name if your Plastic
+Server utilizes SSL. For instance, `server: 'ssl://my.plasticscm.server.com:8088',`
 
 If you'd rather use declarative pipelines (selecting the **Pipeline script from SCM** option),
 you'll have to specify the Plastic SCM configuration just as you'd do for a freestyle project. Then,

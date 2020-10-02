@@ -1,4 +1,4 @@
-package com.codicesoftware.plugins.hudson.commands;
+package com.codicesoftware.plugins.hudson.commands.parsers;
 
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 

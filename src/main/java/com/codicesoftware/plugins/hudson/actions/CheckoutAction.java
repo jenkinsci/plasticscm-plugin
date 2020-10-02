@@ -2,14 +2,22 @@ package com.codicesoftware.plugins.hudson.actions;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.WorkspaceManager;
+import com.codicesoftware.plugins.hudson.commands.CommandRunner;
+import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
 import com.codicesoftware.plugins.hudson.model.Workspace;
+import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import hudson.FilePath;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +63,7 @@ public class CheckoutAction {
                 return workspace;
             }
 
-            if (!isChangesetOrLabelSelector(selector)) {
+            if (isBranchSelector(tool, selector)) {
                 WorkspaceManager.updateWorkspace(tool, workspace.getPath());
             }
             return workspace;
@@ -83,8 +91,50 @@ public class CheckoutAction {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
-    private static boolean isChangesetOrLabelSelector(String selector) {
-        return selector.contains("changeset") || selector.contains("label");
+    private static boolean isBranchSelector(PlasticTool tool, String selector) {
+        Path selectorFilePath = null;
+        try {
+            selectorFilePath = Files.createTempFile("selector_", ".txt");
+            Files.write(
+                selectorFilePath,
+                selector.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE);
+
+            GetSelectorSpecCommand getSelectorSpecCommand = new GetSelectorSpecCommand(
+                selectorFilePath.toString());
+
+            WorkspaceInfo wkInfo = CommandRunner.executeAndRead(
+                tool, getSelectorSpecCommand, getSelectorSpecCommand);
+
+            if (wkInfo == null) {
+                LOGGER.info(String.format(
+                    "Invalid selector:%s%s", System.lineSeparator(), selector));
+                return false;
+            }
+
+            String branchSpec = wkInfo.getBranch();
+            return branchSpec != null && !branchSpec.equals("");
+        } catch (Exception e) {
+            LOGGER.log(
+                Level.SEVERE,
+                "Unable to determine whether selector is a branch selector", e);
+            LOGGER.log(
+                Level.INFO,
+                String.format("Selector:%s%s", System.lineSeparator(), selector));
+
+            return false;
+        } finally {
+            try {
+                if (selectorFilePath != null) {
+                    Files.deleteIfExists(selectorFilePath);
+                }
+            } catch (IOException e) {
+                LOGGER.log(
+                    Level.WARNING,
+                    String.format("Delete tmp selector file '%s' failed", selectorFilePath),
+                    e);
+            }
+        }
     }
 
     private static void cleanOldWorkspacesIfNeeded(

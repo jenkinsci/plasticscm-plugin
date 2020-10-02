@@ -55,7 +55,7 @@ public class CheckoutAction {
                 return workspace;
             }
 
-            if (SelectorNeedsUpdate(selector)) {
+            if (!isChangesetOrLabelSelector(selector)) {
                 WorkspaceManager.updateWorkspace(tool, workspace.getPath());
             }
             return workspace;
@@ -83,8 +83,8 @@ public class CheckoutAction {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
-    private static boolean SelectorNeedsUpdate(String selector) {
-        return !selector.contains("changeset") && !selector.contains("label");
+    private static boolean isChangesetOrLabelSelector(String selector) {
+        return selector.contains("changeset") || selector.contains("label");
     }
 
     private static void cleanOldWorkspacesIfNeeded(

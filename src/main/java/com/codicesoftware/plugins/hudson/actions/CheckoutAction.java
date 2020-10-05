@@ -2,22 +2,14 @@ package com.codicesoftware.plugins.hudson.actions;
 
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.WorkspaceManager;
-import com.codicesoftware.plugins.hudson.commands.CommandRunner;
-import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
 import com.codicesoftware.plugins.hudson.model.Workspace;
-import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import hudson.FilePath;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

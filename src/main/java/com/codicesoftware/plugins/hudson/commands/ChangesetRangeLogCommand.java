@@ -3,6 +3,7 @@ package com.codicesoftware.plugins.hudson.commands;
 import com.codicesoftware.plugins.hudson.commands.parsers.LogOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import hudson.FilePath;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -12,9 +13,9 @@ import java.util.List;
 public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet>>, Command {
     private final String csetSpecFrom;
     private final String csetSpecTo;
-    private final String xmlOutputPath;
+    private final FilePath xmlOutputPath;
 
-    public ChangesetRangeLogCommand(String csetSpecFrom, String csetSpecTo, String xmlOutputPath) {
+    public ChangesetRangeLogCommand(String csetSpecFrom, String csetSpecTo, FilePath xmlOutputPath) {
         this.csetSpecFrom = csetSpecFrom;
         this.csetSpecTo = csetSpecTo;
         this.xmlOutputPath = xmlOutputPath;

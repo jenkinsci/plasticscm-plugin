@@ -1,15 +1,18 @@
 package com.codicesoftware.plugins.hudson.commands.parsers;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import hudson.FilePath;
 import hudson.util.Digester2;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FindOutputParser {
@@ -18,10 +21,10 @@ public class FindOutputParser {
     // Utility classes shouldn't have default constructors
     private FindOutputParser() { }
 
-    public static List<ChangeSet> parseReader(String path) throws IOException, ParseException {
+    public static List<ChangeSet> parseReader(FilePath path) throws IOException, ParseException, InterruptedException {
         List<ChangeSet> csetList = new ArrayList<>();
-        File xmlFile = new File(path);
-        if (!xmlFile.exists()) {
+
+        if (!path.exists()) {
             LOGGER.warning("Find command XML output file not found: " + path);
             return csetList;
         }
@@ -40,8 +43,10 @@ public class FindOutputParser {
         digester.addBeanPropertySetter("*/CHANGESET/GUID", "guid");
         digester.addSetNext("*/CHANGESET", "add");
 
-        try {
-            digester.parse(xmlFile);
+        try (InputStream stream = SafeFilePath.read(path)) {
+            if (stream != null) {
+                digester.parse(stream);
+            }
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }

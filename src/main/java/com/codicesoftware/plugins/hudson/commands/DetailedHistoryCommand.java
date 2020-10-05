@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.commands.parsers.FindOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import hudson.FilePath;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -17,7 +18,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
     private final Calendar toTimestamp;
     private final String branch;
     private final String repository;
-    private final String xmlOutputPath;
+    private final FilePath xmlOutputPath;
 
     private final SimpleDateFormat dateFormatter =
             new SimpleDateFormat(DateUtil.DEFAULT_SORTABLE_FORMAT);
@@ -27,7 +28,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
             Calendar toTimestamp,
             String branch,
             String repository,
-            String xmlOutputPath) {
+            FilePath xmlOutputPath) {
         this.fromTimestamp = fromTimestamp;
         this.toTimestamp = toTimestamp;
         this.branch = branch;
@@ -53,7 +54,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
         arguments.add("'" + repository + "'");
 
         arguments.add("--xml");
-        arguments.add("--file=" + xmlOutputPath);
+        arguments.add("--file=" + xmlOutputPath.getRemote());
         arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
 
 

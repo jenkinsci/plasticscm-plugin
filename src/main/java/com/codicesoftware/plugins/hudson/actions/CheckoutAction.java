@@ -54,87 +54,21 @@ public class CheckoutAction {
 
         Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
 
-        if (workspace != null) {
-            LOGGER.fine("Reusing existing workspace");
-            WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
+        if (workspace == null) {
+            LOGGER.fine("Creating new workspace");
 
-            if (mustUpdateSelector(tool, workspace.getName(), selector)) {
-                WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
-                return workspace;
-            }
-
-            if (isBranchSelector(tool, selector)) {
-                WorkspaceManager.updateWorkspace(tool, workspace.getPath());
-            }
-            return workspace;
+            String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
+            workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
         }
 
-        LOGGER.fine("Creating new workspace");
-        String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
-
-        workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
-
         WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
-        WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+        WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
 
         return workspace;
     }
 
-    private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
-        String wkSelector = removeNewLinesFromSelector(WorkspaceManager.loadSelector(tool, name));
-        String currentSelector = removeNewLinesFromSelector(selector);
-
-        return !wkSelector.equals(currentSelector);
-    }
-
     private static String removeNewLinesFromSelector(String selector) {
         return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
-    }
-
-    private static boolean isBranchSelector(PlasticTool tool, String selector) {
-        Path selectorFilePath = null;
-        try {
-            selectorFilePath = Files.createTempFile("selector_", ".txt");
-            Files.write(
-                selectorFilePath,
-                selector.getBytes(StandardCharsets.UTF_8),
-                StandardOpenOption.CREATE);
-
-            GetSelectorSpecCommand getSelectorSpecCommand = new GetSelectorSpecCommand(
-                selectorFilePath.toString());
-
-            WorkspaceInfo wkInfo = CommandRunner.executeAndRead(
-                tool, getSelectorSpecCommand, getSelectorSpecCommand);
-
-            if (wkInfo == null) {
-                LOGGER.info(String.format(
-                    "Invalid selector:%s%s", System.lineSeparator(), selector));
-                return false;
-            }
-
-            String branchSpec = wkInfo.getBranch();
-            return branchSpec != null && !branchSpec.equals("");
-        } catch (Exception e) {
-            LOGGER.log(
-                Level.SEVERE,
-                "Unable to determine whether selector is a branch selector", e);
-            LOGGER.log(
-                Level.INFO,
-                String.format("Selector:%s%s", System.lineSeparator(), selector));
-
-            return false;
-        } finally {
-            try {
-                if (selectorFilePath != null) {
-                    Files.deleteIfExists(selectorFilePath);
-                }
-            } catch (IOException e) {
-                LOGGER.log(
-                    Level.WARNING,
-                    String.format("Delete tmp selector file '%s' failed", selectorFilePath),
-                    e);
-            }
-        }
     }
 
     private static void cleanOldWorkspacesIfNeeded(

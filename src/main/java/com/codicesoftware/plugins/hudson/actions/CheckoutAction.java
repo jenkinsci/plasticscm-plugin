@@ -59,9 +59,10 @@ public class CheckoutAction {
 
             String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
             workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
+        } else {
+            WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
         }
 
-        WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
         WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
 
         return workspace;

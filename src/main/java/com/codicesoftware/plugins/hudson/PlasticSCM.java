@@ -205,16 +205,16 @@ public class PlasticSCM extends SCM {
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
-            ChangeSet cset = retrieveChangesetDetails(tool, listener, csetId.getId());
+            ChangeSet cset = retrieveChangesetDetails(tool, workspace, listener, csetId.getId());
             cset.setRepoName(csetId.getRepository());
             cset.setRepoServer(csetId.getServer());
 
-            ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run, cset);
+            ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run,  workspace, cset);
             if (previousCset == null) {
                 changeLogItems.add(cset);
             } else {
-                List<ChangeSet> changeSetItems = retrieveMultipleChangesetDetails(tool, listener,
-                        previousCset.getId(), cset.getId());
+                List<ChangeSet> changeSetItems = retrieveMultipleChangesetDetails(
+                    tool, workspace, listener, previousCset.getId(), cset.getId());
                 for (ChangeSet it : changeSetItems) {
                     it.setRepoName(csetId.getRepository());
                     it.setRepoServer(csetId.getServer());
@@ -426,7 +426,7 @@ public class PlasticSCM extends SCM {
      * Returns null if not found or is newer than the currently build.
      */
     private static ChangeSet retrieveLastBuiltChangeset(
-            PlasticTool tool, Run<?, ?> build, ChangeSet cset) {
+            PlasticTool tool, Run<?, ?> build, FilePath workspacePath, ChangeSet cset) {
         if (cset == null || Util.fixEmpty(cset.getBranch()) == null ||
                 Util.fixEmpty(cset.getRepoName()) == null || Util.fixEmpty(cset.getRepoServer()) == null) {
             return null;
@@ -449,7 +449,7 @@ public class PlasticSCM extends SCM {
                     return null;
                 }
 
-                if (isExistingChangeset(tool, oldCset)) {
+                if (isExistingChangeset(tool, workspacePath, oldCset)) {
                     return oldCset;
                 }
             }
@@ -458,34 +458,38 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
-    private static boolean isExistingChangeset(PlasticTool tool, ChangeSet cset) {
-        String xmlOutputPath = OutputTempFile.getPathForXml();
+    private static boolean isExistingChangeset(PlasticTool tool, FilePath workspacePath, ChangeSet cset) {
+        FilePath xmlOutputPath = null;
         try {
+            xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
             ParseableCommand<ChangeSet> command = new FindChangesetCommand(
                     cset.getId(), cset.getBranch(), cset.getRepository(), xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command, command) != null;
         } catch (Exception e) {
             LOGGER.log(
-                    Level.WARNING,
-                    String.format(
-                            "Unable to determine whether cset cs:%d@%s@%s exists: %s",
-                            cset.getId(),
-                            cset.getBranch(),
-                            cset.getRepository(),
-                            e.getMessage()),
-                    e);
+                Level.WARNING,
+                String.format(
+                    "Unable to determine whether cset cs:%d@%s@%s exists: %s",
+                    cset.getId(),
+                    cset.getBranch(),
+                    cset.getRepository(),
+                    e.getMessage()),
+                e);
             return false;
         } finally {
-            OutputTempFile.safeDelete(xmlOutputPath);
+            if (xmlOutputPath != null) {
+                OutputTempFile.safeDelete(xmlOutputPath);
+            }
         }
     }
 
     private static ChangeSet retrieveChangesetDetails(
             PlasticTool tool,
+            FilePath workspacePath,
             TaskListener listener,
             int csetId)
             throws IOException, InterruptedException {
-        String xmlOutputPath = OutputTempFile.getPathForXml();
+        FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
         try {
             ParseableCommand<ChangeSet> command = new ChangesetLogCommand(
                 "cs:" + csetId, xmlOutputPath);
@@ -499,11 +503,12 @@ public class PlasticSCM extends SCM {
 
     private static List<ChangeSet> retrieveMultipleChangesetDetails(
             PlasticTool tool,
+            FilePath workspacePath,
             TaskListener listener,
             int csetIdFrom,
             int csetIdTo)
             throws IOException, InterruptedException {
-        String xmlOutputPath = OutputTempFile.getPathForXml();
+        FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
         try {
             ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand(
                 "cs:" + csetIdFrom, "cs:" + csetIdTo, xmlOutputPath);
@@ -547,15 +552,15 @@ public class PlasticSCM extends SCM {
                 launcher, listener, workspacePath);
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
-                    plasticTool,
-                    branchName,
-                    repository,
-                    lastCompletedBuildTimestamp,
-                    Calendar.getInstance());
+                plasticTool,
+                workspacePath, branchName,
+                repository,
+                lastCompletedBuildTimestamp,
+                Calendar.getInstance());
             return changesetsFromBuild.size() > 0;
         } catch (Exception e) {
-            e.printStackTrace(listener.error(workspacePath.getRemote()
-                    + ": Unable to retrieve workspace status."));
+            e.printStackTrace(listener.error(String.format(
+                "%s: Unable to retrieve workspace status.", workspacePath.getRemote())));
             return false;
         }
     }

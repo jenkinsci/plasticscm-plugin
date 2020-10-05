@@ -67,10 +67,6 @@ public class CheckoutAction {
         return workspace;
     }
 
-    private static String removeNewLinesFromSelector(String selector) {
-        return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
-    }
-
     private static void cleanOldWorkspacesIfNeeded(
             PlasticTool tool,
             FilePath workspacePath,

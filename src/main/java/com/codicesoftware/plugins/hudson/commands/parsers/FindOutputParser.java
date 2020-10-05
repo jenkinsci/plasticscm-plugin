@@ -21,7 +21,7 @@ public class FindOutputParser {
     // Utility classes shouldn't have default constructors
     private FindOutputParser() { }
 
-    public static List<ChangeSet> parseReader(FilePath path) throws IOException, ParseException, InterruptedException {
+    public static List<ChangeSet> parseReader(FilePath path) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();
 
         if (!SafeFilePath.exists(path)) {

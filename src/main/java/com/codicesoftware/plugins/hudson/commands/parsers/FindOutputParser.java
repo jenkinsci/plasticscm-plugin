@@ -6,13 +6,11 @@ import hudson.util.Digester2;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FindOutputParser {

@@ -24,7 +24,7 @@ public class FindOutputParser {
     public static List<ChangeSet> parseReader(FilePath path) throws IOException, ParseException, InterruptedException {
         List<ChangeSet> csetList = new ArrayList<>();
 
-        if (!path.exists()) {
+        if (!SafeFilePath.exists(path)) {
             LOGGER.warning("Find command XML output file not found: " + path);
             return csetList;
         }

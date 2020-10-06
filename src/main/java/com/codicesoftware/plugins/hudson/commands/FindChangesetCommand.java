@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.commands.parsers.FindOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import hudson.FilePath;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -15,10 +16,10 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
     private final int csetId;
     private final String branch;
     private final String repository;
-    private final String xmlOutputPath;
+    private final FilePath xmlOutputPath;
 
     public FindChangesetCommand(
-        int csetId, String branch, String repository, String xmlOutputPath) {
+        int csetId, String branch, String repository, FilePath xmlOutputPath) {
         this.csetId = csetId;
         this.branch = branch;
         this.repository = repository;
@@ -39,7 +40,7 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
         arguments.add("'" + repository + "'");
 
         arguments.add("--xml");
-        arguments.add("--file=" + xmlOutputPath);
+        arguments.add("--file=" + xmlOutputPath.getRemote());
         arguments.add("--dateformat=" + DateUtil.ISO_DATE_TIME_OFFSET_CSHARP_FORMAT);
 
         return arguments;

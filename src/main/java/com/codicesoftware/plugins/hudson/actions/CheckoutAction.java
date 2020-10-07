@@ -46,38 +46,19 @@ public class CheckoutAction {
 
         Workspace workspace = findWorkspaceByPath(workspaces, workspacePath);
 
-        if (workspace != null) {
-            LOGGER.fine("Reusing existing workspace");
-            WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
+        if (workspace == null) {
+            LOGGER.fine("Creating new workspace");
 
-            if (mustUpdateSelector(tool, workspace.getName(), selector)) {
-                WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
-                return workspace;
-            }
-            WorkspaceManager.updateWorkspace(tool, workspace.getPath());
-            return workspace;
+            String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
+            workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
+        } else {
+            LOGGER.fine("Using existing workspace: " + workspace.getName());
+            WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
         }
 
-        LOGGER.fine("Creating new workspace");
-        String uniqueWorkspaceName = WorkspaceManager.generateUniqueWorkspaceName();
-
-        workspace = WorkspaceManager.newWorkspace(tool, workspacePath, uniqueWorkspaceName, selector);
-
-        WorkspaceManager.cleanWorkspace(tool, workspace.getPath());
-        WorkspaceManager.updateWorkspace(tool, workspace.getPath());
+        WorkspaceManager.setWorkspaceSelector(tool, workspacePath, selector);
 
         return workspace;
-    }
-
-    private static boolean mustUpdateSelector(PlasticTool tool, String name, String selector) {
-        String wkSelector = removeNewLinesFromSelector(WorkspaceManager.loadSelector(tool, name));
-        String currentSelector = removeNewLinesFromSelector(selector);
-
-        return !wkSelector.equals(currentSelector);
-    }
-
-    private static String removeNewLinesFromSelector(String selector) {
-        return selector.trim().replace("\r\n", "").replace("\n", "").replace("\r", "");
     }
 
     private static void cleanOldWorkspacesIfNeeded(

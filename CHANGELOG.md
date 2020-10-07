@@ -1,5 +1,17 @@
 # Release notes
 
+## Version 3.4 (07 Oct 2020)
+
+### Fixes
+
+* Fixed an issue that caused changeset-based selector builds to only retrieve the correct contents
+  the first time. This happened if you upgraded the Plastic SCM CLI client in your Jenkins machine 
+  to version 8.0.16.3470 or higher. That version changes the behavior of `cm update` so it always
+  retrieves the latest contents in the branch, even if you specified a changeset in the selector.
+* The `cm find` and `cm log` commands failed if their output was too long. We changed how those
+  commands handle their XML output. They'll write it directly to a file instead of using `stdout`.
+  This avoids the stream issues that some users reported.
+
 ## Version 3.3 (13 Nov 2019)
 
 ### Improvements

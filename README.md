@@ -50,6 +50,13 @@ Plastic SCM workspace and its contents will be deleted before each build.
 
 ![Freestyle configuration](doc/img/freestyle-configuration.png)
 
+If you enable _Use update_, the plugin will undo all changes in controlled files
+before updating the workspace. This will ensure that the update operation doesn't
+find any issues or conflicts during execution.
+
+However, you should bear in mind that it won't remove any private files that your
+build process might create.
+
 ### Selector format
 
 The selector accepts branches, changesets or labels. You can setup not only branches (which is the

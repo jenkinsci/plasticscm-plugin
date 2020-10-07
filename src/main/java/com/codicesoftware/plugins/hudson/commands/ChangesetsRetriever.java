@@ -20,11 +20,12 @@ public class ChangesetsRetriever {
 
     public static List<ChangeSet> getChangesets(
             PlasticTool tool,
+            FilePath workspacePath,
             String branchName,
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        String xmlOutputFile = OutputTempFile.getPathForXml();
+        FilePath xmlOutputFile = OutputTempFile.getPathForXml(workspacePath);
 
         DetailedHistoryCommand histCommand = new DetailedHistoryCommand(
                 fromTimestamp, toTimestamp, branchName, repoSpec, xmlOutputFile);
@@ -43,7 +44,7 @@ public class ChangesetsRetriever {
             String repoSpec,
             Calendar fromTimestamp,
             Calendar toTimestamp) throws IOException, InterruptedException, ParseException {
-        List<ChangeSet> list = getChangesets(tool, branchName, repoSpec, fromTimestamp, toTimestamp);
+        List<ChangeSet> list = getChangesets(tool, workspacePath, branchName, repoSpec, fromTimestamp, toTimestamp);
 
         GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
         Workspace workspace = CommandRunner.executeAndRead(tool, gwpCommand);

@@ -10,7 +10,7 @@ import com.codicesoftware.plugins.hudson.commands.NewWorkspaceCommand;
 import com.codicesoftware.plugins.hudson.commands.SetSelectorCommand;
 import com.codicesoftware.plugins.hudson.commands.UndoCheckoutCommand;
 import com.codicesoftware.plugins.hudson.commands.UpdateWorkspaceCommand;
-import com.codicesoftware.plugins.hudson.model.UpdateMethod;
+import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import hudson.FilePath;
 
@@ -51,10 +51,10 @@ public class WorkspaceManager {
         CommandRunner.execute(tool, command);
     }
 
-    public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath, UpdateMethod updateMethod)
+    public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanupMethod)
             throws IOException, InterruptedException {
-        if (updateMethod.removesPrivate()) {
-            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(workspacePath.getRemote(), updateMethod.removesIgnored());
+        if (cleanupMethod.removesPrivate()) {
+            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(workspacePath.getRemote(), cleanupMethod.removesIgnored());
             CommandRunner.execute(tool, cleanupCommands);
         }
         UndoCheckoutCommand command = new UndoCheckoutCommand(workspacePath.getRemote());

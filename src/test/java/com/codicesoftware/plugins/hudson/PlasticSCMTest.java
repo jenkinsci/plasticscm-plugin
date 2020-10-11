@@ -1,6 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.codicesoftware.plugins.hudson.model.UpdateMethod;
+import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
@@ -29,7 +29,7 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, UpdateMethod.MINIMAL, false, null, "");
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();

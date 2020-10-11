@@ -1,6 +1,6 @@
 package com.codicesoftware.plugins.hudson.model;
 
-public enum UpdateMethod {
+public enum CleanupMethod {
     MINIMAL("Minimal cleanup"),
     STANDARD("Standard cleanup"),
     FULL("Full cleanup"),
@@ -8,7 +8,7 @@ public enum UpdateMethod {
 
     private final String label;
 
-    UpdateMethod(String label) {
+    CleanupMethod(String label) {
         this.label = label;
     }
 
@@ -29,7 +29,7 @@ public enum UpdateMethod {
         return (this == FULL);
     }
 
-    public static UpdateMethod convertUseUpdate(boolean useUpdate) {
-        return useUpdate ? UpdateMethod.MINIMAL : UpdateMethod.DELETE;
+    public static CleanupMethod convertUseUpdate(boolean useUpdate) {
+        return useUpdate ? CleanupMethod.MINIMAL : CleanupMethod.DELETE;
     }
 }

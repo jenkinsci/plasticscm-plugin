@@ -1,6 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.codicesoftware.plugins.hudson.model.UpdateMethod;
+import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import hudson.Extension;
 import hudson.Util;
@@ -29,7 +29,7 @@ public class PlasticSCMStep extends SCMStep {
     private String repository = "";
     private String server = "";
 
-    private UpdateMethod updateMethod = UpdateMethod.STANDARD;
+    private CleanupMethod cleanupMethod = CleanupMethod.STANDARD;
     private String directory = "";
 
     @DataBoundConstructor
@@ -72,20 +72,20 @@ public class PlasticSCMStep extends SCMStep {
         this.server = server;
     }
 
-    public UpdateMethod getUpdateMethod() {
-        return updateMethod;
+    public CleanupMethod getCleanupMethod() {
+        return cleanupMethod;
     }
 
     @DataBoundSetter
-    public void setUpdateMethod(String name) {
-        this.updateMethod = UpdateMethod.valueOf(name.toUpperCase());
+    public void setCleanupMethod(String name) {
+        this.cleanupMethod = CleanupMethod.valueOf(name.toUpperCase());
     }
 
     @DataBoundSetter
     @Deprecated
     public void setUseUpdate(boolean useUpdate) {
         LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
-        this.updateMethod = UpdateMethod.convertUseUpdate(useUpdate);
+        this.cleanupMethod = CleanupMethod.convertUseUpdate(useUpdate);
     }
 
     public String getDirectory() {
@@ -100,7 +100,7 @@ public class PlasticSCMStep extends SCMStep {
     @Nonnull
     @Override
     protected SCM createSCM() {
-        return new PlasticSCM(buildSelector(), updateMethod, false, null, directory);
+        return new PlasticSCM(buildSelector(), cleanupMethod, false, null, directory);
     }
 
     private String buildSelector() {

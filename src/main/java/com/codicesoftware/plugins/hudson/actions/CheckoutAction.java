@@ -22,22 +22,22 @@ public class CheckoutAction {
 
     private CheckoutAction() { }
 
-    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanupMethod)
+    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanup)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
 
-        deleteOldWorkspacesIfNeeded(tool, workspacePath, cleanupMethod, workspaces);
+        deleteOldWorkspacesIfNeeded(tool, workspacePath, cleanup, workspaces);
 
-        return checkoutWorkspace(tool, workspacePath, selector, cleanupMethod, workspaces);
+        return checkoutWorkspace(tool, workspacePath, selector, cleanup, workspaces);
     }
 
-    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanupMethod, List<Workspace> workspaces)
+    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanup, List<Workspace> workspaces)
             throws IOException, InterruptedException, ParseException {
         Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
 
         if (workspace != null) {
             LOGGER.fine("Using existing workspace: " + workspace.getName());
-            WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), cleanupMethod);
+            WorkspaceManager.cleanWorkspace(tool, workspace.getPath(), cleanup);
         } else {
             String workspaceName = WorkspaceManager.generateUniqueWorkspaceName();
             LOGGER.fine("Creating new workspace: " + workspaceName);
@@ -62,7 +62,7 @@ public class CheckoutAction {
         return !actualSelector.equals(expectedSelector);
     }
 
-    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanupMethod, List<Workspace> workspaces)
+    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanup, List<Workspace> workspaces)
             throws IOException, InterruptedException {
 
         // Handle situation where workspace exists in child path.
@@ -77,7 +77,7 @@ public class CheckoutAction {
             deleteWorkspace(tool, workspace, workspaces);
         }
 
-        if (cleanupMethod == CleanupMethod.DELETE) {
+        if (cleanup == CleanupMethod.DELETE) {
             Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
             if (workspace != null) {
                 deleteWorkspace(tool, workspace, workspaces);

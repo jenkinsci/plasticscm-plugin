@@ -29,7 +29,10 @@ public class PlasticSCMStep extends SCMStep {
     private String repository = "";
     private String server = "";
 
-    private CleanupMethod cleanupMethod = CleanupMethod.STANDARD;
+    private CleanupMethod cleanup = CleanupMethod.STANDARD;
+    @Deprecated
+    private transient boolean useUpdate;
+
     private String directory = "";
 
     @DataBoundConstructor
@@ -72,20 +75,19 @@ public class PlasticSCMStep extends SCMStep {
         this.server = server;
     }
 
-    public CleanupMethod getCleanupMethod() {
-        return cleanupMethod;
+    public CleanupMethod getCleanup() {
+        return cleanup;
     }
 
     @DataBoundSetter
-    public void setCleanupMethod(String name) {
-        this.cleanupMethod = CleanupMethod.valueOf(name.toUpperCase());
+    public void setCleanup(CleanupMethod cleanup) {
+        this.cleanup = cleanup;
     }
 
-    @DataBoundSetter
     @Deprecated
     public void setUseUpdate(boolean useUpdate) {
         LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
-        this.cleanupMethod = CleanupMethod.convertUseUpdate(useUpdate);
+        this.cleanup = CleanupMethod.convertUseUpdate(useUpdate);
     }
 
     public String getDirectory() {
@@ -100,7 +102,7 @@ public class PlasticSCMStep extends SCMStep {
     @Nonnull
     @Override
     protected SCM createSCM() {
-        return new PlasticSCM(buildSelector(), cleanupMethod, false, null, directory);
+        return new PlasticSCM(buildSelector(), cleanup, false, null, directory);
     }
 
     private String buildSelector() {
@@ -110,8 +112,6 @@ public class PlasticSCMStep extends SCMStep {
             return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
         }
     }
-
-
 
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {

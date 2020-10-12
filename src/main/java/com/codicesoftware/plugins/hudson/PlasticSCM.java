@@ -90,7 +90,7 @@ public class PlasticSCM extends SCM {
 
     private final String selector;
 
-    private CleanupMethod cleanupMethod;
+    private CleanupMethod cleanup;
     @Deprecated
     private transient boolean useUpdate;
 
@@ -103,17 +103,17 @@ public class PlasticSCM extends SCM {
     @DataBoundConstructor
     public PlasticSCM(
             String selector,
-            CleanupMethod cleanupMethod,
+            CleanupMethod cleanup,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             String directory) {
         LOGGER.info("Initializing Plastic SCM plugin");
         this.selector = selector;
-        this.cleanupMethod = cleanupMethod;
+        this.cleanup = cleanup;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.directory = directory;
 
-        firstWorkspace = new WorkspaceInfo(this.selector, this.cleanupMethod, this.directory);
+        firstWorkspace = new WorkspaceInfo(this.selector, this.cleanup, this.directory);
         if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
             return;
@@ -127,9 +127,9 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
-    public CleanupMethod getCleanupMethod() {
+    public CleanupMethod getCleanup() {
         // Field might be null if deserialized from older class version.
-        return (cleanupMethod != null) ? cleanupMethod : CleanupMethod.convertUseUpdate(useUpdate);
+        return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
     }
 
     @Exported
@@ -204,7 +204,7 @@ public class PlasticSCM extends SCM {
 
             PlasticTool tool = new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
 
-            Workspace plasticWorkspace = setupWorkspace(tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanupMethod());
+            Workspace plasticWorkspace = setupWorkspace(tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
@@ -246,9 +246,9 @@ public class PlasticSCM extends SCM {
      * Backward compatibility for jobs using obsolete configurations.
      */
     private void adoptOlderConfigurations() {
-        if (cleanupMethod == null) {
-            LOGGER.warning("Missing 'cleanupMethod' field. Update job configuration.");
-            cleanupMethod = CleanupMethod.convertUseUpdate(useUpdate);
+        if (cleanup == null) {
+            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
+            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
         }
     }
 
@@ -257,12 +257,12 @@ public class PlasticSCM extends SCM {
             @Nonnull final TaskListener listener,
             @Nonnull final FilePath workspacePath,
             @Nonnull final String selector,
-            @Nonnull final CleanupMethod cleanupMethod) throws IOException, InterruptedException {
+            @Nonnull final CleanupMethod cleanup) throws IOException, InterruptedException {
         try {
             if (!workspacePath.exists()) {
                 workspacePath.mkdirs();
             }
-            return CheckoutAction.checkout(tool, workspacePath, selector, cleanupMethod);
+            return CheckoutAction.checkout(tool, workspacePath, selector, cleanup);
         } catch (ParseException e) {
             throw buildAbortException(listener, e);
         } catch (IOException e) {
@@ -704,16 +704,16 @@ public class PlasticSCM extends SCM {
 
         private String selector;
 
-        private CleanupMethod cleanupMethod;
+        private CleanupMethod cleanup;
         @Deprecated
         private transient boolean useUpdate;
 
         private String directory;
 
         @DataBoundConstructor
-        public WorkspaceInfo(String selector, CleanupMethod cleanupMethod, String directory) {
+        public WorkspaceInfo(String selector, CleanupMethod cleanup, String directory) {
             this.selector = selector;
-            this.cleanupMethod = cleanupMethod;
+            this.cleanup = cleanup;
             this.directory = directory;
         }
 
@@ -728,9 +728,9 @@ public class PlasticSCM extends SCM {
         }
 
         @Exported
-        public CleanupMethod getCleanupMethod() {
+        public CleanupMethod getCleanup() {
             // Field might be null if deserialized from older class version.
-            return (cleanupMethod != null) ? cleanupMethod : CleanupMethod.convertUseUpdate(useUpdate);
+            return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
         }
 
         @Exported

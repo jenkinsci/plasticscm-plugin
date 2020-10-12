@@ -51,10 +51,10 @@ public class WorkspaceManager {
         CommandRunner.execute(tool, command);
     }
 
-    public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanupMethod)
+    public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanup)
             throws IOException, InterruptedException {
-        if (cleanupMethod.removesPrivate()) {
-            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(workspacePath.getRemote(), cleanupMethod.removesIgnored());
+        if (cleanup.removesPrivate()) {
+            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(workspacePath.getRemote(), cleanup.removesIgnored());
             CommandRunner.execute(tool, cleanupCommands);
         }
         UndoCheckoutCommand command = new UndoCheckoutCommand(workspacePath.getRemote());

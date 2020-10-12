@@ -21,7 +21,7 @@
     <f:textbox checkMethod="post" />
   </f:entry>
 
-  <f:entry field="cleanupMethod" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
+  <f:entry field="cleanup" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
     <f:enum>${it.getLabel()}</f:enum>
   </f:entry>
 

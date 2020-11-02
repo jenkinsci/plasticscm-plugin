@@ -17,7 +17,7 @@ public class GetSelectorCommand implements ParseableCommand<String>, Command {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("ss");
+        arguments.add("showselector");
         arguments.add(workspacePath);
 
         return arguments;

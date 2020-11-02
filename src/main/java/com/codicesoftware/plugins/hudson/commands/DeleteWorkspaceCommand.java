@@ -12,7 +12,8 @@ public class DeleteWorkspaceCommand implements Command {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("rmwk");
+        arguments.add("workspace");
+        arguments.add("delete");
         arguments.add(workspacePath);
 
         return arguments;

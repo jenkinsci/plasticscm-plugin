@@ -190,7 +190,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final TaskListener listener,
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
-        adoptOlderConfigurations();
+        adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
@@ -243,9 +243,9 @@ public class PlasticSCM extends SCM {
     }
 
     /**
-     * Backward compatibility for jobs using obsolete configurations.
+     * Backward compatibility for jobs using old configuration format.
      */
-    private void adoptOlderConfigurations() {
+    private void adjustFieldsIfUsingOldConfigFormat() {
         if (cleanup == null) {
             LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
             cleanup = CleanupMethod.convertUseUpdate(useUpdate);
@@ -702,13 +702,13 @@ public class PlasticSCM extends SCM {
     public static final class WorkspaceInfo extends AbstractDescribableImpl<WorkspaceInfo> implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private String selector;
+        private final String selector;
 
-        private CleanupMethod cleanup;
+        private final CleanupMethod cleanup;
         @Deprecated
         private transient boolean useUpdate;
 
-        private String directory;
+        private final String directory;
 
         @DataBoundConstructor
         public WorkspaceInfo(String selector, CleanupMethod cleanup, String directory) {

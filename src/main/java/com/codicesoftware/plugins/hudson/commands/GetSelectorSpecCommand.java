@@ -19,7 +19,7 @@ public class GetSelectorSpecCommand implements ParseableCommand<WorkspaceInfo>, 
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
-        arguments.add("css");
+        arguments.add("checkselectorsyntax");
         arguments.add("--file=" + selectorPath);
         arguments.add("--spec");
         arguments.add("--machinereadable");

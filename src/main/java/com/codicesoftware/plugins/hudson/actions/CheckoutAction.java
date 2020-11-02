@@ -22,7 +22,11 @@ public class CheckoutAction {
 
     private CheckoutAction() { }
 
-    public static Workspace checkout(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanup)
+    public static Workspace checkout(
+                PlasticTool tool,
+                FilePath workspacePath,
+                String selector,
+                CleanupMethod cleanup)
             throws IOException, InterruptedException, ParseException {
         List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
 
@@ -31,7 +35,12 @@ public class CheckoutAction {
         return checkoutWorkspace(tool, workspacePath, selector, cleanup, workspaces);
     }
 
-    private static Workspace checkoutWorkspace(PlasticTool tool, FilePath workspacePath, String selector, CleanupMethod cleanup, List<Workspace> workspaces)
+    private static Workspace checkoutWorkspace(
+            PlasticTool tool,
+            FilePath workspacePath,
+            String selector,
+            CleanupMethod cleanup,
+            List<Workspace> workspaces)
             throws IOException, InterruptedException, ParseException {
         Workspace workspace = findWorkspaceByPath(workspacePath, workspaces);
 
@@ -48,9 +57,8 @@ public class CheckoutAction {
         }
 
         LOGGER.fine("Changing workspace selector to '" + StringUtil.singleLine(selector) + "'");
+        // Setting workspace selector also triggers workspace update
         WorkspaceManager.setSelector(tool, workspacePath, selector);
-        // Setting workspace selector triggers workspace update
-        // WorkspaceManager.updateWorkspace(tool, workspace.getPath());
 
         return workspace;
     }
@@ -62,7 +70,11 @@ public class CheckoutAction {
         return !actualSelector.equals(expectedSelector);
     }
 
-    private static void deleteOldWorkspacesIfNeeded(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanup, List<Workspace> workspaces)
+    private static void deleteOldWorkspacesIfNeeded(
+            PlasticTool tool,
+            FilePath workspacePath,
+            CleanupMethod cleanup,
+            List<Workspace> workspaces)
             throws IOException, InterruptedException {
 
         // Handle situation where workspace exists in child path.

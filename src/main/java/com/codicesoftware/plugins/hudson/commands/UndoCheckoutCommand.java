@@ -14,7 +14,7 @@ public class UndoCheckoutCommand implements Command {
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("unco");
+        arguments.add("undocheckout");
         arguments.add("--all");
         arguments.add("--silent");
         arguments.add(workspacePath);

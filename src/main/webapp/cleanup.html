@@ -1,0 +1,20 @@
+<div>
+  <p>
+    <b>Minimal cleanup</b> - Do as minimal workspace changes as possible. Only changed files will be reverted. Private
+    and ignored files will be preserved. This can cause unwanted side effects. It is recommended to explicitly mark
+    files as ignored if those should be kept between builds.
+  </p>
+  <p>
+    <b>Standard cleanup</b> - Undo changed files and remove files which are not version controlled or explicitly
+    ignored. Private files will be deleted. Ignored files will be preserved. <i>Recommended.</i>
+  </p>
+  <p>
+    <b>Full cleanup</b> - Undo changed files and remove all files that are not present in the repository to have a
+    pristine workspace. Private and ignored files will be deleted.
+  </p>
+  <p>
+    <b>Delete workspace</b> - All workspace content will be deleted and a new repository will be created. Files will
+    be redownloaded ensuring workspace is in pristine state. This operation can take very long time depending on the
+    size of the repository. <i>Not recommended.</i>
+  </p>
+</div>

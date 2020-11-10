@@ -1,24 +1,28 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry field="branch" title="Branch" help="/plugin/plasticscm-plugin/branch.html">
+  <f:entry field="branch" title="${%Branch}" help="/plugin/plasticscm-plugin/branch.html">
     <f:textbox default="${descriptor.defaultBranch}" checkMethod="post" />
   </f:entry>
 
-  <f:entry field="repository" title="Repository" help="/plugin/plasticscm-plugin/repository.html">
+  <f:entry field="changeset" title="${%Changeset}" help="/plugin/plasticscm-plugin/changeset.html">
+    <f:number default=""/>
+  </f:entry>
+
+  <f:entry field="repository" title="${%Repository}" help="/plugin/plasticscm-plugin/repository.html">
     <f:textbox default="${descriptor.defaultRepository}" checkMethod="post" />
   </f:entry>
 
-  <f:entry field="server" title="Server" help="/plugin/plasticscm-plugin/serverLocation.html">
+  <f:entry field="server" title="${%Server}" help="/plugin/plasticscm-plugin/serverLocation.html">
     <f:textbox default="${descriptor.defaultServer}" checkMethod="post" />
   </f:entry>
 
-  <f:entry field="useUpdate" title="Use update" help="/plugin/plasticscm-plugin/useUpdate.html">
-    <f:checkbox default="true" />
+  <f:entry field="directory" title="${%Directory}" help="/plugin/plasticscm-plugin/directory.html">
+    <f:textbox checkMethod="post" />
   </f:entry>
 
-  <f:entry field="directory" title="Subdirectory" help="/plugin/plasticscm-plugin/directory.html">
-    <f:textbox checkMethod="post" />
+  <f:entry field="cleanup" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
+    <f:enum>${it.getLabel()}</f:enum>
   </f:entry>
 
   <st:include page="config-generic.jelly" class="org.jenkinsci.plugins.workflow.steps.scm.SCMStep" />

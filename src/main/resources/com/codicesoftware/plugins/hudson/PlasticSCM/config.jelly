@@ -1,20 +1,20 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="${%Selector}" field="selector" help="/plugin/plasticscm-plugin/selector.html">
+  <f:entry field="selector" title="${%Selector}" help="/plugin/plasticscm-plugin/selector.html">
     <f:textarea default="${descriptor.getDefaultSelector()}" checkMethod="post" />
   </f:entry>
 
-  <f:entry title="${%Use update}" field="useUpdate" help="/plugin/plasticscm-plugin/useUpdate.html">
-    <f:checkbox default="true" />
-  </f:entry>
-
-  <f:entry title="${%Subdirectory}" field="directory" help="/plugin/plasticscm-plugin/directory.html">
+  <f:entry field="directory" title="${%Directory}" help="/plugin/plasticscm-plugin/directory.html">
     <f:textbox checkMethod="post" />
   </f:entry>
 
-  <f:optionalBlock title="${%Use multiple workspaces}" field="useMultipleWorkspaces" inline="true" help="/plugin/plasticscm-plugin/multipleWorkspaces.html">
-    <f:entry title="${%Additional workspaces}" field="additionalWorkspaces">
+  <f:entry field="cleanup" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
+    <f:enum>${it.getLabel()}</f:enum>
+  </f:entry>
+
+  <f:optionalBlock field="useMultipleWorkspaces" title="${%Use multiple workspaces}" inline="true" help="/plugin/plasticscm-plugin/multipleWorkspaces.html">
+    <f:entry field="additionalWorkspaces" title="${%Additional workspaces}">
       <f:repeatableProperty field="additionalWorkspaces" add="Add workspace..." />
     </f:entry>
   </f:optionalBlock>

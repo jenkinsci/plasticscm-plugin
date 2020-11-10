@@ -135,7 +135,7 @@ public class PlasticSCMFile extends SCMFile {
     private static WorkspaceInfo getSelectorSpec(PlasticTool tool, String filePath)
             throws IOException, ParseException, InterruptedException {
         GetSelectorSpecCommand command = new GetSelectorSpecCommand(filePath);
-        return CommandRunner.executeAndRead(tool, command, command);
+        return CommandRunner.executeAndRead(tool, command);
     }
 
     @Nonnull

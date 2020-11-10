@@ -27,8 +27,8 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMFileSystem.class.getName());
 
     private final PlasticSCM scm;
-    private Item owner;
-    private Launcher launcher;
+    private final Item owner;
+    private final Launcher launcher;
 
     protected PlasticSCMFileSystem(@Nonnull Item owner, @Nonnull PlasticSCM scm, @CheckForNull SCMRevision rev) {
         super(rev);

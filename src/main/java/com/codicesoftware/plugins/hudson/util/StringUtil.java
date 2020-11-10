@@ -1,5 +1,7 @@
 package com.codicesoftware.plugins.hudson.util;
 
+import hudson.Util;
+
 public class StringUtil {
 
     private StringUtil() { }
@@ -15,4 +17,13 @@ public class StringUtil {
             return defaultValue;
         }
     }
+
+    public static String singleLine(String value) {
+        return Util.fixNull(value).replaceAll("[\\n\\r\\t ]+", " ").trim();
+    }
+
+    public static String removeNewLines(String value) {
+        return Util.fixNull(value).replaceAll("[\\n\\r]", "").trim();
+    }
+
 }

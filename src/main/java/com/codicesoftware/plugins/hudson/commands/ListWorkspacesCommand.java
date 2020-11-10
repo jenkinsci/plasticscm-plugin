@@ -18,7 +18,8 @@ public class ListWorkspacesCommand implements ParseableCommand<List<Workspace>>,
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
-        arguments.add("lwk");
+        arguments.add("workspace");
+        arguments.add("list");
         arguments.add("--format={wkname}#{path}#{wkid}");
 
         return arguments;

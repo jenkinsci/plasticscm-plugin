@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson;
 
+import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import hudson.Extension;
 import hudson.Util;
@@ -14,18 +15,24 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.Nonnull;
+import java.util.logging.Logger;
 
 public class PlasticSCMStep extends SCMStep {
 
-    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
-    public static final String SELECTOR_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
+    public static final String SELECTOR_BRANCH_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
+    public static final String SELECTOR_CHANGESET_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
 
     private String branch = DescriptorImpl.defaultBranch;
-    private String repository = DescriptorImpl.defaultRepository;
-    private String server = DescriptorImpl.defaultServer;
-    private boolean useUpdate = true;
-    private boolean useMultipleWorkspaces = false;
+    private String changeset = "";
+    private String repository = "";
+    private String server = "";
+
+    private CleanupMethod cleanup = CleanupMethod.STANDARD;
+    @Deprecated
+    private transient boolean useUpdate;
+
     private String directory = "";
 
     @DataBoundConstructor
@@ -39,6 +46,15 @@ public class PlasticSCMStep extends SCMStep {
     @DataBoundSetter
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getChangeset() {
+        return changeset;
+    }
+
+    @DataBoundSetter
+    public void setChangeset(String changeset) {
+        this.changeset = changeset;
     }
 
     public String getRepository() {
@@ -59,13 +75,19 @@ public class PlasticSCMStep extends SCMStep {
         this.server = server;
     }
 
-    public boolean isUseUpdate() {
-        return useUpdate;
+    public CleanupMethod getCleanup() {
+        return cleanup;
     }
 
     @DataBoundSetter
+    public void setCleanup(CleanupMethod cleanup) {
+        this.cleanup = cleanup;
+    }
+
+    @Deprecated
     public void setUseUpdate(boolean useUpdate) {
-        this.useUpdate = useUpdate;
+        LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
+        this.cleanup = CleanupMethod.convertUseUpdate(useUpdate);
     }
 
     public String getDirectory() {
@@ -77,31 +99,23 @@ public class PlasticSCMStep extends SCMStep {
         this.directory = directory;
     }
 
-    public boolean isUseMultipleWorkspaces() {
-        return useMultipleWorkspaces;
-    }
-
-    @DataBoundSetter
-    public void setUseMultipleWorkspaces(boolean useMultipleWorkspaces) {
-        this.useMultipleWorkspaces = useMultipleWorkspaces;
-    }
-
     @Nonnull
     @Override
     protected SCM createSCM() {
-        return new PlasticSCM(
-            buildSelector(), useUpdate, useMultipleWorkspaces, null, directory);
+        return new PlasticSCM(buildSelector(), cleanup, false, null, directory);
     }
 
-    String buildSelector() {
-        return String.format(SELECTOR_FORMAT, repository, server, branch);
+    private String buildSelector() {
+        if (Util.fixEmptyAndTrim(changeset) == null) {
+            return String.format(SELECTOR_BRANCH_FORMAT, repository, server, branch);
+        } else {
+            return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
+        }
     }
 
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {
         public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
-        public static final String defaultRepository = PlasticSCM.DEFAULT_REPOSITORY;
-        public static final String defaultServer = PlasticSCM.DEFAULT_SERVER;
 
         @Override
         public String getFunctionName() {

@@ -45,17 +45,20 @@ Every build will ensure that the Jenkins workspace contains a Plastic SCM before
 subdirectory under the Jenkins job workspace, you can specify one in the **Subdirectory** field.
 This field is mandatory if you want to use multiple workspaces.
 
-If you want to keep the workspace between builds, check the **Use update box**. Otherwise, the
-Plastic SCM workspace and its contents will be deleted before each build.
+The _Cleanup_ value will determine what to do with the Plastic SCM workspace before checking out
+the code. It has four possible values:
+
+* **Minimal cleanup** will simply undo any changed files in the workspace directory and then run
+  a workspace update. It's equivalent to enabling _Use update_ in older versions.
+* **Standard cleanup** will undo changed files and also remove any private files that might be
+  present in the workspace directory. Ignored files aren't affected. This is the recommended
+  setting.
+* **Full cleanup** has the same behavior as _Standard cleanup_ but removes ignored files as well.
+* **Delete workspace** will remove the entire workspace contents and create a new one. Useful if you
+  absolutely want to start every build from scratch. It might increase the build time if your
+  workspace is big, though. It's equivalent to disabling _Use update_ in older versions.
 
 ![Freestyle configuration](doc/img/freestyle-configuration.png)
-
-If you enable _Use update_, the plugin will undo all changes in controlled files
-before updating the workspace. This will ensure that the update operation doesn't
-find any issues or conflicts during execution.
-
-However, you should bear in mind that it won't remove any private files that your
-build process might create.
 
 ### Selector format
 
@@ -130,25 +133,38 @@ configuration, you can take advantage of the cm command inside the groovy script
 ```groovy
 cm(
     branch: '<full-branch-name>',
+    changeset: '<cset-number>', // optional
     repository: '<rep-name>',
     server: '<server-address>:<server-port>',
-    useUpdate: (true|false),
-    directory: '<subdirectory-name>'
+    cleanup: '<cleanup-strategy>'
+    directory: '<subdirectory-name>' // optional
 )
 ```
 
 As you see, there's a one-to-one parameter mapping. To use multiple workspaces you simply need to
 add multiple `cm` statements, paying attention to the value of the `directory` parameter.
 
-**cm command example:**
+You only need to specify the `changeset` parameter if you'd like all builds to target that changeset.
+
+The available values for `cleanup` are `MINIMAL`, `STANDARD`, `FULL` and `DELETE`.
+
+**cm command examples:**
 
 ```groovy
 cm(
     branch: '/hotfix',
     repository: 'assets-repo',
     server: 'my.plasticscm.server.com:8087',
-    useUpdate: true,
+    cleanup: 'DELETE',
     directory: 'assets'
+)
+
+cm(
+    branch: '/dev',
+    changeset: '538',
+    repository: 'assets-repo',
+    server: 'my.plasticscm.server.com:8087',
+    cleanup: 'STANDARD',
 )
 ```
 

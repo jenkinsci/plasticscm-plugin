@@ -1,5 +1,16 @@
 # Release notes
 
+## Version 3.5 (10 Nov 2020)
+
+### Improvements
+
+* Pipeline jobs can now pull from a changeset number.
+* It's now possible to define a cleanup method for each workspace when doing an update.
+
+### Fixes
+
+* Fixed how the plugin manages workspaces multiple levels deep.
+
 ## Version 3.4 (07 Oct 2020)
 
 ### Fixes

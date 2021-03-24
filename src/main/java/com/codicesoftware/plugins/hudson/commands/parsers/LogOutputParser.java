@@ -2,8 +2,7 @@ package com.codicesoftware.plugins.hudson.commands.parsers;
 
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import hudson.FilePath;
-import hudson.util.Digester2;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ public final class LogOutputParser {
             return csetList;
         }
 
-        Digester digester = new Digester2();
+        Digester digester = new Digester();
         digester.push(csetList);
 
         digester.addObjectCreate("LogList/Changeset", ChangeSet.class);

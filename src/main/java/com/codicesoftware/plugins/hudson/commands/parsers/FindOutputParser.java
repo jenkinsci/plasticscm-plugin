@@ -5,6 +5,7 @@ import hudson.FilePath;
 import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -27,6 +28,21 @@ public class FindOutputParser {
         }
 
         Digester digester = new Digester();
+
+        digester.setXIncludeAware(false);
+
+        if (!Boolean.getBoolean(FindOutputParser.class.getName() + ".UNSAFE")) {
+            try {
+                digester.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                digester.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                digester.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                digester.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            }
+            catch ( SAXException | ParserConfigurationException ex) {
+                throw new IOException("Failed to securely configure CVS changelog parser", ex);
+            }
+        }
+
         digester.push(csetList);
 
         digester.addObjectCreate("*/CHANGESET", ChangeSet.class);

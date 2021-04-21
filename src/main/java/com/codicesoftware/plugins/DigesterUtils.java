@@ -21,7 +21,7 @@ public class DigesterUtils {
                 digester.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
                 digester.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             } catch (ParserConfigurationException ex) {
-                throw new SAXException("Failed to securely configure CVS changelog parser", ex);
+                throw new SAXException("Failed to securely configure xml digester parser", ex);
             }
         }
         return digester;

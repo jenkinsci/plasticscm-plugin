@@ -1,5 +1,9 @@
 # Release notes
 
+# Version 3.6  (24 May 2021)
+
+* Upgraded XML parser dependencies
+
 ## Version 3.5 (10 Nov 2020)
 
 ### Improvements

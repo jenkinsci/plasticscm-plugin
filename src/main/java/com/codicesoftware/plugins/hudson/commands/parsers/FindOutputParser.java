@@ -1,9 +1,9 @@
 package com.codicesoftware.plugins.hudson.commands.parsers;
 
+import com.codicesoftware.plugins.DigesterUtils;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import hudson.FilePath;
-import hudson.util.Digester2;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -27,21 +27,21 @@ public class FindOutputParser {
             return csetList;
         }
 
-        Digester digester = new Digester2();
-        digester.push(csetList);
-
-        digester.addObjectCreate("*/CHANGESET", ChangeSet.class);
-        digester.addBeanPropertySetter("*/CHANGESET/CHANGESETID", "version");
-        digester.addBeanPropertySetter("*/CHANGESET/COMMENT", "comment");
-        digester.addBeanPropertySetter("*/CHANGESET/DATE", "xmlDate");
-        digester.addBeanPropertySetter("*/CHANGESET/BRANCH", "branch");
-        digester.addBeanPropertySetter("*/CHANGESET/OWNER", "user");
-        digester.addBeanPropertySetter("*/CHANGESET/REPNAME", "repoName");
-        digester.addBeanPropertySetter("*/CHANGESET/REPSERVER", "repoServer");
-        digester.addBeanPropertySetter("*/CHANGESET/GUID", "guid");
-        digester.addSetNext("*/CHANGESET", "add");
-
         try (InputStream stream = SafeFilePath.read(path)) {
+            Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(FindOutputParser.class.getName() + ".UNSAFE"));
+
+            digester.push(csetList);
+
+            digester.addObjectCreate("*/CHANGESET", ChangeSet.class);
+            digester.addBeanPropertySetter("*/CHANGESET/CHANGESETID", "version");
+            digester.addBeanPropertySetter("*/CHANGESET/COMMENT", "comment");
+            digester.addBeanPropertySetter("*/CHANGESET/DATE", "xmlDate");
+            digester.addBeanPropertySetter("*/CHANGESET/BRANCH", "branch");
+            digester.addBeanPropertySetter("*/CHANGESET/OWNER", "user");
+            digester.addBeanPropertySetter("*/CHANGESET/REPNAME", "repoName");
+            digester.addBeanPropertySetter("*/CHANGESET/REPSERVER", "repoServer");
+            digester.addBeanPropertySetter("*/CHANGESET/GUID", "guid");
+            digester.addSetNext("*/CHANGESET", "add");
             if (stream != null) {
                 digester.parse(stream);
             }

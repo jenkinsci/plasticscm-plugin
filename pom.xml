@@ -132,5 +132,10 @@
       <artifactId>workflow-scm-step</artifactId>
       <version>2.9</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-digester3</artifactId>
+      <version>3.2</version>
+    </dependency>
   </dependencies>
 </project>

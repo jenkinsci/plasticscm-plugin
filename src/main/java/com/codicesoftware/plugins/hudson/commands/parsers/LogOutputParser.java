@@ -1,9 +1,9 @@
 package com.codicesoftware.plugins.hudson.commands.parsers;
 
+import com.codicesoftware.plugins.DigesterUtils;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import hudson.FilePath;
-import hudson.util.Digester2;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -27,28 +27,27 @@ public final class LogOutputParser {
             return csetList;
         }
 
-        Digester digester = new Digester2();
-        digester.push(csetList);
-
-        digester.addObjectCreate("LogList/Changeset", ChangeSet.class);
-        digester.addBeanPropertySetter("LogList/Changeset/ChangesetId", "version");
-        digester.addBeanPropertySetter("LogList/Changeset/Comment", "comment");
-        digester.addBeanPropertySetter("LogList/Changeset/Date", "xmlDate");
-        digester.addBeanPropertySetter("LogList/Changeset/Branch", "branch");
-        digester.addBeanPropertySetter("LogList/Changeset/Owner", "user");
-        // no "*/CHANGESET/REPNAME" tag
-        // no "*/CHANGESET/REPSERVER" tag
-        digester.addBeanPropertySetter("LogList/Changeset/GUID", "guid");
-        digester.addSetNext("LogList/Changeset", "add");
-
-        digester.addObjectCreate("LogList/Changeset/Changes/Item", ChangeSet.Item.class);
-        digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/RevId", "revId");
-        digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/ParentRevId", "parentRevId");
-        digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/DstCmPath", "path");
-        digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/Type", "status");
-        digester.addSetNext("LogList/Changeset/Changes/Item", "addItem");
-
         try (InputStream stream = SafeFilePath.read(path)) {
+            Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(LogOutputParser.class.getName() + ".UNSAFE"));
+            digester.push(csetList);
+
+            digester.addObjectCreate("LogList/Changeset", ChangeSet.class);
+            digester.addBeanPropertySetter("LogList/Changeset/ChangesetId", "version");
+            digester.addBeanPropertySetter("LogList/Changeset/Comment", "comment");
+            digester.addBeanPropertySetter("LogList/Changeset/Date", "xmlDate");
+            digester.addBeanPropertySetter("LogList/Changeset/Branch", "branch");
+            digester.addBeanPropertySetter("LogList/Changeset/Owner", "user");
+            // no "*/CHANGESET/REPNAME" tag
+            // no "*/CHANGESET/REPSERVER" tag
+            digester.addBeanPropertySetter("LogList/Changeset/GUID", "guid");
+            digester.addSetNext("LogList/Changeset", "add");
+
+            digester.addObjectCreate("LogList/Changeset/Changes/Item", ChangeSet.Item.class);
+            digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/RevId", "revId");
+            digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/ParentRevId", "parentRevId");
+            digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/DstCmPath", "path");
+            digester.addBeanPropertySetter("LogList/Changeset/Changes/Item/Type", "status");
+            digester.addSetNext("LogList/Changeset/Changes/Item", "addItem");
             if (stream != null) {
                 digester.parse(stream);
             }

@@ -1,12 +1,12 @@
 package com.codicesoftware.plugins.hudson;
 
+import com.codicesoftware.plugins.DigesterUtils;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSetList;
 import hudson.model.Run;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.RepositoryBrowser;
-import hudson.util.Digester2;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
@@ -40,7 +40,7 @@ public class ChangeSetReader extends ChangeLogParser {
             Run<?, ?> run, RepositoryBrowser<?> browser, Reader reader)
             throws IOException, SAXException {
         List<ChangeSet> changesetList = new ArrayList<>();
-        Digester digester = new Digester2();
+        Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(ChangeSetReader.class.getName() + ".UNSAFE"));
         digester.push(changesetList);
 
         digester.addObjectCreate("*/changeset", ChangeSet.class);

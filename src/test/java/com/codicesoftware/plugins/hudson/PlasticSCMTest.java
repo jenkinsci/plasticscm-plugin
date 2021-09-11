@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class PlasticSCMTest {
@@ -27,7 +28,7 @@ public class PlasticSCMTest {
         assertEquals(testScm, project.getScm());
 
         assertTrue(testScm.supportsPolling());
-        assertTrue(testScm.requiresWorkspaceForPolling());
+        assertFalse(testScm.requiresWorkspaceForPolling());
     }
 
 }

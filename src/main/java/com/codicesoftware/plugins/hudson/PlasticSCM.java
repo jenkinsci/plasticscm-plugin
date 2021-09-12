@@ -102,6 +102,7 @@ public class PlasticSCM extends SCM {
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
 
+    private final boolean pollOnController;
     private final String directory;
     private final boolean useWorkspaceSubdirectory;
 
@@ -111,13 +112,14 @@ public class PlasticSCM extends SCM {
             CleanupMethod cleanup,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
+            boolean pollOnController,
             String directory) {
         LOGGER.info("Initializing Plastic SCM plugin");
         this.selector = selector;
         this.cleanup = cleanup;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
+        this.pollOnController = pollOnController;
         this.directory = directory;
-
         firstWorkspace = new WorkspaceInfo(this.selector, this.cleanup, this.directory);
         if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
@@ -155,6 +157,11 @@ public class PlasticSCM extends SCM {
     @Exported
     public String getDirectory() {
         return directory;
+    }
+
+    @Exported
+    public boolean isPollOnController() {
+        return pollOnController;
     }
 
     /**
@@ -363,7 +370,9 @@ public class PlasticSCM extends SCM {
 
     @Override
     public boolean requiresWorkspaceForPolling() {
-        return false;
+        // If we poll on controller, we don't need a workspace
+        // If we poll on an agent, we do need a workspace
+        return !pollOnController;
     }
 
     public List<WorkspaceInfo> getAllWorkspaces() {

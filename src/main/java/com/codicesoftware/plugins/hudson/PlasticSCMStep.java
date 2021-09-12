@@ -102,7 +102,7 @@ public class PlasticSCMStep extends SCMStep {
     @Nonnull
     @Override
     protected SCM createSCM() {
-        return new PlasticSCM(buildSelector(), cleanup, false, null, directory);
+        return new PlasticSCM(buildSelector(), cleanup, false, null, false, directory);
     }
 
     private String buildSelector() {

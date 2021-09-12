@@ -20,7 +20,21 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, "");
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, false, "");
+
+        project.setScm(scm);
+        SCM testScm = project.getScm();
+        assertEquals("com.codicesoftware.plugins.hudson.PlasticSCM", testScm.getType());
+        assertEquals(testScm, project.getScm());
+
+        assertTrue(testScm.supportsPolling());
+        assertTrue(testScm.requiresWorkspaceForPolling());
+    }
+
+    @Test
+    public void testProjectConfigWithControllerPolling() throws Exception {
+        FreeStyleProject project = rule.createFreeStyleProject();
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, true, "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();

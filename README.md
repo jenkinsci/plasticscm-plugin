@@ -123,6 +123,17 @@ The configuration settings are identical to the root ones.
 workspaces**, and they must be different from one another. If you don't, you might risk having the
 plugin download the contents from two or more repositories into the same directory.
 
+### Poll on controller
+
+The Plastic SCM supports polling for repository changes. Polling is normally done
+on the agent that performed the last build, but you can choose to run the polling directly
+on the controller instead. This puts more work on the controller, but it makes polling work
+reliably in situations where the agents come and go; for example, when agents are
+provisioned on-demand in a Kubernetes cluster.
+
+Since polling on the controller will invoke `cm` directly on the controller, the tool must have
+its configuration within the `.plastic4` folder, just like on the agents.
+
 ### Pipelines
 
 If you use scripted pipelines or you want to specify the pipeline script directly in the job

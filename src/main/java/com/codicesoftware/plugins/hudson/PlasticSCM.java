@@ -370,8 +370,6 @@ public class PlasticSCM extends SCM {
 
     @Override
     public boolean requiresWorkspaceForPolling() {
-        // If we poll on controller, we don't need a workspace
-        // If we poll on an agent, we do need a workspace
         return !pollOnController;
     }
 

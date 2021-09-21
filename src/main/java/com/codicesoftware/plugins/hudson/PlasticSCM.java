@@ -40,6 +40,7 @@ import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -88,6 +89,10 @@ public class PlasticSCM extends SCM {
     private static final Pattern REPOSITORY_PATTERN = Pattern.compile(
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
+    // When the controller runs commands that require a workspace folder, it uses this folder (relative to the Jenkins root).
+    // It will be created when necessary.
+    private static final String CONTROLLER_WORKSPACE_FOLDER = "plastic";
+
     private final String selector;
 
     private CleanupMethod cleanup;
@@ -97,6 +102,7 @@ public class PlasticSCM extends SCM {
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
 
+    private final boolean pollOnController;
     private final String directory;
     private final boolean useWorkspaceSubdirectory;
 
@@ -106,13 +112,14 @@ public class PlasticSCM extends SCM {
             CleanupMethod cleanup,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
+            boolean pollOnController,
             String directory) {
         LOGGER.info("Initializing Plastic SCM plugin");
         this.selector = selector;
         this.cleanup = cleanup;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
+        this.pollOnController = pollOnController;
         this.directory = directory;
-
         firstWorkspace = new WorkspaceInfo(this.selector, this.cleanup, this.directory);
         if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
@@ -150,6 +157,11 @@ public class PlasticSCM extends SCM {
     @Exported
     public String getDirectory() {
         return directory;
+    }
+
+    @Exported
+    public boolean isPollOnController() {
+        return pollOnController;
     }
 
     /**
@@ -323,7 +335,7 @@ public class PlasticSCM extends SCM {
             @Nullable final Launcher launcher,
             @Nullable final FilePath workspace,
             @Nonnull final TaskListener listener,
-            @Nonnull final SCMRevisionState baseline) {
+            @Nonnull final SCMRevisionState baseline) throws IOException, InterruptedException {
         if (project.getLastBuild() == null) {
             listener.getLogger().println("No builds detected yet!");
             return BUILD_NOW;
@@ -354,6 +366,11 @@ public class PlasticSCM extends SCM {
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    @Override
+    public boolean requiresWorkspaceForPolling() {
+        return !pollOnController;
     }
 
     public List<WorkspaceInfo> getAllWorkspaces() {
@@ -560,7 +577,17 @@ public class PlasticSCM extends SCM {
             TaskListener listener,
             Calendar lastCompletedBuildTimestamp,
             String branchName,
-            String repository) {
+            String repository) throws IOException, InterruptedException {
+        if (launcher == null && workspacePath == null) {
+            // hasChanges() has been invoked on the master, without any workspace
+            // We will provide the plugin with a LocalLauncher and a fake workspace, since:
+            // - PlasticTool needs a launcher and a workspace
+            // - getChanges() needs a place to put the temp file where it captures PlasticTool's output
+            launcher = new Launcher.LocalLauncher(listener);
+            workspacePath = new FilePath(new FilePath(Jenkins.getInstance().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
+            workspacePath.mkdirs();
+        }
+
         PlasticTool plasticTool = new PlasticTool(getDescriptor().getCmExecutable(),
                 launcher, listener, workspacePath);
         try {

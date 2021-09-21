@@ -19,4 +19,8 @@
     </f:entry>
   </f:optionalBlock>
 
+  <f:entry field="pollOnController" title="${%Poll on controller}" help="/plugin/plasticscm-plugin/pollOnController.html">
+    <f:checkbox/>
+  </f:entry>
+
 </j:jelly>

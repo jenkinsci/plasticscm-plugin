@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class PlasticSCMTest {
@@ -19,7 +20,7 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, "");
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, false, "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();
@@ -28,6 +29,20 @@ public class PlasticSCMTest {
 
         assertTrue(testScm.supportsPolling());
         assertTrue(testScm.requiresWorkspaceForPolling());
+    }
+
+    @Test
+    public void testProjectConfigWithControllerPolling() throws Exception {
+        FreeStyleProject project = rule.createFreeStyleProject();
+        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, true, "");
+
+        project.setScm(scm);
+        SCM testScm = project.getScm();
+        assertEquals("com.codicesoftware.plugins.hudson.PlasticSCM", testScm.getType());
+        assertEquals(testScm, project.getScm());
+
+        assertTrue(testScm.supportsPolling());
+        assertFalse(testScm.requiresWorkspaceForPolling());
     }
 
 }

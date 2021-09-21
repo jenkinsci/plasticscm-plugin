@@ -6,6 +6,10 @@
       <f:textbox field="cmExecutable" checkMethod="post" />
     </f:entry>
     <f:validateButton title="${%Check}" progress="${%Checking...}" method="checkExecutable" with="cmExecutable" />
+
+    <f:entry title="Use .NET invariant globalization" help="/plugin/plasticscm-plugin/globalizationEnv.html">
+      <f:checkbox field="shouldUseDotNetInvariantGlobalization" checkMethod="post" />
+    </f:entry>
   </f:section>
 
 </j:jelly>

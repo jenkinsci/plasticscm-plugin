@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -29,12 +31,15 @@ public class PlasticTool {
     private Launcher launcher;
     private TaskListener listener;
     private FilePath workspace;
+    private Boolean shouldUseDotNetInvariantGlobalization;
 
-    public PlasticTool(String executable, Launcher launcher, TaskListener listener, FilePath workspace) {
+    public PlasticTool(
+        String executable, Launcher launcher, TaskListener listener, FilePath workspace, Boolean shouldUseDotNetInvariantGlobalization) {
         this.executable = executable;
         this.launcher = launcher;
         this.listener = listener;
         this.workspace = workspace;
+        this.shouldUseDotNetInvariantGlobalization = shouldUseDotNetInvariantGlobalization;
     }
 
     /**
@@ -97,9 +102,18 @@ public class PlasticTool {
             executionPath = workspace;
         }
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
-        Proc proc = launcher.launch().cmds(cmdArgs)
-                .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream)
-                .pwd(executionPath).start();
+
+        Launcher.ProcStarter procL = launcher.launch().cmds(cmdArgs)
+            .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream)
+            .pwd(executionPath);
+
+        if (shouldUseDotNetInvariantGlobalization) {
+            Map<String, String> envsMap = new HashMap<>();
+            envsMap.put("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
+            procL.envs(envsMap);
+        }
+
+        Proc proc = procL.start();
         consoleStream.close();
 
         if (proc.join() == 0) {

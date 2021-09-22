@@ -214,7 +214,8 @@ public class PlasticSCM extends SCM {
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = SelectorParametersResolver.resolve(workspaceInfo.getSelector(), parameterValues);
 
-            PlasticTool tool = new PlasticTool(getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath);
+            PlasticTool tool = new PlasticTool(
+                getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath, getDescriptor().getShouldUseDotNetInvariantGlobalization());
 
             Workspace plasticWorkspace = setupWorkspace(tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
 
@@ -589,7 +590,7 @@ public class PlasticSCM extends SCM {
         }
 
         PlasticTool plasticTool = new PlasticTool(getDescriptor().getCmExecutable(),
-                launcher, listener, workspacePath);
+                launcher, listener, workspacePath, getDescriptor().getShouldUseDotNetInvariantGlobalization());
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
                 plasticTool,
@@ -659,6 +660,7 @@ public class PlasticSCM extends SCM {
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {
         private String cmExecutable;
+        private Boolean shouldUseDotNetInvariantGlobalization;
 
         public DescriptorImpl() {
             super(PlasticSCM.class, null);
@@ -697,6 +699,14 @@ public class PlasticSCM extends SCM {
             }
         }
 
+        public Boolean getShouldUseDotNetInvariantGlobalization() {
+            if (shouldUseDotNetInvariantGlobalization == null) {
+                return false;
+            } else {
+                return shouldUseDotNetInvariantGlobalization;
+            }
+        }
+
         @Override
         public boolean isApplicable(Job project) {
             return true;
@@ -705,6 +715,8 @@ public class PlasticSCM extends SCM {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             cmExecutable = Util.fixEmpty(formData.getString("cmExecutable").trim());
+            shouldUseDotNetInvariantGlobalization = Boolean.parseBoolean(
+                Util.fixEmpty(formData.getString("shouldUseDotNetInvariantGlobalization").trim()));
             save();
             return true;
         }

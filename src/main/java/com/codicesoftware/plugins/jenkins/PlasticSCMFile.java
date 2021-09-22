@@ -179,10 +179,11 @@ public class PlasticSCMFile extends SCMFile {
 
         Launcher launcher = fs.getLauncher();
         PlasticTool tool = new PlasticTool(
-                fs.getSCM().getDescriptor().getCmExecutable(),
-                launcher,
-                launcher.getListener(),
-                null);
+            fs.getSCM().getDescriptor().getCmExecutable(),
+            launcher,
+            launcher.getListener(),
+            null,
+            fs.getSCM().getDescriptor().getShouldUseDotNetInvariantGlobalization());
 
         try {
             String resolvedSelector = SelectorParametersResolver.resolve(

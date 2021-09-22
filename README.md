@@ -26,6 +26,10 @@ machine. Then, please follow these steps:
 4. You can leave the field empty: "`cm`" will be used by default (i.e. the executable will be
    loaded from `$PATH`)
 
+You can optionally enable the _Use .NET invariant globalization_ option if you're using the
+newer .NET Core CLI client in a Linux machine or container that doesn't have the ICU packages
+installed.
+
 ![Manage Jenkins](doc/img/manage_jenkins.png)
 
 ![Configure System](doc/img/configure_system.png)

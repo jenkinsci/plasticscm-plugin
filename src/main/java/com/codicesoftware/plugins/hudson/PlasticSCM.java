@@ -1,5 +1,9 @@
 package com.codicesoftware.plugins.hudson;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
 import com.codicesoftware.plugins.hudson.commands.ChangesetLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetRangeLogCommand;
@@ -12,11 +16,14 @@ import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ChangeSetID;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
+import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.model.Workspace;
-import com.codicesoftware.plugins.hudson.util.BuildVariableResolver;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
+import com.codicesoftware.plugins.hudson.util.FormFiller;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -27,10 +34,12 @@ import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.Node;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
@@ -39,13 +48,14 @@ import hudson.scm.RepositoryBrowser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
+import jenkins.security.MasterToSlaveCallable;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -78,24 +88,23 @@ public class PlasticSCM extends SCM {
     private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
     public static final String DEFAULT_BRANCH = "/main";
-    public static final String DEFAULT_REPOSITORY = "default";
-    public static final String DEFAULT_SERVER = "localhost:8087";
     public static final String DEFAULT_SELECTOR = "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
-
-    public static final String WORKSPACE_NAME_PARAMETRIZED = "jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}";
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
             "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
     private static final Pattern REPOSITORY_PATTERN = Pattern.compile(
             "^.*rep(ository)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
-    // When the controller runs commands that require a workspace folder, it uses this folder (relative to the Jenkins root).
-    // It will be created when necessary.
+    // When the controller runs commands that require a workspace folder, it uses this folder (relative to the Jenkins
+    // root). It will be created when necessary.
     private static final String CONTROLLER_WORKSPACE_FOLDER = "plastic";
 
     private final String selector;
 
     private CleanupMethod cleanup;
+    private final WorkingMode workingMode;
+    @CheckForNull
+    private final String credentialsId;
     @Deprecated
     private transient boolean useUpdate;
 
@@ -110,6 +119,8 @@ public class PlasticSCM extends SCM {
     public PlasticSCM(
             String selector,
             CleanupMethod cleanup,
+            WorkingMode workingMode,
+            String credentialsId,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             boolean pollOnController,
@@ -117,9 +128,12 @@ public class PlasticSCM extends SCM {
         LOGGER.info("Initializing Plastic SCM plugin");
         this.selector = selector;
         this.cleanup = cleanup;
+        this.workingMode = workingMode;
         this.useWorkspaceSubdirectory = useMultipleWorkspaces;
         this.pollOnController = pollOnController;
         this.directory = directory;
+        this.credentialsId = credentialsId;
+
         firstWorkspace = new WorkspaceInfo(this.selector, this.cleanup, this.directory);
         if (additionalWorkspaces == null || !useMultipleWorkspaces) {
             this.additionalWorkspaces = null;
@@ -137,6 +151,17 @@ public class PlasticSCM extends SCM {
     public CleanupMethod getCleanup() {
         // Field might be null if deserialized from older class version.
         return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
+    }
+
+    @Exported
+    public WorkingMode getWorkingMode() {
+        // Field might be null if deserialized from older class version.
+        return (workingMode != null) ? workingMode : WorkingMode.NONE;
+    }
+
+    @Exported
+    public String getCredentialsId() {
+        return credentialsId;
     }
 
     @Exported
@@ -168,6 +193,7 @@ public class PlasticSCM extends SCM {
      * {@inheritDoc}
      */
     @Override
+    @Nonnull
     public String getKey() {
         StringBuilder builder = new StringBuilder("Plastic SCM");
         for (WorkspaceInfo workspace : getAllWorkspaces()) {
@@ -202,12 +228,16 @@ public class PlasticSCM extends SCM {
             @Nonnull final TaskListener listener,
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
+
+        Node node = getNodeFromWorkspace(workspace);
         adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
         ParametersAction parameters = run.getAction(ParametersAction.class);
-        List<ParameterValue> parameterValues = (parameters == null) ? Collections.emptyList() : parameters.getParameters();
+        List<ParameterValue> parameterValues = (parameters == null)
+            ? Collections.emptyList()
+            : parameters.getParameters();
 
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
 
@@ -215,9 +245,14 @@ public class PlasticSCM extends SCM {
             String resolvedSelector = SelectorParametersResolver.resolve(workspaceInfo.getSelector(), parameterValues);
 
             PlasticTool tool = new PlasticTool(
-                getDescriptor().getCmExecutable(), launcher, listener, plasticWorkspacePath, getDescriptor().getShouldUseDotNetInvariantGlobalization());
+                CmTool.get(node, run.getEnvironment(listener), listener),
+                launcher,
+                listener,
+                plasticWorkspacePath,
+                buildClientConfigurationArguments(run.getParent(), resolvedSelector));
 
-            Workspace plasticWorkspace = setupWorkspace(tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
+            Workspace plasticWorkspace = setupWorkspace(
+                tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
 
             ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
 
@@ -251,8 +286,25 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private static boolean isSharedLibrary(@Nonnull FilePath jenkinsPath) {
-        return jenkinsPath.getParent().getName().endsWith("@libs");
+    @Nonnull
+    private Node getNodeFromWorkspace(FilePath workspace) {
+        Jenkins jenkins = Jenkins.getInstance();
+
+        if (workspace == null || !workspace.isRemote()) {
+            return jenkins;
+        }
+
+        for (Computer computer : jenkins.getComputers()) {
+            if (computer.getChannel() != workspace.getChannel()) {
+                continue;
+            }
+
+            Node node = computer.getNode();
+            if (node != null) {
+                return node;
+            }
+        }
+        return jenkins;
     }
 
     /**
@@ -276,9 +328,7 @@ public class PlasticSCM extends SCM {
                 workspacePath.mkdirs();
             }
             return CheckoutAction.checkout(tool, workspacePath, selector, cleanup);
-        } catch (ParseException e) {
-            throw buildAbortException(listener, e);
-        } catch (IOException e) {
+        } catch (ParseException | IOException e) {
             throw buildAbortException(listener, e);
         }
     }
@@ -323,7 +373,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final Run<?, ?> run,
             @Nullable final FilePath wkPath,
             @Nullable final Launcher launcher,
-            @Nonnull final TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull final TaskListener listener) {
         return SCMRevisionState.NONE;
     }
 
@@ -349,13 +399,14 @@ public class PlasticSCM extends SCM {
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = SelectorParametersResolver.resolve(
                     workspaceInfo.selector, parameters);
+
             boolean hasChanges = hasChanges(
+                project,
                     launcher,
                     plasticWorkspacePath,
                     listener,
                     lastBuild.getTimestamp(),
-                    getSelectorBranch(resolvedSelector),
-                    getSelectorRepository(resolvedSelector));
+                resolvedSelector);
 
             if (hasChanges) {
                 return BUILD_NOW;
@@ -367,6 +418,33 @@ public class PlasticSCM extends SCM {
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    @Nonnull
+    public ClientConfigurationArguments buildClientConfigurationArguments(
+            @Nullable Item item, @CheckForNull String selector) {
+        return new ClientConfigurationArguments(
+            workingMode,
+            getCredentialsFromId(credentialsId, item),
+            getServerFromSelector(selector));
+    }
+
+    @CheckForNull
+    private StandardUsernamePasswordCredentials getCredentialsFromId(
+            @CheckForNull String credentialsId,
+            @Nullable Item item) {
+        if (Util.fixEmpty(credentialsId) == null) {
+            return null;
+        }
+        return CredentialsMatchers.firstOrNull(
+            CredentialsProvider.lookupCredentials(
+                StandardUsernamePasswordCredentials.class,
+                item,
+                item instanceof Queue.Task
+                    ? ((Queue.Task) item).getDefaultAuthentication()
+                    : ACL.SYSTEM,
+                URIRequirementBuilder.create().build()),
+            CredentialsMatchers.withId(credentialsId));
     }
 
     @Override
@@ -396,42 +474,6 @@ public class PlasticSCM extends SCM {
         return new FilePath(jenkinsWorkspacePath, workspaceInfo.getDirectory());
     }
 
-    private static String resolveWorkspaceNameParameters(
-            Run<?, ?> build,
-            FilePath workspacePath,
-            String workspaceName,
-            WorkspaceInfo workspaceInfo) {
-        String result = workspaceName;
-
-        if (Util.fixEmpty(result) == null) {
-            result = PlasticSCM.WORKSPACE_NAME_PARAMETRIZED;
-        }
-
-        if (build != null) {
-            result = replaceBuildParameter(build, result);
-            BuildVariableResolver buildVariableResolver = new BuildVariableResolver(
-                    build.getParent(), Computer.currentComputer(), workspacePath);
-            result = Util.replaceMacro(result, buildVariableResolver);
-        }
-
-        if (Util.fixEmpty(workspaceInfo.getDirectory()) != null) {
-            result += "-" + workspaceInfo.getDirectory();
-        }
-        result = result.replaceAll("[\"/:<>\\|\\*\\?]+", "_");
-        return result.replaceAll("[\\.\\s]+$", "_");
-    }
-
-    private static String replaceBuildParameter(Run<?, ?> run, String text) {
-        if (run instanceof AbstractBuild<?, ?>) {
-            AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
-            if (build.getAction(ParametersAction.class) != null) {
-                return build.getAction(ParametersAction.class).substitute(build, text);
-            }
-        }
-
-        return text;
-    }
-
     /**
      * Returns changeset identifier for the given workspace.
      */
@@ -441,7 +483,8 @@ public class PlasticSCM extends SCM {
             FilePath workspacePath)
             throws IOException, InterruptedException {
         try {
-            ParseableCommand<List<ChangeSetID>> statusCommand = new GetWorkspaceStatusCommand(workspacePath.getRemote());
+            ParseableCommand<List<ChangeSetID>> statusCommand = new GetWorkspaceStatusCommand(
+                workspacePath.getRemote());
             List<ChangeSetID> list = CommandRunner.executeAndRead(tool, statusCommand);
             if (list != null && !list.isEmpty()) {
                 return list.get(0);
@@ -454,7 +497,7 @@ public class PlasticSCM extends SCM {
 
     /**
      * Finds changeset of the last completed build for the same branch as the given changeset.
-     * Returns null if not found or is newer than the currently build.
+     * Returns null if not found or is newer than the current build.
      */
     private static ChangeSet retrieveLastBuiltChangeset(
             PlasticTool tool, Run<?, ?> build, FilePath workspacePath, ChangeSet cset) {
@@ -573,29 +616,40 @@ public class PlasticSCM extends SCM {
     }
 
     private boolean hasChanges(
-            Launcher launcher,
-            FilePath workspacePath,
-            TaskListener listener,
-            Calendar lastCompletedBuildTimestamp,
-            String branchName,
-            String repository) throws IOException, InterruptedException {
-        if (launcher == null && workspacePath == null) {
-            // hasChanges() has been invoked on the master, without any workspace
-            // We will provide the plugin with a LocalLauncher and a fake workspace, since:
-            // - PlasticTool needs a launcher and a workspace
-            // - getChanges() needs a place to put the temp file where it captures PlasticTool's output
+            @Nullable Item item,
+            @CheckForNull Launcher launcher,
+            @CheckForNull FilePath workspacePath,
+            @Nonnull TaskListener listener,
+            @Nonnull Calendar lastCompletedBuildTimestamp,
+            @CheckForNull String selector) throws IOException, InterruptedException {
+
+        // hasChanges() can be invoked on the master, without any workspace
+        // We will provide the plugin with a LocalLauncher and a fake workspace, since:
+        // - PlasticTool needs a launcher and a workspace
+        // - getChanges() needs a place to put the temp file where it captures PlasticTool's output
+        if (launcher == null) {
             launcher = new Launcher.LocalLauncher(listener);
+        }
+
+        if (workspacePath == null) {
             workspacePath = new FilePath(new FilePath(Jenkins.getInstance().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
             workspacePath.mkdirs();
         }
 
-        PlasticTool plasticTool = new PlasticTool(getDescriptor().getCmExecutable(),
-                launcher, listener, workspacePath, getDescriptor().getShouldUseDotNetInvariantGlobalization());
+        String repSpec = getRepSpecFromSelector(selector);
+
+        PlasticTool plasticTool = new PlasticTool(
+            CmTool.get(getNodeFromWorkspace(workspacePath), new EnvVars(EnvVars.masterEnvVars), listener),
+            launcher,
+            listener,
+            workspacePath,
+            buildClientConfigurationArguments(item, getServerFromRepositorySpec(repSpec)));
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
                 plasticTool,
-                workspacePath, branchName,
-                repository,
+                workspacePath,
+                getBranchFromSelector(selector),
+                repSpec,
                 lastCompletedBuildTimestamp,
                 Calendar.getInstance());
             return changesetsFromBuild.size() > 0;
@@ -606,7 +660,7 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private List<ParameterValue> getDefaultParameterValues(Job<?, ?> project) {
+    private static List<ParameterValue> getDefaultParameterValues(Job<?, ?> project) {
         ParametersDefinitionProperty paramDefProp = project.getProperty(ParametersDefinitionProperty.class);
         if (paramDefProp == null) {
             return null;
@@ -623,7 +677,12 @@ public class PlasticSCM extends SCM {
         return result;
     }
 
-    private String getSelectorBranch(String selector) {
+    @CheckForNull
+    private static String getBranchFromSelector(@CheckForNull String selector) {
+        if (selector == null) {
+            return null;
+        }
+
         Matcher smartbranchMatcher = BRANCH_PATTERN.matcher(selector);
         if (smartbranchMatcher.matches()) {
             return smartbranchMatcher.group(3);
@@ -631,12 +690,39 @@ public class PlasticSCM extends SCM {
         return null;
     }
 
-    private String getSelectorRepository(String selector) {
+    @CheckForNull
+    private static String getRepSpecFromSelector(@CheckForNull String selector) {
+        if (selector == null) {
+            return null;
+        }
+
         Matcher matcher = REPOSITORY_PATTERN.matcher(selector);
         if (matcher.matches()) {
             return matcher.group(2);
         }
         return null;
+    }
+
+    @CheckForNull
+    private static String getServerFromSelector(@CheckForNull String selector) {
+        return getServerFromRepositorySpec(getRepSpecFromSelector(selector));
+    }
+
+    @CheckForNull
+    private static String getServerFromRepositorySpec(@CheckForNull String repSpec) {
+        String repository = Util.fixEmpty(repSpec);
+
+        if (repository == null) {
+            return null;
+        }
+
+        int atSignIndex = repository.indexOf('@');
+        if (atSignIndex == -1) {
+            return null;
+        }
+
+        return repository.substring(atSignIndex + 1);
+
     }
 
     private void populateEnvironmentVariables(
@@ -659,12 +745,15 @@ public class PlasticSCM extends SCM {
 
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {
-        private String cmExecutable;
-        private Boolean shouldUseDotNetInvariantGlobalization;
-
         public DescriptorImpl() {
             super(PlasticSCM.class, null);
             load();
+        }
+
+        @Override
+        @Nonnull
+        public String getDisplayName() {
+            return "Plastic SCM";
         }
 
         @RequirePOST
@@ -687,53 +776,27 @@ public class PlasticSCM extends SCM {
             return PlasticSCM.DEFAULT_SELECTOR;
         }
 
-        public String getDisplayName() {
-            return "Plastic SCM";
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+            return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
-        public String getCmExecutable() {
-            if (cmExecutable == null) {
-                return "cm";
-            } else {
-                return cmExecutable;
-            }
-        }
-
-        public Boolean getShouldUseDotNetInvariantGlobalization() {
-            if (shouldUseDotNetInvariantGlobalization == null) {
-                return false;
-            } else {
-                return shouldUseDotNetInvariantGlobalization;
-            }
+        @RequirePOST
+        public FormValidation doCheckCredentialsId(
+            @AncestorInPath Item item,
+            @QueryParameter String value,
+            @QueryParameter String selector,
+            @QueryParameter WorkingMode workingMode
+        ) throws IOException, InterruptedException {
+            return FormChecker.doCheckCredentialsId(
+                item,
+                value,
+                getServerFromSelector(selector),
+                workingMode);
         }
 
         @Override
         public boolean isApplicable(Job project) {
             return true;
-        }
-
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            cmExecutable = Util.fixEmpty(formData.getString("cmExecutable").trim());
-            shouldUseDotNetInvariantGlobalization = Boolean.parseBoolean(
-                Util.fixEmpty(formData.getString("shouldUseDotNetInvariantGlobalization").trim()));
-            save();
-            return true;
-        }
-
-        @RequirePOST
-        public FormValidation doCheckExecutable(@QueryParameter("cmExecutable") String value) {
-            try {
-                FormValidation validation = FormValidation.validateExecutable(value);
-                if (validation.kind == FormValidation.Kind.OK) {
-                    validation = FormChecker.createValidationResponse("Success", false);
-                } else {
-                    validation = FormChecker.createValidationResponse("Failure: " + validation.getMessage(), true);
-                }
-                return validation;
-            } catch (Exception e) {
-                return FormChecker.createValidationResponse("Error: " + e.getMessage(), true);
-            }
         }
     }
 
@@ -795,9 +858,23 @@ public class PlasticSCM extends SCM {
             }
 
             @Override
+            @Nonnull
             public String getDisplayName() {
                 return "Plastic SCM Workspace";
             }
+        }
+    }
+
+    private static class GetCurrentNode extends MasterToSlaveCallable<String, InterruptedException> {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public String call() {
+            Node node = Computer.currentComputer().getNode();
+            if (node == null) {
+                return null;
+            }
+            return node.getNodeName();
         }
     }
 }

@@ -43,8 +43,15 @@
        <property name="message" value="Line has trailing spaces."/>
     </module>
 
-    <module name="TreeWalker">
-        <!-- Checks for imports                              -->
+    <!-- Checks for Size Violations.                    -->
+    <!-- See https://checkstyle.org/config_sizes.html -->
+    <module name="LineLength">
+      <property name="max" value="120"/>
+      <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+  <module name="TreeWalker">
+    <!-- Checks for imports                              -->
         <!-- See https://checkstyle.org/config_import.html -->
         <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>
@@ -53,12 +60,6 @@
             <property name="processJavadoc" value="false"/>
         </module>
 
-        <!-- Checks for Size Violations.                    -->
-        <!-- See https://checkstyle.org/config_sizes.html -->
-        <module name="LineLength">
-            <property name="max" value="160"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
         <module name="MethodLength"/>
         <!--<module name="ParameterNumber"/>-->
 

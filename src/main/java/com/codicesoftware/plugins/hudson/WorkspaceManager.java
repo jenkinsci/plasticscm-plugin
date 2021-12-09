@@ -29,7 +29,8 @@ public class WorkspaceManager {
         return CommandRunner.executeAndRead(tool, command);
     }
 
-    public static Workspace createWorkspace(PlasticTool tool, FilePath workspacePath, String workspaceName, String selector)
+    public static Workspace createWorkspace(
+            PlasticTool tool, FilePath workspacePath, String workspaceName, String selector)
             throws IOException, InterruptedException, ParseException {
         FilePath selectorPath = workspacePath.createTextTempFile("selector", ".txt", selector);
         NewWorkspaceCommand mkwkCommand = new NewWorkspaceCommand(workspaceName, workspacePath, selectorPath);
@@ -54,7 +55,8 @@ public class WorkspaceManager {
     public static void cleanWorkspace(PlasticTool tool, FilePath workspacePath, CleanupMethod cleanup)
             throws IOException, InterruptedException {
         if (cleanup.removesPrivate()) {
-            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(workspacePath.getRemote(), cleanup.removesIgnored());
+            CleanupWorkspaceCommand cleanupCommands = new CleanupWorkspaceCommand(
+                workspacePath.getRemote(), cleanup.removesIgnored());
             CommandRunner.execute(tool, cleanupCommands);
         }
         UndoCheckoutCommand command = new UndoCheckoutCommand(workspacePath.getRemote());

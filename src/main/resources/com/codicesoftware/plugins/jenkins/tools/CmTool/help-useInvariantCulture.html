@@ -1,0 +1,22 @@
+<div>
+  <p>
+    Use .NET invariant globalization by setting the 'DOTNET_SYSTEM_GLOBALIZATION_INVARIANT' environment variable to 1.
+  </p>
+  <p>
+    Some Jenkins installations in Linux don't come with the ICU (International Components for Unicode) Linux package
+    installed. This is required to run standalone .NET applications, such as the Plastic SCM CLI client. You can run
+    into the following error:
+  </p>
+  <p>
+    <code>
+      Process terminated. Couldn't find a valid ICU package installed on the system. Set the configuration flag
+      System.Globalization.Invariant to true if you want to run with no globalization support.
+    </code>
+  </p>
+  <p>
+    Enabling this flag avoids this error.
+  </p>
+  <p>
+    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/features/globalization-invariant-mode.md">Read more...</a>
+  </p>
+</div>

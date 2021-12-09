@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
   <f:entry field="selector" title="${%Selector}" help="/plugin/plasticscm-plugin/selector.html">
     <f:textarea default="${descriptor.getDefaultSelector()}" checkMethod="post" />
@@ -11,6 +11,14 @@
 
   <f:entry field="cleanup" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
     <f:enum>${it.getLabel()}</f:enum>
+  </f:entry>
+
+  <f:entry field="workingMode" title="${%Working mode}" help="/plugin/plasticscm-plugin/workingMode.html">
+    <f:enum>${it.getLabel()}</f:enum>
+  </f:entry>
+
+  <f:entry field="credentialsId" title="${%Credentials}" help="/plugin/plasticscm-plugin/credentials.html">
+    <c:select checkMethod="post" />
   </f:entry>
 
   <f:optionalBlock field="useMultipleWorkspaces" title="${%Use multiple workspaces}" inline="true" help="/plugin/plasticscm-plugin/multipleWorkspaces.html">

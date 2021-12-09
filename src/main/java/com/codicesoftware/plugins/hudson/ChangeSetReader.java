@@ -40,7 +40,8 @@ public class ChangeSetReader extends ChangeLogParser {
             Run<?, ?> run, RepositoryBrowser<?> browser, Reader reader)
             throws IOException, SAXException {
         List<ChangeSet> changesetList = new ArrayList<>();
-        Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(ChangeSetReader.class.getName() + ".UNSAFE"));
+        Digester digester = DigesterUtils.createDigester(
+            !Boolean.getBoolean(ChangeSetReader.class.getName() + ".UNSAFE"));
         digester.push(changesetList);
 
         digester.addObjectCreate("*/changeset", ChangeSet.class);

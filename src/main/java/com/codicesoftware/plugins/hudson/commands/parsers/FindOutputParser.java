@@ -28,7 +28,8 @@ public class FindOutputParser {
         }
 
         try (InputStream stream = SafeFilePath.read(path)) {
-            Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(FindOutputParser.class.getName() + ".UNSAFE"));
+            Digester digester = DigesterUtils.createDigester(
+                !Boolean.getBoolean(FindOutputParser.class.getName() + ".UNSAFE"));
 
             digester.push(csetList);
 

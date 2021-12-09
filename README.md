@@ -47,7 +47,7 @@ At this point, the plugin is only capable of downloading the latest version avai
 
 ![Configure System](doc/img/configure_system.png)
 
-![Configure tool](doc/img/configuration-tools.png)
+![Configure tool](doc/img/configuration_tools.png)
 
 ## Job configuration
 

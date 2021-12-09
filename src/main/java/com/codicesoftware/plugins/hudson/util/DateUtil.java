@@ -27,14 +27,15 @@ public class DateUtil {
     public static final DateTimeFormatter DATETIME_LOCAL_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
-    public static final ThreadLocal<SimpleDateFormat> PLASTICSCM_DATETIME_FORMATTER = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_SORTABLE_FORMAT);
-            dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT"));
-            return dateFormat;
-        }
-    };
+    public static final ThreadLocal<SimpleDateFormat> PLASTICSCM_DATETIME_FORMATTER =
+        new ThreadLocal<SimpleDateFormat>() {
+            @Override
+            protected SimpleDateFormat initialValue() {
+                SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_SORTABLE_FORMAT);
+                dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT"));
+                return dateFormat;
+            }
+        };
 
     private DateUtil() { }
 

@@ -1,12 +1,17 @@
 package com.codicesoftware.plugins.hudson;
 
+import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.TaskListener;
+import hudson.util.ArgumentListBuilder;
 import hudson.util.ForkOutputStream;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,19 +32,28 @@ public class PlasticTool {
     private static final int MAX_RETRIES = 3;
     private static final int TIME_BETWEEN_RETRIES = 1000;
 
-    private String executable;
-    private Launcher launcher;
-    private TaskListener listener;
-    private FilePath workspace;
-    private Boolean shouldUseDotNetInvariantGlobalization;
+    @CheckForNull
+    private final CmTool tool;
+    @Nonnull
+    private final Launcher launcher;
+    @Nonnull
+    private final TaskListener listener;
+    @CheckForNull
+    private final FilePath workspace;
+    @Nonnull
+    private final ClientConfigurationArguments clientConfigurationArguments;
 
     public PlasticTool(
-        String executable, Launcher launcher, TaskListener listener, FilePath workspace, Boolean shouldUseDotNetInvariantGlobalization) {
-        this.executable = executable;
+        @CheckForNull CmTool tool,
+        @Nonnull Launcher launcher,
+        @Nonnull TaskListener listener,
+        @CheckForNull FilePath workspace,
+        @Nonnull ClientConfigurationArguments clientConfigurationArguments) {
+        this.tool = tool;
         this.launcher = launcher;
         this.listener = listener;
         this.workspace = workspace;
-        this.shouldUseDotNetInvariantGlobalization = shouldUseDotNetInvariantGlobalization;
+        this.clientConfigurationArguments = clientConfigurationArguments;
     }
 
     /**
@@ -50,13 +64,22 @@ public class PlasticTool {
      * @throws IOException Operation error
      * @throws InterruptedException Process has been interrupted
      */
-    public Reader execute(String[] arguments) throws IOException, InterruptedException {
+    @Nonnull
+    public Reader execute(@Nonnull String[] arguments) throws IOException, InterruptedException {
         return execute(arguments, null, true);
     }
 
-    public Reader execute(String[] arguments, FilePath executionPath, boolean printOutput) throws IOException, InterruptedException {
-        String[] cmdArgs = getToolArguments(arguments);
-        String cliLine = getCliLine(cmdArgs);
+    @Nonnull
+    public Reader execute(
+            @Nonnull String[] arguments,
+            @CheckForNull FilePath executionPath,
+            boolean printOutput) throws IOException, InterruptedException {
+        if (tool == null) {
+            throw new InterruptedException("You need to specify a Plastic SCM tool");
+        }
+
+        ArgumentListBuilder cmdArgs = getToolArguments(arguments, clientConfigurationArguments);
+        String cliLine = cmdArgs.toString();
 
         int retries = 0;
         while (retries < MAX_RETRIES) {
@@ -78,36 +101,39 @@ public class PlasticTool {
         throw new AbortException(errorMessage);
     }
 
-    private String[] getToolArguments(String[] cmArgs) {
-        String[] result = new String[cmArgs.length + 1];
-        result[0] = executable;
-        System.arraycopy(cmArgs, 0, result, 1, cmArgs.length);
-        return result;
-    }
-
-    private String getCliLine(String[] args) {
-        StringBuilder builder = new StringBuilder();
-        for (String arg : args) {
-            if (builder.length() != 0) {
-                builder.append(' ');
-            }
-            builder.append(arg);
+    @Nonnull
+    private ArgumentListBuilder getToolArguments(
+            @Nonnull String[] cmArgs,
+            @Nonnull ClientConfigurationArguments clientConfigurationArguments) {
+        if (tool == null) {
+            return new ArgumentListBuilder();
         }
-        return builder.toString();
+        ArgumentListBuilder result = new ArgumentListBuilder(tool.getCmPath());
+
+        result.add(cmArgs);
+        return clientConfigurationArguments.fillParameters(result);
     }
 
-    private Reader tryExecute(String[] cmdArgs, FilePath executionPath, boolean printOutput)
-            throws IOException, InterruptedException {
+    @Nullable
+    private Reader tryExecute(
+            ArgumentListBuilder args,
+            FilePath executionPath,
+            boolean printOutput) throws IOException, InterruptedException {
+        if (tool == null) {
+            return null;
+        }
+
         if (executionPath == null) {
             executionPath = workspace;
         }
         ByteArrayOutputStream consoleStream = new ByteArrayOutputStream();
 
-        Launcher.ProcStarter procL = launcher.launch().cmds(cmdArgs)
+        Launcher.ProcStarter procL = launcher.launch()
+            .cmds(args)
             .stdout(printOutput ? new ForkOutputStream(consoleStream, listener.getLogger()) : consoleStream)
             .pwd(executionPath);
 
-        if (shouldUseDotNetInvariantGlobalization) {
+        if (tool.isUseInvariantCulture()) {
             Map<String, String> envsMap = new HashMap<>();
             envsMap.put("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
             procL.envs(envsMap);
@@ -117,10 +143,10 @@ public class PlasticTool {
         consoleStream.close();
 
         if (proc.join() == 0) {
-            LOGGER.fine("Command succeeded: " + String.join(" ", cmdArgs));
+            LOGGER.fine("Command succeeded: " + args);
             return new InputStreamReader(new ByteArrayInputStream(consoleStream.toByteArray()), StandardCharsets.UTF_8);
         } else {
-            LOGGER.fine("Command failed: " + String.join(" ", cmdArgs));
+            LOGGER.fine("Command failed: " + args);
             return null;
         }
     }

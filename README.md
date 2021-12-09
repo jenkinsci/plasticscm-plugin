@@ -14,27 +14,40 @@
 
 ## Configuration
 
-### System configuration
+### External tool configuration
 
-In order to configure the plugin, you need the `cm` executable installed in the Jenkins server
-machine. Then, please follow these steps:
+The Plastic SCM plugin for Jenkins requires a working `cm` client to be present in the controller or agent machines.
+If it's not, the plugin provides a way for the machines to automatically download and install the client.
 
-1. Open the system configuration page "Manage Jenkins" and navigate to "Configure System"
-2. Scroll down to the "Plastic SCM" section and enter the path where the `cm` executable (CLI
-   client) is located
-3. Click "Check" to verify that the path you set is correct
-4. You can leave the field empty: "`cm`" will be used by default (i.e. the executable will be
-   loaded from `$PATH`)
+To configure the Plastic SCM tool in Jenkins, open the system configuration page "Manage Jenkins" and navigate to
+"Global Tool Configuration".
 
-You can optionally enable the _Use .NET invariant globalization_ option if you're using the
-newer .NET Core CLI client in a Linux machine or container that doesn't have the ICU packages
-installed.
+Scroll down to the "Plastic SCM" section. There will be a default entry called "Default". It will expect a `cm` binary
+to be present in the controller or agents. If it's not, it will download it from [plasticscm.com](https://www.plasticscm.com/).
+
+You can change the name to whatever you want. If there isn't any tool called "Default", the plugin will use the first
+one in the list.
+
+The field "Path to Plastic SCM executable" can be either an executable name or a full path. If you specify just the name,
+the plugin will use the `$PATH` environment variable to run it. Leaving this field empty will use the `cm` default value.
+
+You can optionally enable the Use .NET invariant globalization option if you're using the newer .NET Core CLI client
+in Linux machines or containers that don't have the ICU packages installed.
+
+The "Install automatically" option is checked by default, and the plugin automatically provides an installer to download
+the `cm` client bundle from [plasticscm.com](https://www.plasticscm.com/) automatically. However, that installer will
+**not** run if it detects that the tool defines a valid `cm` for the target machine. You can optionally override that by
+checking the "Ignore system tool" option.
+
+This automatic installer will save the tool bundle contents under `$JENKINS_ROOT/tools/plasticscm/$TOOL_NAME`.
+
+At this point, the plugin is only capable of downloading the latest version available in the Plastic SCM website.
 
 ![Manage Jenkins](doc/img/manage_jenkins.png)
 
 ![Configure System](doc/img/configure_system.png)
 
-![Configure cm](doc/img/configuration-cm.png)
+![Configure tool](doc/img/configuration-tools.png)
 
 ## Job configuration
 
@@ -61,6 +74,19 @@ the code. It has four possible values:
 * **Delete workspace** will remove the entire workspace contents and create a new one. Useful if you
   absolutely want to start every build from scratch. It might increase the build time if your
   workspace is big, though. It's equivalent to disabling _Use update_ in older versions.
+
+You can also define specific credentials to be used by Plastic SCM in the context of the job. You can select the
+target working mode, which can be one of these:
+
+* **Use system configuration**
+  * Don't specify credentials for this job, rely on an existing `client.conf` file in the machine.
+* **User & password**
+  * If your targeted Plastic SCM Server uses Plastic SCM user/password authentication, this is the option to choose.
+* **LDAP / Cloud**
+  * The appropriate choice if your targeted Plastic SCM Server is a Plastic Cloud organization or it uses LDAP as
+    authentication provider.
+
+Then, for _User & password_ and _LDAP / Cloud_ you need to specify credentials using the Jenkins Credentials API.
 
 ![Freestyle configuration](doc/img/freestyle-configuration.png)
 
@@ -163,6 +189,9 @@ You only need to specify the `changeset` parameter if you'd like all builds to t
 
 The available values for `cleanup` are `MINIMAL`, `STANDARD`, `FULL` and `DELETE`.
 
+In case you want to specify credentials, the available values for `workingMode` are `NONE` (default), `UP` and `LDAP`.
+You might need to specify a string value in
+
 **cm command examples:**
 
 ```groovy
@@ -171,7 +200,9 @@ cm(
     repository: 'assets-repo',
     server: 'my.plasticscm.server.com:8087',
     cleanup: 'DELETE',
-    directory: 'assets'
+    directory: 'assets',
+    workingMode: 'UP',
+    credentialsId: 'my-credentials'
 )
 
 cm(
@@ -324,7 +355,7 @@ pipeline {
 ## Requirements
 
 * Jenkins `2.60.3` or newer
-* Plastic SCM command line client `8.0.16.3400` or newer
+* Plastic SCM command line client `10.0.16.6112` or newer
 
 ## Upgrading from 2.x to 3.x
 

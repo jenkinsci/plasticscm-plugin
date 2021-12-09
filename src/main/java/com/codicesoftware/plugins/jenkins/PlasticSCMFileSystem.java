@@ -26,8 +26,11 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMFileSystem.class.getName());
 
+    @Nonnull
     private final PlasticSCM scm;
+    @Nonnull
     private final Item owner;
+    @Nonnull
     private final Launcher launcher;
 
     protected PlasticSCMFileSystem(@Nonnull Item owner, @Nonnull PlasticSCM scm, @CheckForNull SCMRevision rev) {
@@ -37,6 +40,7 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         this.launcher = new Launcher.LocalLauncher(new LogTaskListener(LOGGER, Level.ALL));
     }
 
+    @CheckForNull
     public Run<?, ?> getLastBuildFromFirstJob() {
         Collection<? extends Job> jobs = owner.getAllJobs();
         for (Job job : jobs) {
@@ -51,10 +55,17 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         return null;
     }
 
+    @Nonnull
+    public Item getOwner() {
+        return owner;
+    }
+
+    @Nonnull
     public PlasticSCM getSCM() {
         return scm;
     }
 
+    @Nonnull
     public Launcher getLauncher() {
         return launcher;
     }

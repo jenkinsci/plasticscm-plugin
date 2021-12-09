@@ -36,7 +36,8 @@ public class CommandRunner {
         return executeAndRead(tool, command, null, printOutput);
     }
 
-    public static <T> T executeAndRead(PlasticTool tool, ParseableCommand<T> command, FilePath executionPath, boolean printOutput)
+    public static <T> T executeAndRead(
+            PlasticTool tool, ParseableCommand<T> command, FilePath executionPath, boolean printOutput)
             throws IOException, InterruptedException, ParseException {
         Reader reader = null;
         try {

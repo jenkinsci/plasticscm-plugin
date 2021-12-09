@@ -1,14 +1,33 @@
 package com.codicesoftware.plugins.hudson.util;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.codicesoftware.plugins.hudson.ClientConfigurationArguments;
+import com.codicesoftware.plugins.hudson.PlasticTool;
+import com.codicesoftware.plugins.hudson.model.WorkingMode;
+import com.codicesoftware.plugins.jenkins.tools.CmTool;
+import hudson.EnvVars;
+import hudson.Launcher;
 import hudson.Util;
 import hudson.model.Item;
+import hudson.model.Queue;
+import hudson.model.TaskListener;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.LogTaskListener;
+import jenkins.model.Jenkins;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class FormChecker {
+    private static final Logger LOGGER = Logger.getLogger(FormChecker.class.getName());
 
-    private static final Pattern WORKSPACE_REGEX = Pattern.compile("^[^@#/:]+$");
     private static final Pattern SELECTOR_REGEX = Pattern.compile(
         "^(\\s*(rep|repository)\\s+\"(.*)\"(\\s+mount\\s+\"(.*)\")?(\\s+path\\s+"
         + "\"(.*)\"(\\s+norecursive)?(\\s+((((((branch|br)\\s+\"(.*)\")(\\s+(revno\\s+"
@@ -21,11 +40,6 @@ public class FormChecker {
     private static final Pattern DIRECTORY_REGEX = Pattern.compile("^[A-Za-z0-9\\-\\_]+$");
 
     private FormChecker() { }
-
-    public static FormValidation doCheckWorkspaceName(String value) {
-        return doRegexCheck(WORKSPACE_REGEX, "Workspace name should not include @, #, / or :",
-            "Workspace name is mandatory", value);
-    }
 
     public static FormValidation doCheckSelector(String value) {
         return doRegexCheck(SELECTOR_REGEX, "Selector is not in valid format",
@@ -80,12 +94,60 @@ public class FormChecker {
         return FormValidation.error(noMatchText);
     }
 
-    public static FormValidation createValidationResponse(String text, boolean isError) {
-        if (isError) {
-            return FormValidation.respond(FormValidation.Kind.ERROR, "<div class=\"error\">" + text + "</div>");
+    public static FormValidation doCheckCredentialsId(
+            Item item,
+            String value,
+            String server,
+            WorkingMode workingMode) throws IOException, InterruptedException {
+        if (item == null) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
         } else {
-            return FormValidation.respond(FormValidation.Kind.OK, "<div class=\"info greenbold\">" + text + "</div>");
+            if (!item.hasPermission(Item.EXTENDED_READ)
+                && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return FormValidation.ok();
+            }
+        }
+        if (Util.fixEmpty(value) == null) {
+            if (workingMode == WorkingMode.NONE) {
+                return FormValidation.ok();
+            }
+            return FormValidation.error(workingMode.getLabel() + " requires credentials");
+        }
+        StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(
+            CredentialsProvider.lookupCredentials(
+                StandardUsernamePasswordCredentials.class,
+                item,
+                item instanceof Queue.Task
+                    ? Tasks.getAuthenticationOf((Queue.Task) item)
+                    : ACL.SYSTEM,
+                URIRequirementBuilder.create().build()),
+            CredentialsMatchers.withId(value));
+
+        if (credentials == null) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+
+        ClientConfigurationArguments clientConfArgs = new ClientConfigurationArguments(
+            workingMode, credentials, server);
+
+        TaskListener listener = new LogTaskListener(LOGGER, Level.INFO);
+        Launcher launcher = new Launcher.LocalLauncher(listener);
+
+        PlasticTool tool = new PlasticTool(
+            CmTool.get(Jenkins.getInstance(), new EnvVars(EnvVars.masterEnvVars), listener),
+            launcher,
+            listener,
+            Jenkins.getInstance().getRootPath(),
+            clientConfArgs);
+
+        try {
+            // execute will return a Reader or throw an exception - never null
+            tool.execute(new String[] {"repo", "list", server}).close();
+            return FormValidation.ok();
+        } catch (InterruptedException | IOException e) {
+            return FormValidation.error(e.getMessage());
         }
     }
-
 }

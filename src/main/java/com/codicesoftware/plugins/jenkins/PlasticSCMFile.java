@@ -8,11 +8,14 @@ import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
 import com.codicesoftware.plugins.hudson.util.DeleteOnCloseFileInputStream;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Run;
+import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMFile;
 
 import javax.annotation.Nonnull;
@@ -59,7 +62,8 @@ public class PlasticSCMFile extends SCMFile {
         return parameters != null ? parameters.getParameters() : null;
     }
 
-    private static DeleteOnCloseFileInputStream getFileContent(PlasticTool tool, String serverFile, String repObjectSpec)
+    private static DeleteOnCloseFileInputStream getFileContent(
+            PlasticTool tool, String serverFile, String repObjectSpec)
             throws IOException, InterruptedException {
         File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp");
 
@@ -177,18 +181,18 @@ public class PlasticSCMFile extends SCMFile {
             }
         }
 
-        Launcher launcher = fs.getLauncher();
-        PlasticTool tool = new PlasticTool(
-            fs.getSCM().getDescriptor().getCmExecutable(),
-            launcher,
-            launcher.getListener(),
-            null,
-            fs.getSCM().getDescriptor().getShouldUseDotNetInvariantGlobalization());
-
         try {
             String resolvedSelector = SelectorParametersResolver.resolve(
-                    workspaceInfo.getSelector(),
-                    getLastBuildParameters(fs));
+                workspaceInfo.getSelector(),
+                getLastBuildParameters(fs));
+
+            Launcher launcher = fs.getLauncher();
+            PlasticTool tool = new PlasticTool(
+                CmTool.get(Jenkins.getInstance(), new EnvVars(EnvVars.masterEnvVars), launcher.getListener()),
+                launcher,
+                launcher.getListener(),
+                null,
+                    fs.getSCM().buildClientConfigurationArguments(fs.getOwner(), resolvedSelector));
 
             String repObjectSpec = getRepObjectSpecFromSelector(
                     tool, resolvedSelector);

@@ -28,7 +28,8 @@ public final class LogOutputParser {
         }
 
         try (InputStream stream = SafeFilePath.read(path)) {
-            Digester digester = DigesterUtils.createDigester(!Boolean.getBoolean(LogOutputParser.class.getName() + ".UNSAFE"));
+            Digester digester = DigesterUtils.createDigester(
+                !Boolean.getBoolean(LogOutputParser.class.getName() + ".UNSAFE"));
             digester.push(csetList);
 
             digester.addObjectCreate("LogList/Changeset", ChangeSet.class);

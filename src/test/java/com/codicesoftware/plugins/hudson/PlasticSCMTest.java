@@ -1,6 +1,7 @@
 package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
+import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
@@ -20,7 +21,15 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, false, "");
+        PlasticSCM scm = new PlasticSCM(
+            PlasticSCM.DEFAULT_SELECTOR,
+            CleanupMethod.MINIMAL,
+            WorkingMode.NONE,
+            null,
+            false,
+            null,
+            false,
+            "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();
@@ -34,7 +43,15 @@ public class PlasticSCMTest {
     @Test
     public void testProjectConfigWithControllerPolling() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        PlasticSCM scm = new PlasticSCM(PlasticSCM.DEFAULT_SELECTOR, CleanupMethod.MINIMAL, false, null, true, "");
+        PlasticSCM scm = new PlasticSCM(
+            PlasticSCM.DEFAULT_SELECTOR,
+            CleanupMethod.MINIMAL,
+            WorkingMode.NONE,
+            null,
+            false,
+            null,
+            true,
+            "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();
@@ -43,6 +60,5 @@ public class PlasticSCMTest {
 
         assertTrue(testScm.supportsPolling());
         assertFalse(testScm.requiresWorkspaceForPolling());
-    }
-
+}
 }

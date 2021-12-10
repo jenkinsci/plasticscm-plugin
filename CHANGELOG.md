@@ -1,6 +1,16 @@
 # Release notes
 
-# Version 3.6  (24 May 2021)
+## Version 4.0 (10 Dec 2021)
+
+* Project configurations can specify a Plastic SCM working mode and credentials. The installed `cm`
+  will use those values to run all commands for that project. Credentials are specified and
+  retrieved using the Jenkins Credentials API.
+* The `cm` tool configuration is now exposed as a Jenkins Tool. By default, all Jenkins setups
+  will define at least one `cm` configuration, called `Default`. The default configuration includes
+  the Plastic SCM installer, which will automatically download and install the latest version of the
+  `cm` client from the Plastic SCM website.
+
+## Version 3.6  (24 May 2021)
 
 * Upgraded XML parser dependencies
 
@@ -20,7 +30,7 @@
 ### Fixes
 
 * Fixed an issue that caused changeset-based selector builds to only retrieve the correct contents
-  the first time. This happened if you upgraded the Plastic SCM CLI client in your Jenkins machine 
+  the first time. This happened if you upgraded the Plastic SCM CLI client in your Jenkins machine
   to version 8.0.16.3470 or higher. That version changes the behavior of `cm update` so it always
   retrieves the latest contents in the branch, even if you specified a changeset in the selector.
 * The `cm find` and `cm log` commands failed if their output was too long. We changed how those

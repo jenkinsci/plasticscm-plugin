@@ -365,6 +365,15 @@ inferred from the workspace name before and that parameter is now gone, the **Su
 parameter (used now to specify the subdirectory name explicitly) will be empty. Builds might
 download all workspaces in the same directory!
 
+## Upgrading from 3.x to 4.x
+
+There are not incompatibilities in configuration from version 3.x to version 4.x. The latter adds
+support in project/pipeline configurations to specify a Plastic SCM working mode and credentials.
+
+By default, new or existing projects will use the default credentials for `cm` as configured in the
+controller or agent machines. This means that upgrading will keep the same behaviour as you had in
+the previous version.
+
 ## Development
 
 ### Building the Plugin

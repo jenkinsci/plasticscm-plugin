@@ -59,7 +59,7 @@ in every build. The "Poll SCM" trigger also uses that selector.
 
 Every build will ensure that the Jenkins workspace contains a Plastic SCM before starting the
 `cm update` operation. If you'd like to create the Plastic SCM workspace in a particular
-subdirectory under the Jenkins job workspace, you can specify one in the **Subdirectory** field.
+subdirectory under the Jenkins job workspace, you can specify one in the **Directory** field.
 This field is mandatory if you want to use multiple workspaces.
 
 The _Cleanup_ value will determine what to do with the Plastic SCM workspace before checking out

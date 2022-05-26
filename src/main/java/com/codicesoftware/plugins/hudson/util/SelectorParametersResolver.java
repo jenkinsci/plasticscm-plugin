@@ -1,5 +1,6 @@
 package com.codicesoftware.plugins.hudson.util;
 
+import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.ParameterValue;
 
@@ -11,7 +12,7 @@ public class SelectorParametersResolver {
 
     private SelectorParametersResolver() { }
 
-    public static String resolve(String text, List<ParameterValue> parameters) {
+    public static String resolve(String text, List<ParameterValue> parameters, EnvVars environment) {
         if (parameters == null) {
             return text;
         }
@@ -23,8 +24,8 @@ public class SelectorParametersResolver {
             }
         }
 
-        return Util.replaceMacro(
-                resolveLegacyFormat(text, parametersMap), parametersMap);
+        return environment.expand(Util.replaceMacro(
+            resolveLegacyFormat(text, parametersMap), parametersMap));
     }
 
     static String resolveLegacyFormat(String text, Map<String, String> parametersMap) {

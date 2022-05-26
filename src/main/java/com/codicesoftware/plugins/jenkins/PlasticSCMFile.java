@@ -15,6 +15,7 @@ import hudson.Launcher;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMFile;
 
@@ -181,16 +182,25 @@ public class PlasticSCMFile extends SCMFile {
             }
         }
 
+        Launcher launcher = fs.getLauncher();
+        TaskListener listener = launcher.getListener();
+        Run<?, ?> build = fs.getLastBuildFromFirstJob();
+
+        EnvVars environment = new EnvVars(EnvVars.masterEnvVars);
+        if (build != null) {
+            environment = environment.overrideAll(build.getEnvironment(listener));
+        }
+
         try {
             String resolvedSelector = SelectorParametersResolver.resolve(
                 workspaceInfo.getSelector(),
-                getLastBuildParameters(fs));
+                getLastBuildParameters(fs),
+                environment);
 
-            Launcher launcher = fs.getLauncher();
             PlasticTool tool = new PlasticTool(
-                CmTool.get(Jenkins.getInstance(), new EnvVars(EnvVars.masterEnvVars), launcher.getListener()),
+                CmTool.get(Jenkins.getInstance(), environment, listener),
                 launcher,
-                launcher.getListener(),
+                listener,
                 null,
                     fs.getSCM().buildClientConfigurationArguments(fs.getOwner(), resolvedSelector));
 

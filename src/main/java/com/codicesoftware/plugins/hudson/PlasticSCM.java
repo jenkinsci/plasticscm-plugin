@@ -239,10 +239,13 @@ public class PlasticSCM extends SCM {
             ? Collections.emptyList()
             : parameters.getParameters();
 
+        EnvVars environment = run.getEnvironment(listener);
+
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
 
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
-            String resolvedSelector = SelectorParametersResolver.resolve(workspaceInfo.getSelector(), parameterValues);
+            String resolvedSelector = SelectorParametersResolver.resolve(
+                workspaceInfo.getSelector(), parameterValues, environment);
 
             PlasticTool tool = new PlasticTool(
                 CmTool.get(node, run.getEnvironment(listener), listener),
@@ -395,10 +398,12 @@ public class PlasticSCM extends SCM {
         List<ParameterValue> parameters = getDefaultParameterValues(project);
         Run<?, ?> lastBuild = project.getLastBuild();
 
+        EnvVars environment = lastBuild.getEnvironment(listener);
+
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = SelectorParametersResolver.resolve(
-                    workspaceInfo.selector, parameters);
+                workspaceInfo.selector, parameters, environment);
 
             boolean hasChanges = hasChanges(
                 project,

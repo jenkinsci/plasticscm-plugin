@@ -59,7 +59,7 @@ in every build. The "Poll SCM" trigger also uses that selector.
 
 Every build will ensure that the Jenkins workspace contains a Plastic SCM before starting the
 `cm update` operation. If you'd like to create the Plastic SCM workspace in a particular
-subdirectory under the Jenkins job workspace, you can specify one in the **Subdirectory** field.
+subdirectory under the Jenkins job workspace, you can specify one in the **Directory** field.
 This field is mandatory if you want to use multiple workspaces.
 
 The _Cleanup_ value will determine what to do with the Plastic SCM workspace before checking out
@@ -223,10 +223,14 @@ two new parameters will appear: **Script path** and **Lightweight checkout**.
 
 ![Pipeline script from SCM](doc/img/pipeline-script-from-scm.png)
 
-The script path tells Jenkins where to find the pipeline script file. **This path is relative to the
-Jenkins workspace!** So, if you defined subdirectories (regardless of how many additional
-repositories you described) you'll need to include the subdirectory in the Script path. See an
-example below:
+The script path tells Jenkins where to find the pipeline script file. If you defined subdirectories (regardless of how 
+many additional repositories you described) there are two possible scenarios: 
+- If **Lightweight checkout** is selected the file is checked-out from the repository alone and placed in the root path, 
+so you just need to specify the relative path to the script file within the repository.
+  e.g. "Jenkinsfile" (if Jenkinsfile is in the root of the repository)
+- Alternatively, if you don't select **Lightweight checkout** you'll need to include the subdirectory in the Script path
+as the repository is downloaded entirely before looking for the script file.
+  e.g. "code/Jenkinsfile" (if "code" specified in Directory field). See an example below:
 
 ![Pipeline script, multiple workspaces](doc/img/pipeline-script-multiple-workspaces.png)
 

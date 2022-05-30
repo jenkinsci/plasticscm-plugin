@@ -76,30 +76,44 @@
     <developer>
       <id>mig42</id>
       <name>Miguel Gonzalez</name>
-      <email>mgonzalez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <email>miguel.gonzalez@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>miryamgsm</id>
-      <name>Miryam Gomez</name>
-      <email>mgomez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>ferdef</id>
+      <name>Fernando de Francisco</name>
+      <email>fernando.defrancisco@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>rubarax</id>
-      <name>Ruben de Alba</name>
-      <email>rdealba@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>juliomaqueda</id>
+      <name>Julio Maqueda</name>
+      <email>julio.maqueda@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>jemagoga</id>
-      <name>Jesus Manuel Gonzalez</name>
-      <email>jgonzalez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>dhompanera</id>
+      <name>Daniel Hompanera</name>
+      <email>daniel.hompanera@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>pbayarri</id>
+      <name>Pablo Bayarri</name>
+      <email>pablo.bayarri@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>jessica-gutierrez</id>
+      <name>Jessica Gutierrez</name>
+      <email>jessica.gutierrez@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
   </developers>
 

@@ -223,10 +223,14 @@ two new parameters will appear: **Script path** and **Lightweight checkout**.
 
 ![Pipeline script from SCM](doc/img/pipeline-script-from-scm.png)
 
-The script path tells Jenkins where to find the pipeline script file. **This path is relative to the
-Jenkins workspace!** So, if you defined subdirectories (regardless of how many additional
-repositories you described) you'll need to include the subdirectory in the Script path. See an
-example below:
+The script path tells Jenkins where to find the pipeline script file. If you defined subdirectories (regardless of how 
+many additional repositories you described) there are two possible scenarios: 
+- If **Lightweight checkout** is selected the file is checked-out from the repository alone and placed in the root path, 
+so you just need to specify the relative path to the script file within the repository.
+  e.g. "Jenkinsfile" (if Jenkinsfile is in the root of the repository)
+- Alternatively, if you don't select **Lightweight checkout** you'll need to include the subdirectory in the Script path
+as the repository is downloaded entirely before looking for the script file.
+  e.g. "code/Jenkinsfile" (if "code" specified in Directory field). See an example below:
 
 ![Pipeline script, multiple workspaces](doc/img/pipeline-script-multiple-workspaces.png)
 

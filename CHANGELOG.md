@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 4.1 (29 Jun 2022)
+
+* Ensured environment variables are replaced in the selector contents.
+
 ## Version 4.0 (10 Dec 2021)
 
 * Project configurations can specify a Plastic SCM working mode and credentials. The installed `cm`

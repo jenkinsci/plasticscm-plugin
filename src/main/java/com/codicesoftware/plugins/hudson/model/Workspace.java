@@ -31,8 +31,7 @@ public class Workspace implements Serializable {
 
         if (channel != null) {
             this.path = new FilePath(channel, pathStr);
-        }
-        else {
+        } else {
             this.path = new FilePath(new File(path));
         }
     }

@@ -1,5 +1,11 @@
 # Release notes
 
+## Version TBC
+
+* Fixed an issue that caused workspace commands fail when the Jenkins controller runs on Windows
+and the agent on Linux/Mac (or vice versa). With this fix, we leverage the virtual channel to
+ensure the workspace paths keep the format of the agent's OS.
+
 ## Version 4.1 (29 Jun 2022)
 
 * Ensured environment variables are replaced in the selector contents.

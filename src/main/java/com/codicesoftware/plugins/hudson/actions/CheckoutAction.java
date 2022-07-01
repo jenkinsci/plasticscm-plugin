@@ -63,13 +63,6 @@ public class CheckoutAction {
         return workspace;
     }
 
-    private static boolean mustUpdateSelector(PlasticTool tool, FilePath workspacePath, String selector)
-            throws IOException, InterruptedException, ParseException {
-        String actualSelector = StringUtil.removeNewLines(WorkspaceManager.getSelector(tool, workspacePath));
-        String expectedSelector = StringUtil.removeNewLines(selector);
-        return !actualSelector.equals(expectedSelector);
-    }
-
     private static void deleteOldWorkspacesIfNeeded(
             PlasticTool tool,
             FilePath workspacePath,

@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import hudson.FilePath;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,9 +14,9 @@ public class GetWorkspaceFromPathCommand implements ParseableCommand<Workspace>,
 
     private static final Pattern parserPattern = Pattern.compile("^(.*)#(.*)#(.*)$");
 
-    private final String workspacePath;
+    private final FilePath workspacePath;
 
-    public GetWorkspaceFromPathCommand(String workspacePath) {
+    public GetWorkspaceFromPathCommand(FilePath workspacePath) {
         this.workspacePath = workspacePath;
     }
 
@@ -23,7 +24,7 @@ public class GetWorkspaceFromPathCommand implements ParseableCommand<Workspace>,
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("gwp");
-        arguments.add(workspacePath);
+        arguments.add(workspacePath.getRemote());
         arguments.add("--format={0}#{1}#{4}");
 
         return arguments;
@@ -34,7 +35,7 @@ public class GetWorkspaceFromPathCommand implements ParseableCommand<Workspace>,
         String line = reader.readLine();
         Matcher matcher = parserPattern.matcher(line);
         if (matcher.find()) {
-            return new Workspace(matcher.group(1), matcher.group(2), matcher.group(3));
+            return new Workspace(matcher.group(1), matcher.group(2), matcher.group(3), workspacePath.getChannel());
         }
         return null;
     }

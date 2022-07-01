@@ -11,6 +11,7 @@ import com.codicesoftware.plugins.hudson.commands.UndoCheckoutCommand;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import hudson.FilePath;
+import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -21,9 +22,9 @@ public class WorkspaceManager {
 
     private WorkspaceManager() { }
 
-    public static List<Workspace> loadWorkspaces(PlasticTool tool)
+    public static List<Workspace> loadWorkspaces(PlasticTool tool, VirtualChannel channel)
             throws IOException, InterruptedException, ParseException {
-        ListWorkspacesCommand command = new ListWorkspacesCommand();
+        ListWorkspacesCommand command = new ListWorkspacesCommand(channel);
         return CommandRunner.executeAndRead(tool, command);
     }
 
@@ -34,7 +35,7 @@ public class WorkspaceManager {
         NewWorkspaceCommand mkwkCommand = new NewWorkspaceCommand(workspaceName, workspacePath, selectorPath);
         CommandRunner.execute(tool, mkwkCommand);
         selectorPath.delete();
-        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath);
         return CommandRunner.executeAndRead(tool, gwpCommand);
     }
 

@@ -3,6 +3,7 @@ package com.codicesoftware.plugins.hudson.model;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.FilePath;
 import hudson.Util;
+import hudson.remoting.VirtualChannel;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -20,10 +21,20 @@ public class Workspace implements Serializable {
     private String guid;
 
     public Workspace(String name, String path, String guid) {
+        this(name, path, guid, null);
+    }
+
+    public Workspace(String name, String path, String guid, VirtualChannel channel) {
         this.name = name;
-        this.path = new FilePath(new File(path));
         this.pathStr = path;
         this.guid = guid;
+
+        if (channel != null) {
+            this.path = new FilePath(channel, pathStr);
+        }
+        else {
+            this.path = new FilePath(new File(path));
+        }
     }
 
     /**

@@ -28,7 +28,7 @@ public class CheckoutAction {
                 String selector,
                 CleanupMethod cleanup)
             throws IOException, InterruptedException, ParseException {
-        List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
+        List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool, workspacePath.getChannel());
 
         deleteOldWorkspacesIfNeeded(tool, workspacePath, cleanup, workspaces);
 

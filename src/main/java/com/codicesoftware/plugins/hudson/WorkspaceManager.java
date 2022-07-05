@@ -3,16 +3,15 @@ package com.codicesoftware.plugins.hudson;
 import com.codicesoftware.plugins.hudson.commands.CleanupWorkspaceCommand;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
 import com.codicesoftware.plugins.hudson.commands.DeleteWorkspaceCommand;
-import com.codicesoftware.plugins.hudson.commands.GetSelectorCommand;
 import com.codicesoftware.plugins.hudson.commands.GetWorkspaceFromPathCommand;
 import com.codicesoftware.plugins.hudson.commands.ListWorkspacesCommand;
 import com.codicesoftware.plugins.hudson.commands.NewWorkspaceCommand;
 import com.codicesoftware.plugins.hudson.commands.SetSelectorCommand;
 import com.codicesoftware.plugins.hudson.commands.UndoCheckoutCommand;
-import com.codicesoftware.plugins.hudson.commands.UpdateWorkspaceCommand;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import hudson.FilePath;
+import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -23,9 +22,9 @@ public class WorkspaceManager {
 
     private WorkspaceManager() { }
 
-    public static List<Workspace> loadWorkspaces(PlasticTool tool)
+    public static List<Workspace> loadWorkspaces(PlasticTool tool, VirtualChannel channel)
             throws IOException, InterruptedException, ParseException {
-        ListWorkspacesCommand command = new ListWorkspacesCommand();
+        ListWorkspacesCommand command = new ListWorkspacesCommand(channel);
         return CommandRunner.executeAndRead(tool, command);
     }
 
@@ -36,19 +35,13 @@ public class WorkspaceManager {
         NewWorkspaceCommand mkwkCommand = new NewWorkspaceCommand(workspaceName, workspacePath, selectorPath);
         CommandRunner.execute(tool, mkwkCommand);
         selectorPath.delete();
-        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath.getRemote());
+        GetWorkspaceFromPathCommand gwpCommand = new GetWorkspaceFromPathCommand(workspacePath);
         return CommandRunner.executeAndRead(tool, gwpCommand);
     }
 
     public static void deleteWorkspace(PlasticTool tool, FilePath workspacePath)
             throws IOException, InterruptedException {
         DeleteWorkspaceCommand command = new DeleteWorkspaceCommand(workspacePath.getRemote());
-        CommandRunner.execute(tool, command);
-    }
-
-    public static void updateWorkspace(PlasticTool tool, FilePath workspacePath)
-            throws IOException, InterruptedException {
-        UpdateWorkspaceCommand command = new UpdateWorkspaceCommand(workspacePath.getRemote());
         CommandRunner.execute(tool, command);
     }
 
@@ -61,12 +54,6 @@ public class WorkspaceManager {
         }
         UndoCheckoutCommand command = new UndoCheckoutCommand(workspacePath.getRemote());
         CommandRunner.execute(tool, command);
-    }
-
-    public static String getSelector(PlasticTool tool, FilePath workspacePath)
-            throws IOException, InterruptedException, ParseException {
-        GetSelectorCommand command = new GetSelectorCommand(workspacePath.getRemote());
-        return CommandRunner.executeAndRead(tool, command, false);
     }
 
     public static void setSelector(PlasticTool tool, FilePath workspacePath, String selector)

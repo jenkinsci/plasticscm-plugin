@@ -6,10 +6,6 @@ public class StringUtil {
 
     private StringUtil() { }
 
-    public static int tryParse(String value) {
-        return tryParse(value, 0);
-    }
-
     public static int tryParse(String value, int defaultValue) {
         try {
             return Integer.parseInt(value);
@@ -21,9 +17,4 @@ public class StringUtil {
     public static String singleLine(String value) {
         return Util.fixNull(value).replaceAll("[\\n\\r\\t ]+", " ").trim();
     }
-
-    public static String removeNewLines(String value) {
-        return Util.fixNull(value).replaceAll("[\\n\\r]", "").trim();
-    }
-
 }

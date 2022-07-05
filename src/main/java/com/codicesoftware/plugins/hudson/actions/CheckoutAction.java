@@ -28,7 +28,7 @@ public class CheckoutAction {
                 String selector,
                 CleanupMethod cleanup)
             throws IOException, InterruptedException, ParseException {
-        List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool);
+        List<Workspace> workspaces = WorkspaceManager.loadWorkspaces(tool, workspacePath.getChannel());
 
         deleteOldWorkspacesIfNeeded(tool, workspacePath, cleanup, workspaces);
 
@@ -61,13 +61,6 @@ public class CheckoutAction {
         WorkspaceManager.setSelector(tool, workspacePath, selector);
 
         return workspace;
-    }
-
-    private static boolean mustUpdateSelector(PlasticTool tool, FilePath workspacePath, String selector)
-            throws IOException, InterruptedException, ParseException {
-        String actualSelector = StringUtil.removeNewLines(WorkspaceManager.getSelector(tool, workspacePath));
-        String expectedSelector = StringUtil.removeNewLines(selector);
-        return !actualSelector.equals(expectedSelector);
     }
 
     private static void deleteOldWorkspacesIfNeeded(

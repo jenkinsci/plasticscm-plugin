@@ -1,10 +1,10 @@
 # Release notes
 
-## Version TBC
+## Version 4.2 (06 Jul 2022)
 
-* Fixed an issue that caused workspace commands fail when the Jenkins controller runs on Windows
-and the agent on Linux/Mac (or vice versa). With this fix, we leverage the virtual channel to
-ensure the workspace paths keep the format of the agent's OS.
+* Fixed an issue that caused workspace commands to fail when the Jenkins controller runs on Windows
+and the agent on Linux/Mac (or vice versa). With this fix, we leverage the virtual channel provided by Jenkins
+(representing the node building the job) to ensure the workspace paths keep the format of the builder node's OS.
 
 ## Version 4.1 (29 Jun 2022)
 

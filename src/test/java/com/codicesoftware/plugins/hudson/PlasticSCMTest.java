@@ -22,14 +22,14 @@ public class PlasticSCMTest {
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
         PlasticSCM scm = new PlasticSCM(
-            PlasticSCM.DEFAULT_SELECTOR,
-            CleanupMethod.MINIMAL,
-            WorkingMode.NONE,
-            null,
-            false,
-            null,
-            false,
-            "");
+                PlasticSCM.DEFAULT_SELECTOR,
+                CleanupMethod.MINIMAL,
+                WorkingMode.NONE,
+                null,
+                false,
+                null,
+                false,
+                "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();
@@ -44,14 +44,14 @@ public class PlasticSCMTest {
     public void testProjectConfigWithControllerPolling() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
         PlasticSCM scm = new PlasticSCM(
-            PlasticSCM.DEFAULT_SELECTOR,
-            CleanupMethod.MINIMAL,
-            WorkingMode.NONE,
-            null,
-            false,
-            null,
-            true,
-            "");
+                PlasticSCM.DEFAULT_SELECTOR,
+                CleanupMethod.MINIMAL,
+                WorkingMode.NONE,
+                null,
+                false,
+                null,
+                true,
+                "");
 
         project.setScm(scm);
         SCM testScm = project.getScm();
@@ -60,5 +60,27 @@ public class PlasticSCMTest {
 
         assertTrue(testScm.supportsPolling());
         assertFalse(testScm.requiresWorkspaceForPolling());
-}
+    }
+
+    @Test
+    public void testServerConfiguration() throws Exception {
+        FreeStyleProject project = rule.createFreeStyleProject();
+        String newLine = System.getProperty("line.separator");
+        String selector = String.join(
+                newLine,
+                "repository \"myRepo@my.plasticscm.server.com:8087\"",
+                "  path \"/\"",
+                "    smartbranch \"/main/develop\""
+        );
+        PlasticSCM scm = new PlasticSCM(
+                selector,
+                CleanupMethod.MINIMAL,
+                WorkingMode.NONE,
+                null,
+                false,
+                null,
+                true,
+                "");
+        assertEquals("--server=my.plasticscm.server.com:8087", scm.buildClientConfigurationArguments(project, selector).getServerParam());
+    }
 }

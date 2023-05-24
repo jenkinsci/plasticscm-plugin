@@ -111,7 +111,7 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
         @Override
         public boolean supports(SCMSource source) {
-            if(source instanceof SingleSCMSource) {
+            if (source instanceof SingleSCMSource) {
                 return isPlasticSCM(((SingleSCMSource) source).getScm());
             }
             return false;

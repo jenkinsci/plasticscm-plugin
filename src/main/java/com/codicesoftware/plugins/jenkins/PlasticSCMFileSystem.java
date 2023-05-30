@@ -14,6 +14,7 @@ import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceDescriptor;
+import jenkins.scm.impl.SingleSCMSource;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -110,6 +111,9 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
 
         @Override
         public boolean supports(SCMSource source) {
+            if (source instanceof SingleSCMSource) {
+                return isPlasticSCM(((SingleSCMSource) source).getScm());
+            }
             return false;
         }
 

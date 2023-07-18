@@ -1,26 +1,26 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
-import com.codicesoftware.plugins.hudson.commands.ChangesetLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetRangeLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
 import com.codicesoftware.plugins.hudson.commands.FindChangesetCommand;
-import com.codicesoftware.plugins.hudson.commands.GetWorkspaceStatusCommand;
 import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.model.ChangeSetID;
+import com.codicesoftware.plugins.hudson.model.ObjectSpec;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.FormFiller;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
+import com.codicesoftware.plugins.jenkins.BuildNode;
+import com.codicesoftware.plugins.jenkins.ChangesetDetails;
+import com.codicesoftware.plugins.jenkins.CredentialsFinder;
+import com.codicesoftware.plugins.jenkins.CurrentWorkspace;
+import com.codicesoftware.plugins.jenkins.WorkspaceSetup;
+import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -39,7 +39,6 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
@@ -48,7 +47,6 @@ import hudson.scm.RepositoryBrowser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
-import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
@@ -229,7 +227,7 @@ public class PlasticSCM extends SCM {
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
 
-        Node node = getNodeFromWorkspace(workspace);
+        Node node = BuildNode.getFromWorkspacePath(workspace);
         adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
@@ -462,8 +460,8 @@ public class PlasticSCM extends SCM {
         FilePath xmlOutputPath = null;
         try {
             xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
-            ParseableCommand<ChangeSet> command = new FindChangesetCommand(
-                    cset.getId(), cset.getBranch(), cset.getRepository(), xmlOutputPath);
+            ObjectSpec spec = new ObjectSpec(cset.getType(), cset.getId(), cset.getBranch(), cset.getRepository());
+            ParseableCommand<ChangeSet> command = new FindChangesetCommand(spec, xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command) != null;
         } catch (Exception e) {
             LOGGER.log(

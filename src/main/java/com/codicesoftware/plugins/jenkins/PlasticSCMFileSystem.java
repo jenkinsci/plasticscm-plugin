@@ -4,8 +4,6 @@ import com.codicesoftware.plugins.hudson.PlasticSCM;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.Item;
-import hudson.model.Job;
-import hudson.model.Run;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.LogTaskListener;
@@ -18,7 +16,6 @@ import jenkins.scm.api.SCMSourceDescriptor;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,21 +35,6 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         this.owner = owner;
         this.scm = scm;
         this.launcher = new Launcher.LocalLauncher(new LogTaskListener(LOGGER, Level.ALL));
-    }
-
-    @CheckForNull
-    public Run<?, ?> getLastBuildFromFirstJob() {
-        Collection<? extends Job> jobs = owner.getAllJobs();
-        for (Job job : jobs) {
-            if (job == null) {
-                continue;
-            }
-            Run<?, ?> run = job.getLastBuild();
-            if (run != null) {
-                return run;
-            }
-        }
-        return null;
     }
 
     @Nonnull

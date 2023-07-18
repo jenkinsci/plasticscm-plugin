@@ -18,7 +18,6 @@ import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
 import com.codicesoftware.plugins.jenkins.BuildNode;
 import com.codicesoftware.plugins.jenkins.ChangesetDetails;
 import com.codicesoftware.plugins.jenkins.CredentialsFinder;
-import com.codicesoftware.plugins.jenkins.CurrentWorkspace;
 import com.codicesoftware.plugins.jenkins.SelectorTemplates;
 import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
@@ -255,12 +254,6 @@ public class PlasticSCM extends SCM {
                 tool, listener, plasticWorkspacePath, workspaceInfo.getCleanup());
 
             WorkspaceManager.setSelector(tool, plasticWorkspace.getPath(), resolvedSelector);
-
-            ObjectSpec csetId = CurrentWorkspace.findSpecId(tool, listener, plasticWorkspacePath);
-
-            if (csetId == null) {
-                throw new AbortException("No changeset ID provided");
-            }
 
             ChangeSet cset = ChangesetDetails.forWorkspace(tool, workspace, listener);
 

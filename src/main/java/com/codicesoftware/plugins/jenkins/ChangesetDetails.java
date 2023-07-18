@@ -33,7 +33,6 @@ public class ChangesetDetails {
             @Nonnull final FilePath workspace,
             @Nonnull final TaskListener listener) throws IOException, InterruptedException {
 
-
         ObjectSpec csetId = CurrentWorkspace.findSpecId(tool, listener, workspace);
 
         if (csetId == null) {

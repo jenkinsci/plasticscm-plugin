@@ -19,7 +19,7 @@ import com.codicesoftware.plugins.jenkins.BuildNode;
 import com.codicesoftware.plugins.jenkins.ChangesetDetails;
 import com.codicesoftware.plugins.jenkins.CredentialsFinder;
 import com.codicesoftware.plugins.jenkins.CurrentWorkspace;
-import com.codicesoftware.plugins.jenkins.WorkspaceSetup;
+import com.codicesoftware.plugins.jenkins.SelectorTemplates;
 import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
@@ -86,7 +86,6 @@ public class PlasticSCM extends SCM {
     private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
     public static final String DEFAULT_BRANCH = "/main";
-    public static final String DEFAULT_SELECTOR = "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
             "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -677,7 +676,7 @@ public class PlasticSCM extends SCM {
         }
 
         public static String getDefaultSelector() {
-            return PlasticSCM.DEFAULT_SELECTOR;
+            return SelectorTemplates.DEFAULT;
         }
 
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
@@ -758,7 +757,7 @@ public class PlasticSCM extends SCM {
             }
 
             public static String getDefaultSelector() {
-                return PlasticSCM.DEFAULT_SELECTOR;
+                return SelectorTemplates.DEFAULT;
             }
 
             @Override

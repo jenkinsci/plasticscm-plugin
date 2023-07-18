@@ -14,8 +14,16 @@
       <tr class="pane">
         <td colspan="2" class="changeset">
           <div class="changeset-message" id="${cs.guid}">
-            ${%Changeset}: <b><a href="${browser.getChangeSetLink(cs)}">${cs.version}</a></b> |
-            ${%Branch}: <b>${cs.branch}</b> |
+            <j:if test="${cs.type==ObjectSpecType.Changeset}">
+              ${%Changeset}:
+            </j:if>
+            <j:if test="${cs.type==ObjectSpecType.Shelve}">
+              ${%Shelve}:
+            </j:if>
+            <b><a href="${browser.getChangeSetLink(cs)}">${cs.version}</a></b> |
+            <j:if test="${cs.type==ObjectSpecType.Changeset}">
+              ${%Branch}: <b>${cs.branch}</b> |
+            </j:if>
             ${%Repository}: <b>${cs.repoName}</b> |
             ${%Server}: <b>${cs.repoServer}</b>
             <br/>

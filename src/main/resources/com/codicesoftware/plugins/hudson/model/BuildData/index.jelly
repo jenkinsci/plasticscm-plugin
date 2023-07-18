@@ -11,14 +11,23 @@
       <p>
         <b>${%Object Spec}</b>: ${it.changeset.csetSpec}
       </p>
-      <h2>${%Changeset}</h2>
+      <h2>
+        <j:if test="${it.changeset.type==ObjectSpecType.Changeset}">
+          ${%Changeset}
+        </j:if>
+        <j:if test="${it.changeset.type==ObjectSpecType.Shelve}">
+          ${%Shelve}
+        </j:if>
+      </h2>
       <p>
         <b>${%ID}</b>: ${it.changeset.version}<br/>
         <b>${%Comment}</b>: ${it.changeset.msgAnnotated}<br/>
         <b>${%Author}</b>: ${it.changeset.author}<br/>
         <b>${%Date}</b>: <j:if test="${it.changeset.getDateObject()!=null}"><i:formatDate value="${it.changeset.getDateObject()}" type="both" dateStyle="medium" timeStyle="medium"/></j:if><br/>
         <b>${%Universal Date}</b>: ${it.changeset.getDateTimeUniversal()}<br/>
-        <b>${%Branch}</b>: ${it.changeset.branch}<br/>
+        <j:if test="${it.changeset.type==ObjectSpecType.Changeset}">
+          <b>${%Branch}</b>: ${it.changeset.branch}<br/>
+        </j:if>
         <b>${%Repository}</b>: ${it.changeset.repoName}<br/>
         <b>${%Server}</b>: ${it.changeset.repoServer}<br/>
         <b>${%GUID}</b>: ${it.changeset.guid}<br/>

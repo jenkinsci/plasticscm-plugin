@@ -10,6 +10,7 @@ import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.model.Workspace;
+import com.codicesoftware.plugins.hudson.util.FormFiller;
 import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
 import com.codicesoftware.plugins.jenkins.BuildNode;
 import com.codicesoftware.plugins.jenkins.ChangesetDetails;
@@ -21,6 +22,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Node;
 import hudson.model.Run;
@@ -30,6 +32,8 @@ import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
@@ -211,6 +215,10 @@ public class MergebotScm extends SCM {
 
         public static String getDefaultSpecAttributeName() {
             return MergebotScm.UPDATE_TO_SPEC_PARAMETER_NAME;
+        }
+
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+            return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
         @RequirePOST

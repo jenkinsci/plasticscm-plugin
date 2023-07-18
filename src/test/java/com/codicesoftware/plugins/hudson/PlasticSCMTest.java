@@ -2,9 +2,9 @@ package com.codicesoftware.plugins.hudson;
 
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
+import com.codicesoftware.plugins.jenkins.SelectorTemplates;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SCM;
-import hudson.util.FormValidation;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -22,7 +22,7 @@ public class PlasticSCMTest {
     public void testProjectConfig() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
         PlasticSCM scm = new PlasticSCM(
-            PlasticSCM.DEFAULT_SELECTOR,
+            SelectorTemplates.DEFAULT,
             CleanupMethod.MINIMAL,
             WorkingMode.NONE,
             null,
@@ -44,7 +44,7 @@ public class PlasticSCMTest {
     public void testProjectConfigWithControllerPolling() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
         PlasticSCM scm = new PlasticSCM(
-            PlasticSCM.DEFAULT_SELECTOR,
+            SelectorTemplates.DEFAULT,
             CleanupMethod.MINIMAL,
             WorkingMode.NONE,
             null,

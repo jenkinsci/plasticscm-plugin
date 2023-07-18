@@ -11,13 +11,13 @@ import java.text.ParseException;
 import java.util.List;
 
 public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet>>, Command {
-    private final String csetSpecFrom;
-    private final String csetSpecTo;
+    private final ChangeSet fromCset;
+    private final ChangeSet toCset;
     private final FilePath xmlOutputPath;
 
-    public ChangesetRangeLogCommand(String csetSpecFrom, String csetSpecTo, FilePath xmlOutputPath) {
-        this.csetSpecFrom = csetSpecFrom;
-        this.csetSpecTo = csetSpecTo;
+    public ChangesetRangeLogCommand(ChangeSet fromCset, ChangeSet toCset, FilePath xmlOutputPath) {
+        this.fromCset = fromCset;
+        this.toCset = toCset;
         this.xmlOutputPath = xmlOutputPath;
     }
 
@@ -25,8 +25,8 @@ public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
         arguments.add("log");
-        arguments.add("--from=" + csetSpecFrom);
-        arguments.add("" + csetSpecTo);
+        arguments.add("--from=" + fromCset.getCsetSpec());
+        arguments.add(toCset.getCsetSpec());
         arguments.add("--xml=" + xmlOutputPath);
         arguments.add("--encoding=utf-8");
 
@@ -34,6 +34,6 @@ public class ChangesetRangeLogCommand implements ParseableCommand<List<ChangeSet
     }
 
     public List<ChangeSet> parse(Reader reader) throws IOException, ParseException {
-        return LogOutputParser.parseFile(xmlOutputPath);
+        return LogOutputParser.parseFile(xmlOutputPath, toCset.getRepoName(), toCset.getRepoServer());
     }
 }

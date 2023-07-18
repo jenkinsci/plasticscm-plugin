@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
@@ -16,43 +15,37 @@ import java.util.List;
  * Plastic SCM change log writer, based on tfs version.
  */
 public class ChangeSetWriter {
+    private ChangeSetWriter() {
+    }
 
     /**
      * Writes the list of change sets to the file
      * @param changeSets list of change sets
      * @param changelogFile file to write change sets to
      */
-    public void write(List<ChangeSet> changeSets, File changelogFile) throws IOException {
-        BufferedWriter writer = Files.newBufferedWriter(changelogFile.toPath(), StandardCharsets.UTF_8);
+    public static void write(List<ChangeSet> changeSets, File changelogFile) throws IOException {
+        BufferedWriter bufferedWriter = Files.newBufferedWriter(changelogFile.toPath(), StandardCharsets.UTF_8);
         try {
-            write(changeSets, writer);
+            PrintWriter writer = new PrintWriter(bufferedWriter);
+
+            writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            writer.println("<changelog>");
+
+            for (ChangeSet changeSet : changeSets) {
+                writer.println(String.format("\t<changeset version=\"%s\">", changeSet.getVersion()));
+                write(changeSet, writer);
+                writer.println("\t</changeset>");
+            }
+
+            writer.println("</changelog>");
+            writer.flush();
         } finally {
-            IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(bufferedWriter);
         }
     }
 
-    /**
-     * Writes the list of change sets to the writer
-     * @param changeSets list of change sets
-     * @param output output writer
-     */
-    public void write(List<ChangeSet> changeSets, Writer output) {
-        PrintWriter writer = new PrintWriter(output);
-
-        writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        writer.println("<changelog>");
-
-        for (ChangeSet changeSet : changeSets) {
-            writer.println(String.format("\t<changeset version=\"%s\">", changeSet.getVersion()));
-            write(changeSet, writer);
-            writer.println("\t</changeset>");
-        }
-
-        writer.println("</changelog>");
-        writer.flush();
-    }
-
-    private void write(ChangeSet changeSet, PrintWriter writer) {
+    private static void write(ChangeSet changeSet, PrintWriter writer) {
+        writer.println(String.format("\t\t<type>%s</type>", escapeForXml(changeSet.getType())));
         writer.println(String.format("\t\t<date>%s</date>", escapeForXml(changeSet.getXmlDate())));
         writer.println(String.format("\t\t<user>%s</user>", escapeForXml(changeSet.getUser())));
         writer.println(String.format("\t\t<comment>%s</comment>", escapeForXml(changeSet.getComment())));
@@ -81,7 +74,7 @@ public class ChangeSetWriter {
      * @param object The object to be escaped.
      * @return Escaped string that can be written to XML.
      */
-    private String escapeForXml(Object object) {
+    private static String escapeForXml(Object object) {
         if (object == null) {
             return null;
         }

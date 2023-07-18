@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
+import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Util;
 import hudson.model.User;
@@ -25,6 +26,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ChangeSet.class.getName());
 
+    private ObjectSpecType type;
     private String version;
     private String repoName;
     private String repoServer;
@@ -40,12 +42,20 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @SuppressWarnings("unused")
     public ChangeSet() {
-        this("", "", "", "", "", "", "", "");
+        this(ObjectSpecType.Changeset, "", "", "", "", "", "", "", "");
     }
 
     public ChangeSet(
-            String version, String repoName, String repoServer, String dateTimeStr,
-            String branch, String user, String comment, String guid) {
+            ObjectSpecType type,
+            String version,
+            String repoName,
+            String repoServer,
+            String dateTimeStr,
+            String branch,
+            String user,
+            String comment,
+            String guid) {
+        this.type = type;
         this.version = version;
         this.repoName = repoName;
         this.repoServer = repoServer;
@@ -62,6 +72,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
      * Copy constructor.
      */
     public ChangeSet(ChangeSet o) {
+        this.type = o.type;
         this.version = o.version;
         this.repoName = o.repoName;
         this.repoServer = o.repoServer;
@@ -114,7 +125,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @Override
     public String getCommitId() {
-        return version;
+        return getCsetSpec();
     }
 
     @Override
@@ -240,6 +251,15 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     @Exported
+    public ObjectSpecType getType() {
+        return type;
+    }
+
+    public void setType(ObjectSpecType type) {
+        this.type = type;
+    }
+
+    @Exported
     public String getBranch() {
         return branch;
     }
@@ -277,7 +297,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @Exported
     public String getCsetSpec() {
-        return String.format("cs:%s@%s@%s", version, repoName, repoServer);
+        return String.format("%s:%s@%s@%s", type.toSpecObject(), version, repoName, repoServer);
     }
 
     @ExportedBean(defaultVisibility = 999)

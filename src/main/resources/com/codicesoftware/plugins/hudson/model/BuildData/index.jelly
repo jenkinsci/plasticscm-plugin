@@ -12,11 +12,11 @@
         <b>${%Object Spec}</b>: ${it.changeset.csetSpec}
       </p>
       <h2>
-        <j:if test="${it.changeset.type==ObjectSpecType.Changeset}">
+        <j:if test="${it.changeset.type=='Changeset'}">
           ${%Changeset}
         </j:if>
-        <j:if test="${it.changeset.type==ObjectSpecType.Shelve}">
-          ${%Shelve}
+        <j:if test="${it.changeset.type=='Shelve'}">
+          ${%Shelveset}
         </j:if>
       </h2>
       <p>

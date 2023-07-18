@@ -454,8 +454,7 @@ public class PlasticSCM extends SCM {
         FilePath xmlOutputPath = null;
         try {
             xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
-            ObjectSpec spec = new ObjectSpec(cset.getType(), cset.getId(), cset.getBranch(), cset.getRepository());
-            ParseableCommand<ChangeSet> command = new FindChangesetCommand(spec, xmlOutputPath);
+            ParseableCommand<ChangeSet> command = new FindChangesetCommand(cset.getObjectSpec(), xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command) != null;
         } catch (Exception e) {
             LOGGER.log(

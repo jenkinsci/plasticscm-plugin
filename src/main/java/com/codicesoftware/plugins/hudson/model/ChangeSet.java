@@ -300,6 +300,10 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         return String.format("%s:%s@%s@%s", type.toSpecObject(), version, repoName, repoServer);
     }
 
+    public ObjectSpec getObjectSpec() {
+        return new ObjectSpec(type, getId(), repoName, repoServer);
+    }
+
     @ExportedBean(defaultVisibility = 999)
     public static class Item implements ChangeLogSet.AffectedFile, Serializable {
         private static final long serialVersionUID = 1L;

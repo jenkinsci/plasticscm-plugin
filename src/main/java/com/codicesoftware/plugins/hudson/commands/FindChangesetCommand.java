@@ -30,7 +30,7 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
         arguments.add("find");
         arguments.add(object);
         arguments.add("where");
-        arguments.add(String.format("%s=%d", object, objectSpec.getId()));
+        arguments.add(String.format("%sid=%d", object, objectSpec.getId()));
         arguments.add("on");
         arguments.add("repository");
         arguments.add(String.format("'%s@%s'", objectSpec.getRepository(), objectSpec.getServer()));

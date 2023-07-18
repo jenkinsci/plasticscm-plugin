@@ -132,7 +132,7 @@ public class PlasticSCMStep extends SCMStep {
         if (Util.fixEmptyAndTrim(changeset) == null) {
             return String.format(SelectorTemplates.BRANCH, repository, server, branch);
         } else {
-            return String.format(SelectorTemplates.CHANGESET_WITH_BRANCH, repository, server, branch, changeset);
+            return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
         }
     }
 

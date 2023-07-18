@@ -13,7 +13,7 @@ import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
-import com.codicesoftware.plugins.jenkins.mergebot.UpdateToSpec;
+import com.codicesoftware.plugins.jenkins.UpdateToSpec;
 import hudson.FilePath;
 import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;

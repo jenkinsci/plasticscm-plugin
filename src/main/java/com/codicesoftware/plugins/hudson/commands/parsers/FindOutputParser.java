@@ -2,7 +2,7 @@ package com.codicesoftware.plugins.hudson.commands.parsers;
 
 import com.codicesoftware.plugins.DigesterUtils;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import hudson.FilePath;
 import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;

@@ -1,6 +1,6 @@
 package com.codicesoftware.plugins.hudson.model;
 
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 
 public class ObjectSpec {
     private final ObjectSpecType specObjectType;

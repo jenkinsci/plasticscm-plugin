@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
 import com.codicesoftware.plugins.jenkins.FileContent;
 import com.codicesoftware.plugins.jenkins.LastBuild;
+import com.codicesoftware.plugins.jenkins.UpdateToSpec;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
 import hudson.EnvVars;

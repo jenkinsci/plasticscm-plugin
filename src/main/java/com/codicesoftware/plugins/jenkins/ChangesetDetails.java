@@ -9,7 +9,6 @@ import com.codicesoftware.plugins.hudson.commands.FindChangesetCommand;
 import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.ObjectSpec;
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.model.TaskListener;

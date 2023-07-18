@@ -2,7 +2,7 @@ package com.codicesoftware.plugins.hudson.model;
 
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.StringUtil;
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Util;
 import hudson.model.User;

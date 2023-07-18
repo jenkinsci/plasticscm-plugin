@@ -4,7 +4,7 @@ import com.codicesoftware.plugins.hudson.commands.parsers.FindOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import hudson.FilePath;
 
 import java.io.IOException;

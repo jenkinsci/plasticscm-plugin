@@ -1,4 +1,4 @@
-package com.codicesoftware.plugins.jenkins.mergebot;
+package com.codicesoftware.plugins.jenkins;
 
 public enum ObjectSpecType {
     Branch,

@@ -15,6 +15,7 @@ import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
 import com.codicesoftware.plugins.jenkins.BuildNode;
 import com.codicesoftware.plugins.jenkins.ChangesetDetails;
 import com.codicesoftware.plugins.jenkins.CredentialsFinder;
+import com.codicesoftware.plugins.jenkins.UpdateToSpec;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;

@@ -2,7 +2,7 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.model.ObjectSpec;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
-import com.codicesoftware.plugins.jenkins.mergebot.ObjectSpecType;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 
 import java.io.BufferedReader;
 import java.io.IOException;

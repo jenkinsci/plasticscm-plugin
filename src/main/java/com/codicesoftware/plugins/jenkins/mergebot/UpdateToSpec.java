@@ -90,8 +90,4 @@ public class UpdateToSpec {
 
         throw new IllegalArgumentException("Invalid object type: " + objectName);
     }
-
-    public String getSelector() {
-        return null;
-    }
 }

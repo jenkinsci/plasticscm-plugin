@@ -251,8 +251,10 @@ public class PlasticSCM extends SCM {
                 plasticWorkspacePath,
                 buildClientConfigurationArguments(run.getParent(), resolvedSelector));
 
-            Workspace plasticWorkspace = WorkspaceSetup.perform(
-                tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
+            Workspace plasticWorkspace = WorkspaceManager.prepare(
+                tool, listener, plasticWorkspacePath, workspaceInfo.getCleanup());
+
+            WorkspaceManager.setSelector(tool, plasticWorkspace.getPath(), resolvedSelector);
 
             ObjectSpec csetId = CurrentWorkspace.findSpecId(tool, listener, plasticWorkspacePath);
 

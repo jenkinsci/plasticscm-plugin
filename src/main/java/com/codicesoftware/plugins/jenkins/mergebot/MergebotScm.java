@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.ChangeSetReader;
 import com.codicesoftware.plugins.hudson.ChangeSetWriter;
 import com.codicesoftware.plugins.hudson.ClientConfigurationArguments;
 import com.codicesoftware.plugins.hudson.PlasticTool;
+import com.codicesoftware.plugins.hudson.WorkspaceManager;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
@@ -13,7 +14,6 @@ import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
 import com.codicesoftware.plugins.jenkins.BuildNode;
 import com.codicesoftware.plugins.jenkins.ChangesetDetails;
 import com.codicesoftware.plugins.jenkins.CredentialsFinder;
-import com.codicesoftware.plugins.jenkins.WorkspaceSetup;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
@@ -143,8 +143,10 @@ public class MergebotScm extends SCM {
                 workspace,
                 buildClientConfigurationArguments(run, updateToSpec.getRepServer()));
 
-        Workspace plasticWorkspace = WorkspaceSetup.perform(
-                tool, listener, workspace, updateToSpec.getSelector(), cleanup);
+        Workspace plasticWorkspace = WorkspaceManager.prepare(
+                tool, listener, workspace, cleanup);
+
+        WorkspaceManager.switchTo(tool, plasticWorkspace.getPath(), updateToSpec);
 
         ChangeSet cset = ChangesetDetails.forWorkspace(tool, workspace, listener);
 

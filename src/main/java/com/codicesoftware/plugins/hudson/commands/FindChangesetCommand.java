@@ -2,6 +2,7 @@ package com.codicesoftware.plugins.hudson.commands;
 
 import com.codicesoftware.plugins.hudson.commands.parsers.FindOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.hudson.model.ObjectSpec;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
 import hudson.FilePath;
@@ -13,31 +14,26 @@ import java.util.List;
 
 public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Command {
 
-    private final int csetId;
-    private final String branch;
-    private final String repository;
+    private final ObjectSpec objectSpec;
     private final FilePath xmlOutputPath;
 
     public FindChangesetCommand(
-        int csetId, String branch, String repository, FilePath xmlOutputPath) {
-        this.csetId = csetId;
-        this.branch = branch;
-        this.repository = repository;
+        ObjectSpec objectSpec, FilePath xmlOutputPath) {
+        this.objectSpec = objectSpec;
         this.xmlOutputPath = xmlOutputPath;
     }
 
     public MaskedArgumentListBuilder getArguments() {
         MaskedArgumentListBuilder arguments = new MaskedArgumentListBuilder();
 
+        String object = objectSpec.getType().toFindObject();
         arguments.add("find");
-        arguments.add("changeset");
+        arguments.add(object);
         arguments.add("where");
-        arguments.add("branch='" + branch + "'");
-        arguments.add("and");
-        arguments.add("changesetid=" + csetId);
+        arguments.add(String.format("%s=%d", object, objectSpec.getId()));
         arguments.add("on");
         arguments.add("repository");
-        arguments.add("'" + repository + "'");
+        arguments.add(String.format("'%s@%s'", objectSpec.getRepository(), objectSpec.getServer()));
 
         arguments.add("--xml");
         arguments.add("--file=" + xmlOutputPath.getRemote());
@@ -47,7 +43,7 @@ public class FindChangesetCommand implements ParseableCommand<ChangeSet>, Comman
     }
 
     public ChangeSet parse(Reader reader) throws IOException, ParseException {
-        List<ChangeSet> csetList = FindOutputParser.parseReader(xmlOutputPath);
+        List<ChangeSet> csetList = FindOutputParser.parseReader(objectSpec.getType(), xmlOutputPath);
 
         if (!csetList.isEmpty()) {
             return csetList.get(0);

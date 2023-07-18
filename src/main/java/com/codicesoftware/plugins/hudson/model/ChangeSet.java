@@ -259,6 +259,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.type = type;
     }
 
+    @SuppressWarnings("unused")
+    public void setTypeStr(String typeStr) {
+        this.type = Enum.valueOf(ObjectSpecType.class, typeStr);
+    }
+
     @Exported
     public String getBranch() {
         return branch;

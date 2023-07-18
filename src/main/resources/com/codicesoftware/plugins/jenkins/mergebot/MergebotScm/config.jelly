@@ -10,7 +10,7 @@
     </f:entry>
 
     <f:entry field="credentialsId" title="${%Credentials}" help="/plugin/plasticscm-plugin/credentials.html">
-        <c:select checkMethod="post" />
+        <c:select />
     </f:entry>
 
     <f:advanced title="${%Advanced configuration}">

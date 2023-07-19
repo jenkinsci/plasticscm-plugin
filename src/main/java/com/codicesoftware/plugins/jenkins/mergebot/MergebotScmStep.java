@@ -23,7 +23,7 @@ public class MergebotScmStep extends SCMStep {
     private WorkingMode workingMode = WorkingMode.NONE;
     private String credentialsId = null;
     private CleanupMethod cleanup = CleanupMethod.STANDARD;
-    private String specAttributeName;
+    private String specAttributeName = MergebotScm.UPDATE_TO_SPEC_PARAMETER_NAME;
 
     @DataBoundConstructor
     public MergebotScmStep() {

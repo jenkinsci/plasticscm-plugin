@@ -60,6 +60,10 @@ public class FindOutputParser {
             if (stream != null) {
                 digester.parse(stream);
             }
+
+            for (ChangeSet cset : csetList) {
+                cset.setType(specType);
+            }
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
         }

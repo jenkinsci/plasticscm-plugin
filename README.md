@@ -68,6 +68,9 @@ A Mergebot will trigger a CI build, which will be requested to Jenkins via a Plu
 need to have the Plastic SCM plugin configured in Mergebot mode. The plugin will then download the sources to the
 workspace, taking the required spec from a build parameter.
 
+You can find out more about how to configure the Plastic SCM plugin in Mergebot mode in the
+[Mergebot mode guide](doc/MergebotGuide.md).
+
 # Requirements
 
 * Jenkins `2.60.3` or newer

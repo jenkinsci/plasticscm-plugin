@@ -29,6 +29,10 @@ public class MergebotScmStep extends SCMStep {
     public MergebotScmStep() {
     }
 
+    public WorkingMode getWorkingMode() {
+        return workingMode;
+    }
+
     @DataBoundSetter
     public void setWorkingMode(WorkingMode workingMode) {
         this.workingMode = workingMode;

@@ -11,7 +11,7 @@ workspace, taking the required spec from a build parameter.
 
 The Jenkins controller and its agents need to have a Plastic SCM client present in their machines or containers.
 You can achieve that by defining Plastic SCM as a Jenkins Global Tool. Check our
-[External Tool Configuration guide](ExternalToolConfiguration.md) for more information.
+[External Tool Configuration guide](external-tool-configuration.md) for more information.
 
 ### Freestyle projects
 

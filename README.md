@@ -47,7 +47,7 @@ The Plastic SCM plugin for Jenkins requires a working `cm` client to be present 
 If it's not, the plugin provides a way for the machines to automatically download and install the client.
 
 You can find out more about how to configure the Plastic SCM client in Jenkins in the
-[External Tool Configuration guide](doc/ExternalToolConfiguration.md).
+[External Tool Configuration guide](doc/external-tool-configuration.md).
 
 ## Standalone mode
 
@@ -56,7 +56,7 @@ project configuration defines which repository to use and the credentials to con
 download the sources to the workspace.
 
 You can find out more about how to configure the Plastic SCM plugin in standalone mode in the
-[Standalone mode guide](doc/StandaloneGuide.md).
+[Standalone mode guide](doc/standalone-guide.md).
 
 ## Mergebot mode
 
@@ -69,7 +69,7 @@ need to have the Plastic SCM plugin configured in Mergebot mode. The plugin will
 workspace, taking the required spec from a build parameter.
 
 You can find out more about how to configure the Plastic SCM plugin in Mergebot mode in the
-[Mergebot mode guide](doc/MergebotGuide.md).
+[Mergebot mode guide](doc/mergebot-guide.md).
 
 # Requirements
 

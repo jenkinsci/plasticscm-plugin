@@ -26,7 +26,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ChangeSet.class.getName());
 
-    private ObjectSpecType type;
+    private ObjectSpecType type = ObjectSpecType.Changeset;
     private String version;
     private String repoName;
     private String repoServer;
@@ -72,7 +72,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
      * Copy constructor.
      */
     public ChangeSet(ChangeSet o) {
-        this.type = o.type;
+        this.type = o.type == null ? ObjectSpecType.Changeset : o.type;
         this.version = o.version;
         this.repoName = o.repoName;
         this.repoServer = o.repoServer;
@@ -252,7 +252,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @Exported
     public ObjectSpecType getType() {
-        return type;
+        return type == null ? ObjectSpecType.Changeset : type;
     }
 
     public void setType(ObjectSpecType type) {
@@ -261,7 +261,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @SuppressWarnings("unused")
     public void setTypeStr(String typeStr) {
-        this.type = Enum.valueOf(ObjectSpecType.class, typeStr);
+        try {
+            this.type = Enum.valueOf(ObjectSpecType.class, typeStr);
+        } catch (Exception e) {
+            this.type = ObjectSpecType.Changeset;
+        }
     }
 
     @Exported
@@ -302,11 +306,11 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
 
     @Exported
     public String getCsetSpec() {
-        return String.format("%s:%s@%s@%s", type.toSpecObject(), version, repoName, repoServer);
+        return String.format("%s:%s@%s@%s", getType().toSpecObject(), version, repoName, repoServer);
     }
 
     public ObjectSpec getObjectSpec() {
-        return new ObjectSpec(type, getId(), repoName, repoServer);
+        return new ObjectSpec(getType(), getId(), repoName, repoServer);
     }
 
     @ExportedBean(defaultVisibility = 999)

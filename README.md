@@ -18,6 +18,10 @@
   * [Installing the Plastic SCM client](#installing-the-plastic-scm-client)
   * [Standalone mode](#standalone-mode)
   * [Mergebot mode](#mergebot-mode)
+* [Build information](#build-information)
+  * [Summary](#summary)
+  * [Changes list](#changes-list)
+  * [Plastic SCM Build Data](#plastic-scm-build-data)
 * [Requirements](#requirements)
 * [Upgrades](#upgrades)
   * [Upgrading from 3.x to 4.x](#upgrading-from-3x-to-4x)
@@ -70,6 +74,28 @@ workspace, taking the required spec from a build parameter.
 
 You can find out more about how to configure the Plastic SCM plugin in Mergebot mode in the
 [Mergebot mode guide](doc/mergebot-guide.md).
+
+
+# Build information
+
+## Summary
+
+The build summary includes a reference to the Plastic SCM changeset spec that was built.
+
+![Build summary](doc/img/build-summary.png)
+
+## Changes list
+
+The changes page in each build will have details about each of the changesets that were included in
+the build, linked from the summary list.
+
+![Changes summary](doc/img/changes-summary.png)
+
+## Plastic SCM Build Data
+
+You'll find a link in the build page sidebar to display the Plastic SCM data for that build.
+
+![Build data](doc/img/Plastic-SCM-Build-Data.png)
 
 # Requirements
 

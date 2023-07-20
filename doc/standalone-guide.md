@@ -216,28 +216,7 @@ many additional repositories you described) there are two possible scenarios:
 Enabling **lightweight checkout** lets Jenkins retrieve the pipeline script file directly, without a
 full Plastic SCM update.
 
-## Build information
-
-### Summary
-
-The build summary includes a reference to the Plastic SCM changeset spec that was built.
-
-![Build summary](img/build-summary.png)
-
-### Changes list
-
-The changes page in each build will have details about each of the changesets that were included in
-the build, linked from the summary list.
-
-![Changes summary](img/changes-summary.png)
-
-### Plastic SCM Build Data
-
-You'll find a link in the build page sidebar to display the Plastic SCM data for that build.
-
-![Build data](img/Plastic-SCM-Build-Data.png)
-
-### Environment variables
+## Environment variables
 
 If the checkout operation succeeds, these environment variables will be populated with the
 appropriate values for the build:

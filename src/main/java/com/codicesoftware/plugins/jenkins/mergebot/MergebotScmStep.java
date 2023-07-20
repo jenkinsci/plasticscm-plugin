@@ -94,7 +94,7 @@ public class MergebotScmStep extends SCMStep {
         }
 
         @RequirePOST
-        public static FormValidation doCheckSpeckAttributeName(@QueryParameter String value) {
+        public static FormValidation doCheckSpecAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null
                 ? FormValidation.error("The attribute name cannot be empty")
                 : FormValidation.ok();

@@ -8,11 +8,7 @@
     * [Multiple workspaces](#multiple-workspaces)
     * [Poll on controller](#poll-on-controller)
     * [Pipelines](#pipelines)
-  * [Build information](#build-information)
-    * [Summary](#summary)
-    * [Changes list](#changes-list)
-    * [Plastic SCM Build Data](#plastic-scm-build-data)
-    * [Environment variables](#environment-variables)
+  * [Environment variables](#environment-variables)
       * [Use in pipelines](#use-in-pipelines)
 <!-- TOC -->
 
@@ -64,7 +60,8 @@ Then, for _User & password_ and _LDAP / Cloud_ you need to specify credentials u
 
 Finally, the _Poll on controller_ option allows you to run the polling operation on the Jenkins controller instead of
 the agent. This is useful if you're using Kubernetes agents, for example, and you want to make sure that the polling
-operation is always executed, even if the agent is not available.
+operation is always executed, even if the agent is not available. See the [Poll on controller](#poll-on-controller)
+section below for more information.
 
 ![Freestyle configuration](img/freestyle-configuration.png)
 
@@ -133,14 +130,13 @@ plugin download the contents from two or more repositories into the same directo
 
 ### Poll on controller
 
-The Plastic SCM supports polling for repository changes. Polling is normally done
-on the agent that performed the last build, but you can choose to run the polling directly
-on the controller instead. This puts more work on the controller, but it makes polling work
-reliably in situations where the agents come and go; for example, when agents are
-provisioned on-demand in a Kubernetes cluster.
+The Plastic SCM supports polling for repository changes. Polling is normally done on the agent that performed the last
+build, but you can choose to run the polling directly on the controller instead. This puts more work on the controller,
+but it makes polling work reliably in situations where the agents come and go; for example, when agents are provisioned
+on-demand in a Kubernetes cluster.
 
-Since polling on the controller will invoke `cm` directly on the controller, the tool must have
-its configuration within the `.plastic4` folder, just like on the agents.
+Polling uses the same authentication settings as the checkout process, so make sure that your controller is properly
+configured if you're relying on system settings.
 
 ### Pipelines
 

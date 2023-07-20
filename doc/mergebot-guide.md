@@ -1,5 +1,17 @@
 # Mergebot mode
 
+<!-- TOC -->
+* [Mergebot mode](#mergebot-mode)
+  * [Project configuration](#project-configuration)
+    * [Freestyle projects](#freestyle-projects)
+    * [Pipeline projects](#pipeline-projects)
+      * [Command syntax](#command-syntax)
+      * [Command examples](#command-examples)
+    * [Enable remotely triggered builds](#enable-remotely-triggered-builds)
+  * [Setup in Plastic SCM](#setup-in-plastic-scm)
+  * [Build parameters & environment variables](#build-parameters--environment-variables)
+<!-- TOC -->
+
 This mode is intended to be used in conjunction with the
 [Plastic SCM Mergebot](https://blog.plasticscm.com/2018/09/mergebot-story-of-our-devops-initiative.html) feature.
 
@@ -47,6 +59,15 @@ target working mode, which can be one of these:
 Then, for _User & password_ and _LDAP / Cloud_ you need to specify credentials using the Jenkins Credentials API.
 
 ### Pipeline projects
+
+The easiest way for you to configure your pipeline is to use the "Pipeline script from SCM" option in the
+"Pipeline" section of the job configuration. This will allow you to specify the pipeline script in a Plastic SCM
+repository, and the plugin will take care of downloading it to the workspace before running it.
+
+Selecting "Lightweight checkout" is recommended, as it will only download the pipeline script and not the entire
+repository contents.
+
+![Pipeline script from SCM](img/mergebot/pipeline-configuration.png)
 
 If you use scripted pipelines, or you want to specify the pipeline script directly in the job configuration, you can
 take advantage of the `mergebotCheckout()` command inside the groovy script:
@@ -99,14 +120,6 @@ node {
   }
 }
 ```
-
-You can also choose to retrieve the script from the Plastic SCM changeset to build. Select "Pipeline
-script from SCM" as the Definition value in the Pipeline section. Then, choose "Mergebot Plastic SCM"
-as the SCM value. You can also specify the file path to find the Jenkinsfile. If you enable the
-Lightweight checkout, the plugin will only retrieve that file. Otherwise, the plugin will perform a
-complete checkout of the target changeset to load it.
-
-![Pipeline script from SCM](img/mergebot/pipeline-configuration.png)
 
 ### Enable remotely triggered builds
 

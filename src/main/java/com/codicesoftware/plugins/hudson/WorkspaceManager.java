@@ -193,35 +193,35 @@ public class WorkspaceManager {
     }
 
     protected static List<Workspace> findWorkspacesInsidePath(FilePath workspacePath, List<Workspace> workspaces) {
-        return matchWorkspaces(workspaces, testPath -> isNestedWorkspacePath(workspacePath.getRemote(), testPath));
+        return matchWorkspaces(workspaces, targetPath -> isNestedWorkspacePath(workspacePath.getRemote(), targetPath));
     }
 
     protected static List<Workspace> findWorkspacesOutsidePath(FilePath workspacePath, List<Workspace> workspaces) {
-        return matchWorkspaces(workspaces, testPath -> isNestedWorkspacePath(testPath, workspacePath.getRemote()));
+        return matchWorkspaces(workspaces, targetPath -> isNestedWorkspacePath(targetPath, workspacePath.getRemote()));
     }
 
     protected static List<Workspace> matchWorkspaces(List<Workspace> workspaces, WorkspacePathMatcher matcher) {
         List<Workspace> result = new ArrayList<>();
         for (Workspace workspace : workspaces) {
-            String testPath = workspace.getPath().getRemote();
+            String workspacePath = workspace.getPath().getRemote();
 
-            if (matcher.matches(testPath)) {
+            if (matcher.matches(workspacePath)) {
                 result.add(workspace);
             }
         }
         return result;
     }
 
-    protected static boolean isNestedWorkspacePath(String base, String nested) {
-        String baseFixed = base.replaceAll("\\\\", "/") + "/";
-        String nestedFixed = nested.replaceAll("\\\\", "/");
+    protected static boolean isNestedWorkspacePath(@Nonnull final String basePath, @Nonnull final String nestedPath) {
+        String fixedBasePath = basePath.replaceAll("\\\\", "/") + "/";
+        String fixedNestedPath = nestedPath.replaceAll("\\\\", "/");
 
-        Matcher windowsPathMatcher = WINDOWS_PATH_PATTERN.matcher(nestedFixed);
+        Matcher windowsPathMatcher = WINDOWS_PATH_PATTERN.matcher(fixedNestedPath);
         // Windows paths are case insensitive
         if (windowsPathMatcher.matches()) {
-            return nestedFixed.toLowerCase().startsWith(baseFixed.toLowerCase());
+            return fixedNestedPath.toLowerCase().startsWith(fixedBasePath.toLowerCase());
         }
-        return nestedFixed.startsWith(baseFixed);
+        return fixedNestedPath.startsWith(fixedBasePath);
     }
 
     private interface WorkspacePathMatcher {

@@ -81,7 +81,16 @@ import static hudson.scm.PollingResult.NO_CHANGES;
  */
 public class PlasticSCM extends SCM {
 
+    // region Constants
+
     private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
+
+    private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
+    private static final String CHANGESET_ID = "CHANGESET_ID";
+    private static final String CHANGESET_GUID = "CHANGESET_GUID";
+    private static final String BRANCH = "BRANCH";
+    private static final String AUTHOR = "AUTHOR";
+    private static final String REPSPEC = "REPSPEC";
 
     public static final String DEFAULT_BRANCH = "/main";
 
@@ -93,6 +102,10 @@ public class PlasticSCM extends SCM {
     // When the controller runs commands that require a workspace folder, it uses this folder (relative to the Jenkins
     // root). It will be created when necessary.
     private static final String CONTROLLER_WORKSPACE_FOLDER = "plastic";
+
+    // endregion
+
+    // region Members
 
     private final String selector;
 
@@ -109,6 +122,8 @@ public class PlasticSCM extends SCM {
     private final boolean pollOnController;
     private final String directory;
     private final boolean useWorkspaceSubdirectory;
+
+    // endregion
 
     @DataBoundConstructor
     public PlasticSCM(
@@ -136,6 +151,8 @@ public class PlasticSCM extends SCM {
         }
         this.additionalWorkspaces = additionalWorkspaces;
     }
+
+    // region Bean getters & setters
 
     @Exported
     public String getSelector() {
@@ -183,6 +200,10 @@ public class PlasticSCM extends SCM {
     public boolean isPollOnController() {
         return pollOnController;
     }
+
+    // endregion
+
+    // region Overridden from parent class
 
     /**
      * {@inheritDoc}
@@ -270,16 +291,6 @@ public class PlasticSCM extends SCM {
 
         if (changelogFile != null) {
             writeChangeLog(listener, changelogFile, changeLogItems);
-        }
-    }
-
-    /**
-     * Backward compatibility for jobs using old configuration format.
-     */
-    private void adjustFieldsIfUsingOldConfigFormat() {
-        if (cleanup == null) {
-            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
-            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
         }
     }
 
@@ -386,6 +397,10 @@ public class PlasticSCM extends SCM {
         return !pollOnController;
     }
 
+    // endregion
+
+    // region Public methods
+
     public List<WorkspaceInfo> getAllWorkspaces() {
         List<WorkspaceInfo> result = new ArrayList<>();
         result.add(firstWorkspace);
@@ -393,6 +408,20 @@ public class PlasticSCM extends SCM {
             result.addAll(additionalWorkspaces);
         }
         return result;
+    }
+
+    // endregion
+
+    // region Private methods
+
+    /**
+     * Backward compatibility for jobs using old configuration format.
+     */
+    private void adjustFieldsIfUsingOldConfigFormat() {
+        if (cleanup == null) {
+            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
+            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
+        }
     }
 
     private static FilePath resolveWorkspacePath(
@@ -632,12 +661,7 @@ public class PlasticSCM extends SCM {
         environment.put(prefix + REPSPEC, cset.getRepository());
     }
 
-    private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
-    private static final String CHANGESET_ID = "CHANGESET_ID";
-    private static final String CHANGESET_GUID = "CHANGESET_GUID";
-    private static final String BRANCH = "BRANCH";
-    private static final String AUTHOR = "AUTHOR";
-    private static final String REPSPEC = "REPSPEC";
+    // endregion
 
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {

@@ -14,7 +14,7 @@
   </f:entry>
 
   <f:entry field="label" title="${%Label}" help="/plugin/plasticscm-plugin/label.html">
-    <f:number default=""/>
+    <f:textbox default=""/>
   </f:entry>
 
   <f:entry field="repository" title="${%Repository}" help="/plugin/plasticscm-plugin/repository.html">

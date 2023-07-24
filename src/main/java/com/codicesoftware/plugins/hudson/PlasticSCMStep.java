@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.FormFiller;
+import com.codicesoftware.plugins.jenkins.SelectorTemplates;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Item;
@@ -24,10 +25,6 @@ import java.util.logging.Logger;
 public class PlasticSCMStep extends SCMStep {
 
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMStep.class.getName());
-
-    public static final String SELECTOR_BRANCH_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
-    public static final String SELECTOR_CHANGESET_FORMAT =
-        "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
 
     private String branch = DescriptorImpl.defaultBranch;
     private String changeset = "";
@@ -133,9 +130,9 @@ public class PlasticSCMStep extends SCMStep {
 
     private String buildSelector() {
         if (Util.fixEmptyAndTrim(changeset) == null) {
-            return String.format(SELECTOR_BRANCH_FORMAT, repository, server, branch);
+            return String.format(SelectorTemplates.BRANCH, repository, server, branch);
         } else {
-            return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
+            return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
         }
     }
 

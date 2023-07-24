@@ -1,26 +1,24 @@
 package com.codicesoftware.plugins.hudson;
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.codicesoftware.plugins.hudson.actions.CheckoutAction;
-import com.codicesoftware.plugins.hudson.commands.ChangesetLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetRangeLogCommand;
 import com.codicesoftware.plugins.hudson.commands.ChangesetsRetriever;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
 import com.codicesoftware.plugins.hudson.commands.FindChangesetCommand;
-import com.codicesoftware.plugins.hudson.commands.GetWorkspaceStatusCommand;
 import com.codicesoftware.plugins.hudson.commands.ParseableCommand;
 import com.codicesoftware.plugins.hudson.model.BuildData;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
-import com.codicesoftware.plugins.hudson.model.ChangeSetID;
 import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.model.Workspace;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.FormFiller;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.jenkins.AbortExceptionBuilder;
+import com.codicesoftware.plugins.jenkins.BuildNode;
+import com.codicesoftware.plugins.jenkins.ChangesetDetails;
+import com.codicesoftware.plugins.jenkins.CredentialsFinder;
+import com.codicesoftware.plugins.jenkins.SelectorTemplates;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -39,7 +37,6 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
@@ -48,7 +45,6 @@ import hudson.scm.RepositoryBrowser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
-import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
@@ -85,10 +81,18 @@ import static hudson.scm.PollingResult.NO_CHANGES;
  */
 public class PlasticSCM extends SCM {
 
+    // region Constants
+
     private static final Logger LOGGER = Logger.getLogger(PlasticSCM.class.getName());
 
+    private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
+    private static final String CHANGESET_ID = "CHANGESET_ID";
+    private static final String CHANGESET_GUID = "CHANGESET_GUID";
+    private static final String BRANCH = "BRANCH";
+    private static final String AUTHOR = "AUTHOR";
+    private static final String REPSPEC = "REPSPEC";
+
     public static final String DEFAULT_BRANCH = "/main";
-    public static final String DEFAULT_SELECTOR = "repository \"default\"\n  path \"/\"\n    smartbranch \"/main\"";
 
     private static final Pattern BRANCH_PATTERN = Pattern.compile(
             "^.*(smart)?br(anch)? \"([^\"]*)\".*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -98,6 +102,10 @@ public class PlasticSCM extends SCM {
     // When the controller runs commands that require a workspace folder, it uses this folder (relative to the Jenkins
     // root). It will be created when necessary.
     private static final String CONTROLLER_WORKSPACE_FOLDER = "plastic";
+
+    // endregion
+
+    // region Members
 
     private final String selector;
 
@@ -114,6 +122,8 @@ public class PlasticSCM extends SCM {
     private final boolean pollOnController;
     private final String directory;
     private final boolean useWorkspaceSubdirectory;
+
+    // endregion
 
     @DataBoundConstructor
     public PlasticSCM(
@@ -141,6 +151,8 @@ public class PlasticSCM extends SCM {
         }
         this.additionalWorkspaces = additionalWorkspaces;
     }
+
+    // region Bean getters & setters
 
     @Exported
     public String getSelector() {
@@ -189,6 +201,10 @@ public class PlasticSCM extends SCM {
         return pollOnController;
     }
 
+    // endregion
+
+    // region Overridden from parent class
+
     /**
      * {@inheritDoc}
      */
@@ -229,7 +245,7 @@ public class PlasticSCM extends SCM {
             @CheckForNull final File changelogFile,
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
 
-        Node node = getNodeFromWorkspace(workspace);
+        Node node = BuildNode.getFromWorkspacePath(workspace);
         adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
@@ -254,27 +270,16 @@ public class PlasticSCM extends SCM {
                 plasticWorkspacePath,
                 buildClientConfigurationArguments(run.getParent(), resolvedSelector));
 
-            Workspace plasticWorkspace = setupWorkspace(
-                tool, listener, plasticWorkspacePath, resolvedSelector, workspaceInfo.getCleanup());
+            Workspace plasticWorkspace = WorkspaceManager.prepare(
+                tool, listener, plasticWorkspacePath, workspaceInfo.getCleanup());
 
-            ChangeSetID csetId = determineCurrentChangeset(tool, listener, plasticWorkspacePath);
+            WorkspaceManager.setSelector(tool, plasticWorkspace.getPath(), resolvedSelector);
 
-            ChangeSet cset = retrieveChangesetDetails(tool, workspace, listener, csetId.getId());
-            cset.setRepoName(csetId.getRepository());
-            cset.setRepoServer(csetId.getServer());
+            ChangeSet cset = ChangesetDetails.forWorkspace(tool, workspace, listener);
 
             ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run,  workspace, cset);
-            if (previousCset == null) {
-                changeLogItems.add(cset);
-            } else {
-                List<ChangeSet> changeSetItems = retrieveMultipleChangesetDetails(
-                    tool, workspace, listener, previousCset.getId(), cset.getId());
-                for (ChangeSet it : changeSetItems) {
-                    it.setRepoName(csetId.getRepository());
-                    it.setRepoServer(csetId.getServer());
-                }
-                changeLogItems.addAll(changeSetItems);
-            }
+            changeLogItems.addAll(retrieveMultipleChangesetDetails(
+                tool, workspace, listener, previousCset, cset));
 
             BuildData buildData = new BuildData(plasticWorkspace, cset);
             List<BuildData> actions = run.getActions(BuildData.class);
@@ -286,53 +291,6 @@ public class PlasticSCM extends SCM {
 
         if (changelogFile != null) {
             writeChangeLog(listener, changelogFile, changeLogItems);
-        }
-    }
-
-    @Nonnull
-    private Node getNodeFromWorkspace(FilePath workspace) {
-        Jenkins jenkins = Jenkins.getInstance();
-
-        if (workspace == null || !workspace.isRemote()) {
-            return jenkins;
-        }
-
-        for (Computer computer : jenkins.getComputers()) {
-            if (computer.getChannel() != workspace.getChannel()) {
-                continue;
-            }
-
-            Node node = computer.getNode();
-            if (node != null) {
-                return node;
-            }
-        }
-        return jenkins;
-    }
-
-    /**
-     * Backward compatibility for jobs using old configuration format.
-     */
-    private void adjustFieldsIfUsingOldConfigFormat() {
-        if (cleanup == null) {
-            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
-            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
-        }
-    }
-
-    private Workspace setupWorkspace(
-            @Nonnull final PlasticTool tool,
-            @Nonnull final TaskListener listener,
-            @Nonnull final FilePath workspacePath,
-            @Nonnull final String selector,
-            @Nonnull final CleanupMethod cleanup) throws IOException, InterruptedException {
-        try {
-            if (!workspacePath.exists()) {
-                workspacePath.mkdirs();
-            }
-            return CheckoutAction.checkout(tool, workspacePath, selector, cleanup);
-        } catch (ParseException | IOException e) {
-            throw buildAbortException(listener, e);
         }
     }
 
@@ -430,32 +388,18 @@ public class PlasticSCM extends SCM {
             @Nullable Item item, @CheckForNull String selector) {
         return new ClientConfigurationArguments(
             workingMode,
-            getCredentialsFromId(credentialsId, item),
+            CredentialsFinder.getFromId(credentialsId, item),
             getServerFromSelector(selector));
-    }
-
-    @CheckForNull
-    private StandardUsernamePasswordCredentials getCredentialsFromId(
-            @CheckForNull String credentialsId,
-            @Nullable Item item) {
-        if (Util.fixEmpty(credentialsId) == null) {
-            return null;
-        }
-        return CredentialsMatchers.firstOrNull(
-            CredentialsProvider.lookupCredentials(
-                StandardUsernamePasswordCredentials.class,
-                item,
-                item instanceof Queue.Task
-                    ? ((Queue.Task) item).getDefaultAuthentication()
-                    : ACL.SYSTEM,
-                URIRequirementBuilder.create().build()),
-            CredentialsMatchers.withId(credentialsId));
     }
 
     @Override
     public boolean requiresWorkspaceForPolling() {
         return !pollOnController;
     }
+
+    // endregion
+
+    // region Public methods
 
     public List<WorkspaceInfo> getAllWorkspaces() {
         List<WorkspaceInfo> result = new ArrayList<>();
@@ -464,6 +408,20 @@ public class PlasticSCM extends SCM {
             result.addAll(additionalWorkspaces);
         }
         return result;
+    }
+
+    // endregion
+
+    // region Private methods
+
+    /**
+     * Backward compatibility for jobs using old configuration format.
+     */
+    private void adjustFieldsIfUsingOldConfigFormat() {
+        if (cleanup == null) {
+            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
+            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
+        }
     }
 
     private static FilePath resolveWorkspacePath(
@@ -480,36 +438,19 @@ public class PlasticSCM extends SCM {
     }
 
     /**
-     * Returns changeset identifier for the given workspace.
-     */
-    private static ChangeSetID determineCurrentChangeset(
-            PlasticTool tool,
-            TaskListener listener,
-            FilePath workspacePath)
-            throws IOException, InterruptedException {
-        try {
-            ParseableCommand<List<ChangeSetID>> statusCommand = new GetWorkspaceStatusCommand(
-                workspacePath.getRemote());
-            List<ChangeSetID> list = CommandRunner.executeAndRead(tool, statusCommand);
-            if (list != null && !list.isEmpty()) {
-                return list.get(0);
-            }
-            return null;
-        } catch (ParseException e) {
-            throw buildAbortException(listener, e);
-        }
-    }
-
-    /**
      * Finds changeset of the last completed build for the same branch as the given changeset.
      * Returns null if not found or is newer than the current build.
      */
     private static ChangeSet retrieveLastBuiltChangeset(
             PlasticTool tool, Run<?, ?> build, FilePath workspacePath, ChangeSet cset) {
-        if (cset == null || Util.fixEmpty(cset.getBranch()) == null ||
-                Util.fixEmpty(cset.getRepoName()) == null || Util.fixEmpty(cset.getRepoServer()) == null) {
+        if (cset == null
+                || cset.getType() == ObjectSpecType.Shelve
+                || Util.fixEmpty(cset.getBranch()) == null
+                || Util.fixEmpty(cset.getRepoName()) == null
+                || Util.fixEmpty(cset.getRepoServer()) == null) {
             return null;
         }
+
         while (build != null) {
             for (BuildData buildData : build.getActions(BuildData.class)) {
                 ChangeSet oldCset = buildData.getChangeset();
@@ -541,8 +482,7 @@ public class PlasticSCM extends SCM {
         FilePath xmlOutputPath = null;
         try {
             xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
-            ParseableCommand<ChangeSet> command = new FindChangesetCommand(
-                    cset.getId(), cset.getBranch(), cset.getRepository(), xmlOutputPath);
+            ParseableCommand<ChangeSet> command = new FindChangesetCommand(cset.getObjectSpec(), xmlOutputPath);
             return CommandRunner.executeAndRead(tool, command) != null;
         } catch (Exception e) {
             LOGGER.log(
@@ -562,48 +502,31 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    private static ChangeSet retrieveChangesetDetails(
-            PlasticTool tool,
-            FilePath workspacePath,
-            TaskListener listener,
-            int csetId)
-            throws IOException, InterruptedException {
-        FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
-        try {
-            ParseableCommand<ChangeSet> command = new ChangesetLogCommand(
-                "cs:" + csetId, xmlOutputPath);
-            return CommandRunner.executeAndRead(tool, command, false);
-        } catch (ParseException e) {
-            throw buildAbortException(listener, e);
-        } finally {
-            OutputTempFile.safeDelete(xmlOutputPath);
-        }
-    }
-
     private static List<ChangeSet> retrieveMultipleChangesetDetails(
-            PlasticTool tool,
-            FilePath workspacePath,
-            TaskListener listener,
-            int csetIdFrom,
-            int csetIdTo)
-            throws IOException, InterruptedException {
+            @Nonnull final PlasticTool tool,
+            @Nonnull final FilePath workspacePath,
+            @Nonnull final TaskListener listener,
+            @CheckForNull final ChangeSet fromCset,
+            @Nonnull final ChangeSet toCset) throws IOException, InterruptedException {
+
+        if (fromCset == null) {
+            return new ArrayList<ChangeSet>() {{ add(toCset); }};
+        }
+
         FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
         try {
-            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand(
-                "cs:" + csetIdFrom, "cs:" + csetIdTo, xmlOutputPath);
-            return CommandRunner.executeAndRead(tool, command, false);
+            ParseableCommand<List<ChangeSet>> command = new ChangesetRangeLogCommand(fromCset, toCset, xmlOutputPath);
+            List<ChangeSet> csets = CommandRunner.executeAndRead(tool, command, false);
+            for (ChangeSet cset : csets) {
+                cset.setRepoName(toCset.getRepoName());
+                cset.setRepoServer(toCset.getRepoServer());
+            }
+            return csets;
         } catch (ParseException e) {
-            throw buildAbortException(listener, e);
+            throw AbortExceptionBuilder.build(LOGGER, listener, e);
         } finally {
             OutputTempFile.safeDelete(xmlOutputPath);
         }
-    }
-
-    private static AbortException buildAbortException(
-            TaskListener listener, Exception e) {
-        listener.fatalError(e.getMessage());
-        LOGGER.severe(e.getMessage());
-        return new AbortException();
     }
 
     private void writeChangeLog(
@@ -611,12 +534,9 @@ public class PlasticSCM extends SCM {
             File changelogFile,
             List<ChangeSet> result) throws AbortException {
         try {
-            ChangeSetWriter writer = new ChangeSetWriter();
-            writer.write(result, changelogFile);
+            ChangeSetWriter.write(result, changelogFile);
         } catch (Exception e) {
-            listener.fatalError(e.getMessage());
-            LOGGER.severe(e.getMessage());
-            throw new AbortException();
+            throw AbortExceptionBuilder.build(LOGGER, listener, e);
         }
     }
 
@@ -644,7 +564,7 @@ public class PlasticSCM extends SCM {
         String repSpec = getRepSpecFromSelector(selector);
 
         PlasticTool plasticTool = new PlasticTool(
-            CmTool.get(getNodeFromWorkspace(workspacePath), new EnvVars(EnvVars.masterEnvVars), listener),
+            CmTool.get(BuildNode.getFromWorkspacePath(workspacePath), new EnvVars(EnvVars.masterEnvVars), listener),
             launcher,
             listener,
             workspacePath,
@@ -741,12 +661,7 @@ public class PlasticSCM extends SCM {
         environment.put(prefix + REPSPEC, cset.getRepository());
     }
 
-    private static final String PLASTIC_ENV_PREFIX = "PLASTICSCM_";
-    private static final String CHANGESET_ID = "CHANGESET_ID";
-    private static final String CHANGESET_GUID = "CHANGESET_GUID";
-    private static final String BRANCH = "BRANCH";
-    private static final String AUTHOR = "AUTHOR";
-    private static final String REPSPEC = "REPSPEC";
+    // endregion
 
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {
@@ -778,7 +693,7 @@ public class PlasticSCM extends SCM {
         }
 
         public static String getDefaultSelector() {
-            return PlasticSCM.DEFAULT_SELECTOR;
+            return SelectorTemplates.DEFAULT;
         }
 
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
@@ -859,7 +774,7 @@ public class PlasticSCM extends SCM {
             }
 
             public static String getDefaultSelector() {
-                return PlasticSCM.DEFAULT_SELECTOR;
+                return SelectorTemplates.DEFAULT;
             }
 
             @Override

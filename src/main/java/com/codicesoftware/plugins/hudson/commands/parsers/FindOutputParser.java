@@ -2,10 +2,12 @@ package com.codicesoftware.plugins.hudson.commands.parsers;
 
 import com.codicesoftware.plugins.DigesterUtils;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import hudson.FilePath;
 import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -19,7 +21,14 @@ public class FindOutputParser {
     // Utility classes shouldn't have default constructors
     private FindOutputParser() { }
 
-    public static List<ChangeSet> parseReader(FilePath path) throws IOException, ParseException {
+    @Nonnull
+    public static List<ChangeSet> parseReader(
+            @Nonnull final ObjectSpecType specType,
+            @Nonnull final FilePath path) throws IOException, ParseException {
+        if (specType != ObjectSpecType.Changeset && specType != ObjectSpecType.Shelve) {
+            throw new ParseException("Invalid object type provided", 0);
+        }
+
         List<ChangeSet> csetList = new ArrayList<>();
 
         if (!SafeFilePath.exists(path)) {
@@ -33,18 +42,27 @@ public class FindOutputParser {
 
             digester.push(csetList);
 
-            digester.addObjectCreate("*/CHANGESET", ChangeSet.class);
-            digester.addBeanPropertySetter("*/CHANGESET/CHANGESETID", "version");
-            digester.addBeanPropertySetter("*/CHANGESET/COMMENT", "comment");
-            digester.addBeanPropertySetter("*/CHANGESET/DATE", "xmlDate");
-            digester.addBeanPropertySetter("*/CHANGESET/BRANCH", "branch");
-            digester.addBeanPropertySetter("*/CHANGESET/OWNER", "user");
-            digester.addBeanPropertySetter("*/CHANGESET/REPNAME", "repoName");
-            digester.addBeanPropertySetter("*/CHANGESET/REPSERVER", "repoServer");
-            digester.addBeanPropertySetter("*/CHANGESET/GUID", "guid");
-            digester.addSetNext("*/CHANGESET", "add");
+            String objectTag = specType == ObjectSpecType.Shelve ? "SHELVE" : "CHANGESET";
+            String root = "*/" + objectTag;
+
+            digester.addObjectCreate(root, ChangeSet.class);
+            digester.addBeanPropertySetter(String.format("%s/%sID", root, objectTag), "version");
+            digester.addBeanPropertySetter(root + "/COMMENT", "comment");
+            digester.addBeanPropertySetter(root + "/DATE", "xmlDate");
+            if (specType == ObjectSpecType.Changeset) {
+                digester.addBeanPropertySetter(root + "/BRANCH", "branch");
+            }
+            digester.addBeanPropertySetter(root + "/OWNER", "user");
+            digester.addBeanPropertySetter(root + "/REPNAME", "repoName");
+            digester.addBeanPropertySetter(root + "/REPSERVER", "repoServer");
+            digester.addBeanPropertySetter(root + "/GUID", "guid");
+            digester.addSetNext(root, "add");
             if (stream != null) {
                 digester.parse(stream);
+            }
+
+            for (ChangeSet cset : csetList) {
+                cset.setType(specType);
             }
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);

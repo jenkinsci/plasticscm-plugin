@@ -19,7 +19,8 @@ public final class LogOutputParser {
     // Utility classes shouldn't have default constructors
     private LogOutputParser() { }
 
-    public static List<ChangeSet> parseFile(FilePath path) throws IOException, ParseException {
+    public static List<ChangeSet> parseFile(
+            FilePath path, String repoName, String server) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();
 
         if (!SafeFilePath.exists(path)) {
@@ -54,6 +55,11 @@ public final class LogOutputParser {
             }
         } catch (SAXException e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
+        }
+
+        for (ChangeSet cset : csetList) {
+            cset.setRepoName(repoName);
+            cset.setRepoServer(server);
         }
 
         return csetList;

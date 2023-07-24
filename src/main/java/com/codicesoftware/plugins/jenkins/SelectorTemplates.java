@@ -10,4 +10,5 @@ public class SelectorTemplates {
     public static final String CHANGESET =
             "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
     public static final String SHELVE = "repository \"%s@%s\"%n  path \"/\"%n    shelve \"%s\"";
+    public static final String LABEL = "repository \"%s@%s\"%n  path \"/\"%n    label \"%s\"";
 }

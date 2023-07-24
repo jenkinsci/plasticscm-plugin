@@ -32,8 +32,8 @@ public class FormChecker {
         "^(\\s*(rep|repository)\\s+\"(.*)\"(\\s+mount\\s+\"(.*)\")?(\\s+path\\s+"
         + "\"(.*)\"(\\s+norecursive)?(\\s+((((((branch|br)\\s+\"(.*)\")(\\s+(revno\\s+"
         + "(\"\\d+\"|LAST|FIRST)|changeset\\s+\"\\S+\"))?(\\s+(label|lb)\\s+\"(.*)\")?)|"
-        + "(label|lb)\\s+\"(.*)\")(\\s+(checkout|co)\\s+\"(.*\"))?)|(branchpertask\\s+"
-        + "\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$",
+        + "(label|lb)\\s+\"(.*)\")(\\s+(checkout|co)\\s+\"(.*)\")?)|shelve\\s+\"(.*)\"|"
+        + "(branchpertask\\s+\"(.*)\"(\\s+baseline\\s+\"(.*)\")?)|(smartbranch\\s+\"(.*)\"))))+\\s*)+$",
         Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
     private static final Pattern NO_AT_CHAR_REGEX = Pattern.compile("^[^@]+$");
     private static final Pattern SERVER_REGEX = Pattern.compile("^.+:[0-9]+$");

@@ -3,11 +3,10 @@ package com.codicesoftware.plugins.jenkins;
 import com.codicesoftware.plugins.hudson.PlasticSCM;
 import com.codicesoftware.plugins.hudson.PlasticTool;
 import com.codicesoftware.plugins.hudson.commands.CommandRunner;
-import com.codicesoftware.plugins.hudson.commands.GetFileCommand;
 import com.codicesoftware.plugins.hudson.commands.GetSelectorSpecCommand;
 import com.codicesoftware.plugins.hudson.model.WorkspaceInfo;
-import com.codicesoftware.plugins.hudson.util.DeleteOnCloseFileInputStream;
 import com.codicesoftware.plugins.hudson.util.SelectorParametersResolver;
+import com.codicesoftware.plugins.hudson.util.StringUtil;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -19,9 +18,9 @@ import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMFile;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,30 +30,34 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public class PlasticSCMFile extends SCMFile {
 
-    private static final String SEPARATOR = "/";
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMFile.class.getName());
+
+    @Nonnull
     private final PlasticSCMFileSystem fs;
     private final boolean isDir;
 
-    public PlasticSCMFile(PlasticSCMFileSystem fs) {
+    public PlasticSCMFile(@Nonnull final PlasticSCMFileSystem fs) {
         this.fs = fs;
         this.isDir = true;
     }
 
-    public PlasticSCMFile(PlasticSCMFileSystem fs, PlasticSCMFile parent, String name, boolean isDir) {
+    public PlasticSCMFile(
+            @Nonnull final PlasticSCMFileSystem fs,
+            @Nonnull final PlasticSCMFile parent,
+            @Nonnull final String name,
+            final boolean isDir) {
         super(parent, name);
         this.fs = fs;
         this.isDir = isDir;
     }
 
-    private static List<ParameterValue> getLastBuildParameters(
-            PlasticSCMFileSystem fs) {
-        Run<?, ?> run = fs.getLastBuildFromFirstJob();
+    @CheckForNull
+    private static List<ParameterValue> getLastBuildParameters(@Nonnull final PlasticSCMFileSystem fs) {
+        Run<?, ?> run = LastBuild.get(fs.getOwner());
         if (run == null) {
             return null;
         }
@@ -63,23 +66,14 @@ public class PlasticSCMFile extends SCMFile {
         return parameters != null ? parameters.getParameters() : null;
     }
 
-    private static DeleteOnCloseFileInputStream getFileContent(
-            PlasticTool tool, String serverFile, String repObjectSpec)
-            throws IOException, InterruptedException {
-        File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp");
-
-        String serverPathRevSpec = "serverpath:" + serverFile + "#" + repObjectSpec;
-        getFile(tool, serverPathRevSpec, tempFile.getPath());
-
-        return new DeleteOnCloseFileInputStream(tempFile);
-    }
-
-    private static String getRepObjectSpecFromSelector(PlasticTool tool, String selectorText)
-            throws IOException, InterruptedException {
+    @Nonnull
+    private static String getRepObjectSpecFromSelector(
+            @Nonnull final PlasticTool tool,
+            @Nonnull final String selectorText) throws IOException, InterruptedException {
         Path tempFile = null;
         BufferedWriter out = null;
         try {
-            tempFile = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+            tempFile = TempFile.create();
 
             out = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8);
             out.write(selectorText);
@@ -107,8 +101,8 @@ public class PlasticSCMFile extends SCMFile {
         }
     }
 
-    private static String getWorkspaceNameFromScriptPath(String scriptPath) {
-        int separatorIndex = scriptPath.indexOf(SEPARATOR);
+    private static String getWorkspaceNameFromScriptPath(@Nonnull final String scriptPath) {
+        int separatorIndex = scriptPath.indexOf(StringUtil.SEPARATOR);
 
         if (separatorIndex == -1) {
             return null;
@@ -117,8 +111,8 @@ public class PlasticSCMFile extends SCMFile {
         return scriptPath.substring(0, separatorIndex).trim();
     }
 
-    private static String getServerFileFromScriptPath(String scriptPath) {
-        int separatorIndex = scriptPath.indexOf(SEPARATOR);
+    private static String getServerFileFromScriptPath(@Nonnull final String scriptPath) {
+        int separatorIndex = scriptPath.indexOf(StringUtil.SEPARATOR);
 
         if (separatorIndex == -1) {
             return null;
@@ -127,25 +121,16 @@ public class PlasticSCMFile extends SCMFile {
         return scriptPath.substring(separatorIndex).trim();
     }
 
-    private static String ensureScripPathStartsBySlash(String scriptPath) {
-        return scriptPath.startsWith(SEPARATOR) ? scriptPath : SEPARATOR + scriptPath;
-    }
-
-    private static void getFile(PlasticTool tool, String revSpec, String filePath)
-            throws IOException, InterruptedException {
-        GetFileCommand command = new GetFileCommand(revSpec, filePath);
-        CommandRunner.execute(tool, command).close();
-    }
-
-    private static WorkspaceInfo getSelectorSpec(PlasticTool tool, String filePath)
-            throws IOException, ParseException, InterruptedException {
+    private static WorkspaceInfo getSelectorSpec(
+            @Nonnull final PlasticTool tool,
+            @Nonnull final String filePath) throws IOException, ParseException, InterruptedException {
         GetSelectorSpecCommand command = new GetSelectorSpecCommand(filePath);
         return CommandRunner.executeAndRead(tool, command);
     }
 
     @Nonnull
     @Override
-    protected SCMFile newChild(String name, boolean assumeIsDirectory) {
+    protected SCMFile newChild(@Nonnull final String name, final boolean assumeIsDirectory) {
         return new PlasticSCMFile(fs, this, name, assumeIsDirectory);
     }
 
@@ -184,7 +169,7 @@ public class PlasticSCMFile extends SCMFile {
 
         Launcher launcher = fs.getLauncher();
         TaskListener listener = launcher.getListener();
-        Run<?, ?> build = fs.getLastBuildFromFirstJob();
+        Run<?, ?> build = LastBuild.get(fs.getOwner());
 
         EnvVars environment = new EnvVars(EnvVars.masterEnvVars);
         if (build != null) {
@@ -207,9 +192,9 @@ public class PlasticSCMFile extends SCMFile {
             String repObjectSpec = getRepObjectSpecFromSelector(
                     tool, resolvedSelector);
 
-            serverFile = ensureScripPathStartsBySlash(serverFile);
+            serverFile = StringUtil.ensureStartsWithSlash(serverFile);
 
-            return getFileContent(tool, serverFile, repObjectSpec);
+            return FileContent.getFromServer(tool, serverFile, repObjectSpec);
         } catch (AbortException e) {
             throw new FileNotFoundException(e.getMessage());
         }

@@ -46,6 +46,7 @@ public class ChangeSetReader extends ChangeLogParser {
 
         digester.addObjectCreate("*/changeset", ChangeSet.class);
         digester.addSetProperties("*/changeset");
+        digester.addCallMethod("*/changeset/type", "setTypeStr", 0);
         digester.addBeanPropertySetter("*/changeset/date", "xmlDate");
         digester.addBeanPropertySetter("*/changeset/user");
         digester.addBeanPropertySetter("*/changeset/comment");

@@ -1,30 +1,33 @@
 package com.codicesoftware.plugins.hudson.util;
 
-import java.io.File;
+import javax.annotation.Nonnull;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.logging.Logger;
 
 public class DeleteOnCloseFileInputStream extends FileInputStream {
-    private File file;
 
-    public DeleteOnCloseFileInputStream(File file) throws FileNotFoundException {
-        super(file);
-        this.file = file;
+    private static final Logger LOGGER = Logger.getLogger(DeleteOnCloseFileInputStream.class.getName());
+
+    @Nonnull
+    private final Path file;
+
+    public DeleteOnCloseFileInputStream(@Nonnull final Path file) throws FileNotFoundException {
+        super(file.toAbsolutePath().toFile());
+        this.file = file.toAbsolutePath();
     }
 
     public void close() throws IOException {
-        if (file == null) {
-            return;
-        }
-
         try {
             super.close();
         } finally {
-            if (file != null) {
-                Files.delete(file.toPath());
-                file = null;
+            try {
+                Files.deleteIfExists(file);
+            } catch (Exception e) {
+                LOGGER.warning(String.format("Unable to delete file '%s': %s", file, e.getMessage()));
             }
         }
     }

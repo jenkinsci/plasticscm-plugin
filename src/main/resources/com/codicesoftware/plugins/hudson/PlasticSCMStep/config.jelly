@@ -9,6 +9,14 @@
     <f:number default=""/>
   </f:entry>
 
+  <f:entry field="shelveset" title="${%Shelveset}" help="/plugin/plasticscm-plugin/shelveset.html">
+    <f:number default=""/>
+  </f:entry>
+
+  <f:entry field="label" title="${%Label}" help="/plugin/plasticscm-plugin/label.html">
+    <f:number default=""/>
+  </f:entry>
+
   <f:entry field="repository" title="${%Repository}" help="/plugin/plasticscm-plugin/repository.html">
     <f:textbox default="${descriptor.defaultRepository}" checkMethod="post" />
   </f:entry>

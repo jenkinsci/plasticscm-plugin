@@ -42,7 +42,7 @@ public class ClientConfigurationArguments {
 
     @Nonnull
     String getServerParam() {
-        return "-wks=" + server;
+        return "--server=" + server;
     }
 
     @Nonnull

@@ -60,5 +60,27 @@ public class PlasticSCMTest {
 
         assertTrue(testScm.supportsPolling());
         assertFalse(testScm.requiresWorkspaceForPolling());
-}
+    }
+
+    @Test
+    public void testServerConfiguration() throws Exception {
+        FreeStyleProject project = rule.createFreeStyleProject();
+        String newLine = System.getProperty("line.separator");
+        String selector = String.join(
+                newLine,
+                "repository \"myRepo@my.plasticscm.server.com:8087\"",
+                "  path \"/\"",
+                "    smartbranch \"/main/develop\""
+        );
+        PlasticSCM scm = new PlasticSCM(
+                selector,
+                CleanupMethod.MINIMAL,
+                WorkingMode.NONE,
+                null,
+                false,
+                null,
+                true,
+                "");
+        assertEquals("--server=my.plasticscm.server.com:8087", scm.buildClientConfigurationArguments(project, selector).getServerParam());
+    }
 }

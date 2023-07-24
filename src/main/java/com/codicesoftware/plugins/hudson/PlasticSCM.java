@@ -361,7 +361,7 @@ public class PlasticSCM extends SCM {
         for (WorkspaceInfo workspaceInfo : getAllWorkspaces()) {
             FilePath plasticWorkspacePath = resolveWorkspacePath(workspace, workspaceInfo);
             String resolvedSelector = SelectorParametersResolver.resolve(
-                workspaceInfo.selector, parameters, environment);
+                workspaceInfo.getSelector(), parameters, environment);
 
             boolean hasChanges = hasChanges(
                 project,
@@ -568,7 +568,7 @@ public class PlasticSCM extends SCM {
             launcher,
             listener,
             workspacePath,
-            buildClientConfigurationArguments(item, getServerFromRepositorySpec(repSpec)));
+            buildClientConfigurationArguments(item, selector));
         try {
             List<ChangeSet> changesetsFromBuild = ChangesetsRetriever.getChangesets(
                 plasticTool,

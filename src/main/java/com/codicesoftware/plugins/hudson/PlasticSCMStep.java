@@ -149,12 +149,12 @@ public class PlasticSCMStep extends SCMStep {
     }
 
     private String buildSelector() {
-        if (Util.fixEmptyAndTrim(changeset) != null) {
-            return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
-        } else if (Util.fixEmptyAndTrim(shelveset) != null) {
+        if (Util.fixEmptyAndTrim(shelveset) != null) {
             return String.format(SelectorTemplates.SHELVESET, repository, server, shelveset);
         } else if (Util.fixEmptyAndTrim(label) != null) {
             return String.format(SelectorTemplates.LABEL, repository, server, label);
+        } else if (Util.fixEmptyAndTrim(changeset) != null) {
+            return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
         } else {
             return String.format(SelectorTemplates.BRANCH, repository, server, branch);
         }

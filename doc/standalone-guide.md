@@ -94,6 +94,14 @@ repository "myRepo@my.plasticscm.server.com:8087"
     label "1.0.32-preview_997"
 ```
 
+**Shelveset selector:**
+
+```text
+repository "myRepo@my.plasticscm.server.com:8087"
+  path "/"
+    shelve "51"
+```
+
 **Important!** Don't forget to use the `ssl://` prefix in the server name if your Plastic
 Server utilizes SSL. For instance, `repository "myRepo@ssl://my.plasticscm.server.com:8088"`
 
@@ -149,6 +157,8 @@ configuration, you can take advantage of the cm command inside the groovy script
 cm(
     branch: '<full-branch-name>',
     changeset: '<cset-number>', // optional
+    shelveset: '<shelveset-number>', // optional
+    label: '<label-name>', // optional
     repository: '<rep-name>',
     server: '<server-address>:<server-port>',
     cleanup: '<cleanup-strategy>',
@@ -161,7 +171,11 @@ cm(
 As you see, there's a one-to-one parameter mapping. To use multiple workspaces you simply need to
 add multiple `cm` statements, paying attention to the value of the `directory` parameter.
 
-You only need to specify the `changeset` parameter if you'd like all builds to target that changeset.
+You only need to specify the `changeset` parameter if you'd like all builds to target that changeset in the specified
+branch.
+
+Alternatively, you can specify the `shelveset` or the `label` parameter to target a shelveset or a label, respectively.
+In those instances, the `branch` parameter is ignored.
 
 The available values for `cleanup` are `MINIMAL`, `STANDARD`, `FULL` and `DELETE`.
 
@@ -185,7 +199,25 @@ cm(
     changeset: '538',
     repository: 'assets-repo',
     server: 'my.plasticscm.server.com:8087',
+    cleanup: 'STANDARD'
+)
+
+cm(
+    shelveset: '538',
+    repository: 'assets-repo',
+    server: 'my.other.plasticscm.server.com:8087',
     cleanup: 'STANDARD',
+    workingMode: 'LDAP',
+    credentialsId: 'my-ldap-credentials'
+)
+
+cm(
+    label: '1.0.1',
+    repository: 'assets-repo',
+    server: 'my.plasticscm.server.com:8087',
+    cleanup: 'STANDARD',
+    workingMode: 'UP',
+    credentialsId: 'my-credentials'
 )
 ```
 

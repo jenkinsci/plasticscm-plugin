@@ -27,6 +27,8 @@ public class PlasticSCMStep extends SCMStep {
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMStep.class.getName());
 
     private String branch = DescriptorImpl.defaultBranch;
+    private String label = "";
+    private String shelveset = "";
     private String changeset = "";
     private String repository = "";
     private String server = "";
@@ -41,6 +43,24 @@ public class PlasticSCMStep extends SCMStep {
 
     @DataBoundConstructor
     public PlasticSCMStep() {
+    }
+
+    public String getShelveset() {
+        return shelveset;
+    }
+
+    @DataBoundSetter
+    public void setShelveset(String shelveset) {
+        this.shelveset = shelveset;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    @DataBoundSetter
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getBranch() {
@@ -129,10 +149,14 @@ public class PlasticSCMStep extends SCMStep {
     }
 
     private String buildSelector() {
-        if (Util.fixEmptyAndTrim(changeset) == null) {
-            return String.format(SelectorTemplates.BRANCH, repository, server, branch);
-        } else {
+        if (Util.fixEmptyAndTrim(shelveset) != null) {
+            return String.format(SelectorTemplates.SHELVESET, repository, server, shelveset);
+        } else if (Util.fixEmptyAndTrim(label) != null) {
+            return String.format(SelectorTemplates.LABEL, repository, server, label);
+        } else if (Util.fixEmptyAndTrim(changeset) != null) {
             return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
+        } else {
+            return String.format(SelectorTemplates.BRANCH, repository, server, branch);
         }
     }
 

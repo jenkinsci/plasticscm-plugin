@@ -1,5 +1,15 @@
 # Release notes
 
+## Version 4.3 (02 Aug 2023)
+
+* Added shelves support. Now we allow users to enter 'shelveset' selectors for their Plastic SCM configurations in Jenkins, either for freestyle projects or pipelines from SCM.
+
+* Added DevOps workflows capabilities from Plastic SCM to be triggered in Jenkins. Mergebots trigger builds, setting the spec to build in a specific parameter. The Mergebot SCM picks that up and uses it to checkout the sources.
+
+* Added support for Single repository & branch mapping in Multibranch pipelines
+
+* Fixed an issue that caused an error during the pooling process on a pipeline.
+
 ## Version 4.2 (06 Jul 2022)
 
 * Fixed an issue that caused workspace commands to fail when the Jenkins controller runs on Windows

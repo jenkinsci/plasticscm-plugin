@@ -281,9 +281,9 @@ public class PlasticSCM extends SCM {
 
             ChangeSet cset = ChangesetDetails.forWorkspace(tool, plasticWorkspacePath, listener);
 
-            ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run,  workspace, cset);
+            ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run,  plasticWorkspacePath, cset);
             changeLogItems.addAll(retrieveMultipleChangesetDetails(
-                tool, workspace, listener, previousCset, cset));
+                tool, plasticWorkspacePath, listener, previousCset, cset));
 
             BuildData buildData = new BuildData(plasticWorkspace, cset);
             List<BuildData> actions = run.getActions(BuildData.class);

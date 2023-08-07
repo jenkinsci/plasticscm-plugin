@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 4.4 (07 Aug 2023)
+
+* Fixed checkout errors when using subdirectories
+
 ## Version 4.3 (02 Aug 2023)
 
 * Added shelves support. Now we allow users to enter 'shelveset' selectors for their Plastic SCM configurations in Jenkins, either for freestyle projects or pipelines from SCM.

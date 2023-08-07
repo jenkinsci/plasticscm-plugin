@@ -263,6 +263,10 @@ public class PlasticSCM extends SCM {
             String resolvedSelector = SelectorParametersResolver.resolve(
                 workspaceInfo.getSelector(), parameterValues, environment);
 
+            if (!plasticWorkspacePath.exists()) {
+                plasticWorkspacePath.mkdirs();
+            }
+
             PlasticTool tool = new PlasticTool(
                 CmTool.get(node, run.getEnvironment(listener), listener),
                 launcher,
@@ -275,7 +279,7 @@ public class PlasticSCM extends SCM {
 
             WorkspaceManager.setSelector(tool, plasticWorkspace.getPath(), resolvedSelector);
 
-            ChangeSet cset = ChangesetDetails.forWorkspace(tool, workspace, listener);
+            ChangeSet cset = ChangesetDetails.forWorkspace(tool, plasticWorkspacePath, listener);
 
             ChangeSet previousCset = retrieveLastBuiltChangeset(tool, run,  workspace, cset);
             changeLogItems.addAll(retrieveMultipleChangesetDetails(

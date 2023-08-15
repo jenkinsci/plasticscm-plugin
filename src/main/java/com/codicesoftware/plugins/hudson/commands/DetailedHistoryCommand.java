@@ -56,7 +56,7 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
 
         arguments.add("--xml");
         arguments.add("--file=" + xmlOutputPath.getRemote());
-        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
+        arguments.add("--dateformat=" + DateUtil.ISO_DATE_TIME_OFFSET_CSHARP_FORMAT);
 
 
         return arguments;

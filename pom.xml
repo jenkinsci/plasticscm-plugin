@@ -104,6 +104,9 @@
       <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
+      <id>danipen00</id>
+      <name>Daniel Peñalba</name>
+      <email>daniel.penalba@unity3d.com</email>
       <organization>Unity Technologies</organization>
       <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>

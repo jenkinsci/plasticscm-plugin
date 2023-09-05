@@ -30,7 +30,7 @@
   </scm>
 
   <properties>
-    <jenkins.version>2.60.3</jenkins.version>
+    <jenkins.version>2.176.4</jenkins.version>
     <java.level>8</java.level>
   </properties>
 
@@ -104,9 +104,6 @@
       <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>jessica-gutierrez</id>
-      <name>Jessica Gutierrez</name>
-      <email>jessica.gutierrez@unity3d.com</email>
       <organization>Unity Technologies</organization>
       <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>

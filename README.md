@@ -99,7 +99,7 @@ You'll find a link in the build page sidebar to display the Plastic SCM data for
 
 # Requirements
 
-* Jenkins `2.60.3` or newer
+* Jenkins `2.176.4 (2019-09-25)` or newer
 * Plastic SCM command line client `10.0.16.6112` or newer
 
 # Upgrades
@@ -128,7 +128,7 @@ download all workspaces in the same directory!
 To build the plugin you will need:
 
 * [Maven](https://maven.apache.org/) version `3.5` or newer
-* [Java Development Kit (JDK)](https://jdk.java.net/) version `8`
+* [Java Development Kit (JDK)](https://jdk.java.net/) version `11`
 
 Run the following command to build the plugin:
 

@@ -3,6 +3,7 @@ package com.codicesoftware.plugins.jenkins.tools;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.tools.DownloadFromUrlInstaller;
@@ -16,7 +17,6 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class CmToolInstaller extends DownloadFromUrlInstaller {
     private static final String ID = "LATEST";
@@ -59,7 +59,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
         // Skip system tool check if it was previously installed
         // Admins can always disable the automatic installer to fall back to the path they specified for the tool
         if (!ignoreSystemTool && !installablePath.child(".installedFrom").exists()) {
-            FilePath existingHome = new FilePath(node.getChannel(), Objects.toString(tool.getHome(), ""));
+            FilePath existingHome = new FilePath(node.getChannel(), Util.fixNull(tool.getHome()));
             FilePath systemToolExistsPath = installablePath.child(".systemtool");
 
             if (systemToolExistsPath.exists()) {

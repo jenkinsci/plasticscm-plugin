@@ -1,7 +1,7 @@
 # Release notes
 
-## Version 4.5 (05 Sept 2023)
-* Now works with Java 11 and Jenkins 2.176.4 or higher.
+## Version X.X (05 Sept 2023)
+* The plugin now requires Java 11, and Jenkins 2.176.4 or higher.
 
 ## Version 4.4 (07 Aug 2023)
 

@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import hudson.Util;
+import java.util.Objects;
 
 public class CmToolInstaller extends DownloadFromUrlInstaller {
     private static final String ID = "LATEST";

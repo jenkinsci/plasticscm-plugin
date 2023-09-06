@@ -1,5 +1,8 @@
 # Release notes
 
+## Version X.X (pending)
+* The plugin now requires Java 11, and Jenkins 2.176.4 or higher.
+
 ## Version 4.4 (07 Aug 2023)
 
 * Fixed checkout errors when using subdirectories

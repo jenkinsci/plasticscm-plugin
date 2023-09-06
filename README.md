@@ -99,7 +99,7 @@ You'll find a link in the build page sidebar to display the Plastic SCM data for
 
 # Requirements
 
-* Jenkins `2.176.4 (2019-09-25)` or newer
+* Jenkins `2.176.4` (2019-09-25) or newer
 * Plastic SCM command line client `10.0.16.6112` or newer
 
 # Upgrades

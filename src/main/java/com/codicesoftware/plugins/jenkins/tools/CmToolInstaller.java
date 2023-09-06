@@ -59,7 +59,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
         // Skip system tool check if it was previously installed
         // Admins can always disable the automatic installer to fall back to the path they specified for the tool
         if (!ignoreSystemTool && !installablePath.child(".installedFrom").exists()) {
-            FilePath existingHome = new FilePath(node.getChannel(), Util.fixEmpty(tool.getHome()));
+            FilePath existingHome = new FilePath(node.getChannel(), Objects.toString(tool.getHome(), ""));
             FilePath systemToolExistsPath = installablePath.child(".systemtool");
 
             if (systemToolExistsPath.exists()) {

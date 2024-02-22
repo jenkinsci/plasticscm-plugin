@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
 
-    public static final String DEFAULT_SORTABLE_FORMAT = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
+    public static final String DEFAULT_SORTABLE_FORMAT = "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ";
 
     public static final String ISO_DATE_TIME_OFFSET_CSHARP_FORMAT = "yyyy'-'MM'-'dd'T'HH':'mm':'sszzz";
 

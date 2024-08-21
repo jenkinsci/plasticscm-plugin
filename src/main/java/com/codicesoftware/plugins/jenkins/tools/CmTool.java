@@ -91,6 +91,7 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
         return home;
     }
 
+    @SuppressFBWarnings(value = "DCN_NULLPOINTER_EXCEPTION", justification = "Paranoia check")
     private static CmTool[] getInstallations(DescriptorImpl descriptor) {
         CmTool[] installations;
         try {

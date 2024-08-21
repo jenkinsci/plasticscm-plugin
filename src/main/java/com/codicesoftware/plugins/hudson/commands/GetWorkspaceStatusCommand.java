@@ -1,19 +1,18 @@
 package com.codicesoftware.plugins.hudson.commands;
 
-import com.codicesoftware.plugins.hudson.model.ChangeSetID;
+import com.codicesoftware.plugins.hudson.model.ObjectSpec;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetWorkspaceStatusCommand implements ParseableCommand<List<ChangeSetID>>, Command {
+public class GetWorkspaceStatusCommand implements ParseableCommand<ObjectSpec>, Command {
 
-    private static final Pattern statusRegex = Pattern.compile("^cs:(\\d+)@rep:(.+)@repserver:(.+)$");
+    private static final Pattern statusRegex = Pattern.compile("^(cs|sh):(\\d+)@rep:(.+)@repserver:(.+)$");
 
     private final String workspacePath;
 
@@ -31,8 +30,8 @@ public class GetWorkspaceStatusCommand implements ParseableCommand<List<ChangeSe
         return arguments;
     }
 
-    public List<ChangeSetID> parse(Reader r) throws IOException {
-        List<ChangeSetID> list = new ArrayList<>();
+    public ObjectSpec parse(Reader r) throws IOException {
+        ObjectSpec result = null;
         BufferedReader reader = new BufferedReader(r);
 
         String line = reader.readLine();
@@ -41,14 +40,17 @@ public class GetWorkspaceStatusCommand implements ParseableCommand<List<ChangeSe
             line = reader.readLine();
 
             if (!matcher.find()) {
-                list.add(new ChangeSetID(-1, "unknown_repo", "unknown_server"));
                 continue;
             }
 
-            list.add(new ChangeSetID(
-                    Integer.parseInt(matcher.group(1)), matcher.group(2), matcher.group(3)));
+            ObjectSpecType type = ObjectSpecType.from(matcher.group(1));
+            if (type == null) {
+                continue;
+            }
+
+            result = new ObjectSpec(type, Integer.parseInt(matcher.group(2)), matcher.group(3), matcher.group(4));
         }
 
-        return list;
+        return result;
     }
 }

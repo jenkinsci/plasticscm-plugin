@@ -2,7 +2,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
   <t:summary icon="/plugin/plasticscm-plugin/images/48x48/plasticscm.png">
-    ${%Changeset}: ${it.changeset.csetSpec}
+    <j:if test="${it.changeset.type=='Shelve'}">
+      ${%Shelveset}:
+    </j:if>
+    <j:if test="${it.changeset.type=='Changeset'}">
+      ${%Changeset}:
+    </j:if>
+     ${it.changeset.csetSpec}
   </t:summary>
 
 </j:jelly>

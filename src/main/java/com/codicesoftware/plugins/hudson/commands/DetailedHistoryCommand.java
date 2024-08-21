@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.commands.parsers.FindOutputParser;
 import com.codicesoftware.plugins.hudson.model.ChangeSet;
 import com.codicesoftware.plugins.hudson.util.DateUtil;
 import com.codicesoftware.plugins.hudson.util.MaskedArgumentListBuilder;
+import com.codicesoftware.plugins.jenkins.ObjectSpecType;
 import hudson.FilePath;
 
 import java.io.IOException;
@@ -55,13 +56,13 @@ public class DetailedHistoryCommand implements ParseableCommand<List<ChangeSet>>
 
         arguments.add("--xml");
         arguments.add("--file=" + xmlOutputPath.getRemote());
-        arguments.add("--dateformat=" + DateUtil.DEFAULT_SORTABLE_FORMAT);
+        arguments.add("--dateformat=" + DateUtil.ISO_DATE_TIME_OFFSET_CSHARP_FORMAT);
 
 
         return arguments;
     }
 
     public List<ChangeSet> parse(Reader reader) throws IOException, ParseException {
-        return FindOutputParser.parseReader(xmlOutputPath);
+        return FindOutputParser.parseReader(ObjectSpecType.Changeset, xmlOutputPath);
     }
 }

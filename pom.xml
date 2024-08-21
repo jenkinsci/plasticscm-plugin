@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.47</version>
+    <version>4.86</version>
     <relativePath />
   </parent>
 
   <artifactId>plasticscm-plugin</artifactId>
-  <version>4.1-SNAPSHOT</version>
+  <version>4.5-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>PlasticSCM Plugin</name>
   <description>Integrates Jenkins with Plastic SCM</description>
@@ -30,26 +30,22 @@
   </scm>
 
   <properties>
-    <jenkins.version>2.60.3</jenkins.version>
-    <java.level>8</java.level>
+    <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.baseline>2.440</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
   </properties>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.4.0</version>
         <dependencies>
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>9.0.1</version>
+            <version>10.17.0</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -64,11 +60,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>com.cloudbees</groupId>
-        <artifactId>maven-license-plugin</artifactId>
-        <version>1.8</version>
-      </plugin>
     </plugins>
   </build>
 
@@ -76,30 +67,44 @@
     <developer>
       <id>mig42</id>
       <name>Miguel Gonzalez</name>
-      <email>mgonzalez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <email>miguel.gonzalez@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>miryamgsm</id>
-      <name>Miryam Gomez</name>
-      <email>mgomez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>ferdef</id>
+      <name>Fernando de Francisco</name>
+      <email>fernando.defrancisco@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>rubarax</id>
-      <name>Ruben de Alba</name>
-      <email>rdealba@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>juliomaqueda</id>
+      <name>Julio Maqueda</name>
+      <email>julio.maqueda@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
     <developer>
-      <id>jemagoga</id>
-      <name>Jesus Manuel Gonzalez</name>
-      <email>jgonzalez@codicesoftware.com</email>
-      <organization>Codice Software</organization>
-      <organizationUrl>http://www.codicesoftware.com</organizationUrl>
+      <id>dhompanera</id>
+      <name>Daniel Hompanera</name>
+      <email>daniel.hompanera@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>pbayarri</id>
+      <name>Pablo Bayarri</name>
+      <email>pablo.bayarri@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>danipen00</id>
+      <name>Daniel Peñalba</name>
+      <email>daniel.penalba@unity3d.com</email>
+      <organization>Unity Technologies</organization>
+      <organizationUrl>https://www.plasticscm.com</organizationUrl>
     </developer>
   </developers>
 
@@ -128,26 +133,40 @@
     </pluginRepository>
   </pluginRepositories>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>3208.vb_21177d4b_cd9</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>scm-api</artifactId>
-      <version>2.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-scm-step</artifactId>
-      <version>2.9</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
-      <version>2.6.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-digester3</artifactId>
       <version>3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.4</version>
     </dependency>
   </dependencies>
 </project>

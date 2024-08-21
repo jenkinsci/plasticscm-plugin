@@ -1,0 +1,22 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+
+    <f:entry field="cleanup" title="${%Cleanup}" help="/plugin/plasticscm-plugin/cleanup.html">
+        <f:enum>${it.getLabel()}</f:enum>
+    </f:entry>
+
+    <f:entry field="workingMode" title="${%Working mode}" help="/plugin/plasticscm-plugin/workingMode.html">
+        <f:enum>${it.getLabel()}</f:enum>
+    </f:entry>
+
+    <f:entry field="credentialsId" title="${%Credentials}" help="/plugin/plasticscm-plugin/credentials.html">
+        <c:select />
+    </f:entry>
+
+    <f:advanced title="${%Advanced configuration}">
+        <f:entry field="specAttributeName" title="${%Spec attribute name}" help="/plugin/plasticscm-plugin/specAttributeName.html">
+            <f:textbox default="${descriptor.getDefaultSpecAttributeName()}" checkMethod="post" />
+        </f:entry>
+    </f:advanced>
+
+</j:jelly>

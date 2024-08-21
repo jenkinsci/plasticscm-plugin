@@ -2,13 +2,13 @@ package com.codicesoftware.plugins.hudson.util;
 
 import hudson.Util;
 
+import javax.annotation.Nonnull;
+
 public class StringUtil {
 
-    private StringUtil() { }
+    public static final String SEPARATOR = "/";
 
-    public static int tryParse(String value) {
-        return tryParse(value, 0);
-    }
+    private StringUtil() { }
 
     public static int tryParse(String value, int defaultValue) {
         try {
@@ -22,8 +22,7 @@ public class StringUtil {
         return Util.fixNull(value).replaceAll("[\\n\\r\\t ]+", " ").trim();
     }
 
-    public static String removeNewLines(String value) {
-        return Util.fixNull(value).replaceAll("[\\n\\r]", "").trim();
+    public static String ensureStartsWithSlash(@Nonnull final String scriptPath) {
+        return scriptPath.startsWith(SEPARATOR) ? scriptPath : SEPARATOR + scriptPath;
     }
-
 }

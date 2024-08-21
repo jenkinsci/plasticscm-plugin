@@ -54,10 +54,6 @@ public enum Platform {
         return downloadPlatform;
     }
 
-    public boolean isUnix() {
-        return this == LINUX || this == MACOS;
-    }
-
     static class GetCurrentPlatform extends MasterToSlaveCallable<Platform, InterruptedException> {
         private static final long serialVersionUID = 1L;
 

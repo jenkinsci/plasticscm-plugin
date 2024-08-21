@@ -16,11 +16,6 @@ public class CommandRunner {
         return execute(tool, command, null, true);
     }
 
-    public static Reader execute(PlasticTool tool, Command command, FilePath executionPath)
-            throws IOException, InterruptedException {
-        return tool.execute(command.getArguments().toCommandArray(), executionPath, true);
-    }
-
     public static Reader execute(PlasticTool tool, Command command, FilePath executionPath, boolean printOutput)
             throws IOException, InterruptedException {
         return tool.execute(command.getArguments().toCommandArray(), executionPath, printOutput);

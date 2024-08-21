@@ -4,6 +4,7 @@ import com.codicesoftware.plugins.hudson.model.CleanupMethod;
 import com.codicesoftware.plugins.hudson.model.WorkingMode;
 import com.codicesoftware.plugins.hudson.util.FormChecker;
 import com.codicesoftware.plugins.hudson.util.FormFiller;
+import com.codicesoftware.plugins.jenkins.SelectorTemplates;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Item;
@@ -25,11 +26,9 @@ public class PlasticSCMStep extends SCMStep {
 
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMStep.class.getName());
 
-    public static final String SELECTOR_BRANCH_FORMAT = "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\"";
-    public static final String SELECTOR_CHANGESET_FORMAT =
-        "repository \"%s@%s\"%n  path \"/\"%n    smartbranch \"%s\" changeset \"%s\"";
-
     private String branch = DescriptorImpl.defaultBranch;
+    private String label = "";
+    private String shelveset = "";
     private String changeset = "";
     private String repository = "";
     private String server = "";
@@ -44,6 +43,24 @@ public class PlasticSCMStep extends SCMStep {
 
     @DataBoundConstructor
     public PlasticSCMStep() {
+    }
+
+    public String getShelveset() {
+        return shelveset;
+    }
+
+    @DataBoundSetter
+    public void setShelveset(String shelveset) {
+        this.shelveset = shelveset;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    @DataBoundSetter
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getBranch() {
@@ -132,10 +149,14 @@ public class PlasticSCMStep extends SCMStep {
     }
 
     private String buildSelector() {
-        if (Util.fixEmptyAndTrim(changeset) == null) {
-            return String.format(SELECTOR_BRANCH_FORMAT, repository, server, branch);
+        if (Util.fixEmptyAndTrim(shelveset) != null) {
+            return String.format(SelectorTemplates.SHELVESET, repository, server, shelveset);
+        } else if (Util.fixEmptyAndTrim(label) != null) {
+            return String.format(SelectorTemplates.LABEL, repository, server, label);
+        } else if (Util.fixEmptyAndTrim(changeset) != null) {
+            return String.format(SelectorTemplates.CHANGESET, repository, server, branch, changeset);
         } else {
-            return String.format(SELECTOR_CHANGESET_FORMAT, repository, server, branch, changeset);
+            return String.format(SelectorTemplates.BRANCH, repository, server, branch);
         }
     }
 

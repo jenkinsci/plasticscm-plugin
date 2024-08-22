@@ -24,6 +24,8 @@ import java.util.List;
  */
 public class ChangeSetReader extends ChangeLogParser {
 
+    // DigesterUtils will return a secured Digester unless there's a UNSAFE property in ChangeSetReader set to "true"
+    @SuppressWarnings("lgtm[jenkins/unsafe-classes]")
     @Override
     public ChangeSetList parse(
             Run run, RepositoryBrowser<?> browser, File changelogFile)
@@ -36,6 +38,8 @@ public class ChangeSetReader extends ChangeLogParser {
         }
     }
 
+    // DigesterUtils will return a secured Digester unless there's a UNSAFE property in ChangeSetReader set to "true"
+    @SuppressWarnings("lgtm[jenkins/unsafe-classes]")
     public ChangeSetList parse(
             Run<?, ?> run, RepositoryBrowser<?> browser, Reader reader)
             throws IOException, SAXException {

@@ -21,6 +21,8 @@ public class FindOutputParser {
     // Utility classes shouldn't have default constructors
     private FindOutputParser() { }
 
+    // DigesterUtils will return a secured Digester unless there's a UNSAFE property in FindOutputParser set to "true"
+    @SuppressWarnings("lgtm[jenkins/unsafe-classes]")
     @Nonnull
     public static List<ChangeSet> parseReader(
             @Nonnull final ObjectSpecType specType,

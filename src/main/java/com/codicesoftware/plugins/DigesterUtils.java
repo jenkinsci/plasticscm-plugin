@@ -11,6 +11,9 @@ public class DigesterUtils {
         // private as it is an utility class
     }
 
+    // This method disables features that are known to allow XML External Entity (XXE) attacks
+    // unless forced to be insecure
+    @SuppressWarnings("lgtm[jenkins/unsafe-classes]")
     public static Digester createDigester(boolean secure) throws SAXException {
         Digester digester = new Digester();
         if (secure) {

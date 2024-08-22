@@ -680,6 +680,7 @@ public class PlasticSCM extends SCM {
             return "Plastic SCM";
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public static FormValidation doCheckSelector(@QueryParameter String value) {
             return FormChecker.doCheckSelector(value);
@@ -767,6 +768,7 @@ public class PlasticSCM extends SCM {
         @Extension
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
 
+            @SuppressWarnings("lgtm[jenkins/no-permission-check]")
             @RequirePOST
             public static FormValidation doCheckSelector(@QueryParameter String value) {
                 return FormChecker.doCheckSelector(value);

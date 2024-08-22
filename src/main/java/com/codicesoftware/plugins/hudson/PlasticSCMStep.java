@@ -175,16 +175,19 @@ public class PlasticSCMStep extends SCMStep {
             return "Plastic SCM";
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public FormValidation doCheckBranch(@QueryParameter String value) {
             return FormChecker.doCheckBranch(value);
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public FormValidation doCheckRepository(@QueryParameter String value) {
             return FormChecker.doCheckRepository(value);
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public FormValidation doCheckServer(@QueryParameter String value) {
             return FormChecker.doCheckServer(value);

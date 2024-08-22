@@ -222,6 +222,7 @@ public class MergebotScm extends SCM {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public static FormValidation doCheckSpeckAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null

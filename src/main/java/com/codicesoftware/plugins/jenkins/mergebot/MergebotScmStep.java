@@ -93,6 +93,7 @@ public class MergebotScmStep extends SCMStep {
             return MergebotScm.UPDATE_TO_SPEC_PARAMETER_NAME;
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         public static FormValidation doCheckSpecAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null

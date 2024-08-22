@@ -128,7 +128,7 @@ download all workspaces in the same directory!
 To build the plugin you will need:
 
 * [Maven](https://maven.apache.org/) version `3.5` or newer
-* [Java Development Kit (JDK)](https://jdk.java.net/) version `11`
+* [Java Development Kit (JDK)](https://jdk.java.net/) version `17`
 
 Run the following command to build the plugin:
 

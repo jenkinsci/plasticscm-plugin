@@ -19,6 +19,8 @@ public final class LogOutputParser {
     // Utility classes shouldn't have default constructors
     private LogOutputParser() { }
 
+    // DigesterUtils will return a secured Digester unless there's a UNSAFE property in LogOutputParser set to "true"
+    @SuppressWarnings("lgtm[jenkins/unsafe-classes]")
     public static List<ChangeSet> parseFile(
             FilePath path, String repoName, String server) throws IOException, ParseException {
         List<ChangeSet> csetList = new ArrayList<>();

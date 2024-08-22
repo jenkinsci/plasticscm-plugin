@@ -166,6 +166,7 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
             return "plasticscm-cli";
         }
 
+        @SuppressWarnings("lgtm[jenkins/no-permission-check]")
         @RequirePOST
         @Override
         public FormValidation doCheckHome(@QueryParameter File value) {

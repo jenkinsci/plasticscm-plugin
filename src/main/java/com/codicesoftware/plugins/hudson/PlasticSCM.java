@@ -181,6 +181,7 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
+    @SuppressWarnings("unused")
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
         return additionalWorkspaces;
     }
@@ -196,6 +197,7 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
+    @SuppressWarnings("unused")
     public boolean isPollOnController() {
         return pollOnController;
     }
@@ -651,6 +653,7 @@ public class PlasticSCM extends SCM {
 
     // endregion
 
+    @SuppressWarnings("unused")
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {
         public DescriptorImpl() {
@@ -750,6 +753,7 @@ public class PlasticSCM extends SCM {
             return directory;
         }
 
+        @SuppressWarnings("unused")
         @Extension
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
 

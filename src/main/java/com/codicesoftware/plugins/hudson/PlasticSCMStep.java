@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@SuppressWarnings("unused")
 public class PlasticSCMStep extends SCMStep {
 
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMStep.class.getName());
@@ -160,6 +161,7 @@ public class PlasticSCMStep extends SCMStep {
         }
     }
 
+    @SuppressWarnings("unused")
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {
         public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;

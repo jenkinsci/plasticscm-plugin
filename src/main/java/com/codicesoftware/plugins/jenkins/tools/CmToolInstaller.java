@@ -90,6 +90,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
         return super.performInstallation(installableTool, node, log).child(Platform.of(node).getToolName());
     }
 
+    @SuppressWarnings("unused")
     @Exported
     public boolean isIgnoreSystemTool() {
         return ignoreSystemTool;

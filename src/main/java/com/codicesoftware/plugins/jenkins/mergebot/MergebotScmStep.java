@@ -18,6 +18,7 @@ import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 
+@SuppressWarnings("unused")
 public class MergebotScmStep extends SCMStep {
 
     private WorkingMode workingMode = WorkingMode.NONE;
@@ -72,6 +73,7 @@ public class MergebotScmStep extends SCMStep {
     }
 
     @Extension
+    @SuppressWarnings("unused")
     public static final class MergebotScmStepDescriptor extends SCMStep.SCMStepDescriptor {
         @Override
         @Nonnull

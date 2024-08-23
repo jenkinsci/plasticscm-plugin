@@ -195,6 +195,7 @@ public class MergebotScm extends SCM {
         }
     }
 
+    @SuppressWarnings("unused")
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<MergebotScm> {
         public DescriptorImpl() {

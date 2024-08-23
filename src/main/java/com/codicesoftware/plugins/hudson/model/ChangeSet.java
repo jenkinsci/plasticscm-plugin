@@ -76,7 +76,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.version = o.version;
         this.repoName = o.repoName;
         this.repoServer = o.repoServer;
-        this.dateTime = (dateTime != null) ? OffsetDateTime.from(dateTime) : null;
+        this.dateTime = (o.dateTime != null) ? OffsetDateTime.from(o.dateTime) : null;
         this.dateTimeStr = o.dateTimeStr;
         this.comment = o.comment;
         this.branch = o.branch;

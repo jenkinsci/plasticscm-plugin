@@ -134,7 +134,7 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
 
         CmTool[] installations = getInstallations(descriptor);
 
-        if (installations == null || installations.length == 0) {
+        if (installations.length == 0) {
             createDefaultInstallation(descriptor);
         }
     }

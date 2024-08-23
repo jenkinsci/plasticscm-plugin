@@ -14,7 +14,7 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 
@@ -94,7 +94,7 @@ public class MergebotScmStep extends SCMStep {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public static FormValidation doCheckSpecAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null
                 ? FormValidation.error("The attribute name cannot be empty")

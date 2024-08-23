@@ -16,7 +16,7 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -176,24 +176,24 @@ public class PlasticSCMStep extends SCMStep {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckBranch(@QueryParameter String value) {
             return FormChecker.doCheckBranch(value);
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckRepository(@QueryParameter String value) {
             return FormChecker.doCheckRepository(value);
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckServer(@QueryParameter String value) {
             return FormChecker.doCheckServer(value);
         }
 
-        @RequirePOST
+        @POST
         public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
             if (Util.fixEmpty(value) == null) {
                 return FormValidation.ok();
@@ -205,7 +205,7 @@ public class PlasticSCMStep extends SCMStep {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
-        @RequirePOST
+        @POST
         public FormValidation doCheckCredentialsId(
             @AncestorInPath Item item,
             @QueryParameter String value,

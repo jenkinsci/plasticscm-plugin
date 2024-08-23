@@ -54,7 +54,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -681,12 +681,12 @@ public class PlasticSCM extends SCM {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public static FormValidation doCheckSelector(@QueryParameter String value) {
             return FormChecker.doCheckSelector(value);
         }
 
-        @RequirePOST
+        @POST
         public static FormValidation doCheckDirectory(
                 @QueryParameter String value,
                 @QueryParameter boolean useMultipleWorkspaces,
@@ -705,7 +705,7 @@ public class PlasticSCM extends SCM {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
-        @RequirePOST
+        @POST
         public FormValidation doCheckCredentialsId(
             @AncestorInPath Item item,
             @QueryParameter String value,
@@ -769,12 +769,12 @@ public class PlasticSCM extends SCM {
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
 
             @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-            @RequirePOST
+            @POST
             public static FormValidation doCheckSelector(@QueryParameter String value) {
                 return FormChecker.doCheckSelector(value);
             }
 
-            @RequirePOST
+            @POST
             public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
                 return FormChecker.doCheckDirectory(value, item);
             }

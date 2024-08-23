@@ -201,6 +201,7 @@ public class PlasticSCMStep extends SCMStep {
             return FormChecker.doCheckDirectory(value, item);
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }

@@ -85,6 +85,7 @@ public class MergebotScmStep extends SCMStep {
             return "Plastic SCM Mergebot Checkout";
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }

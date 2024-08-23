@@ -701,6 +701,7 @@ public class PlasticSCM extends SCM {
             return SelectorTemplates.DEFAULT;
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }

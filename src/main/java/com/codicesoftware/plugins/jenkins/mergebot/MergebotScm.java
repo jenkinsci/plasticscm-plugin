@@ -218,6 +218,7 @@ public class MergebotScm extends SCM {
             return MergebotScm.UPDATE_TO_SPEC_PARAMETER_NAME;
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }

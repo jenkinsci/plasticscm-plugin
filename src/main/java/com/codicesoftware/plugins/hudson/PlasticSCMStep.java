@@ -37,8 +37,6 @@ public class PlasticSCMStep extends SCMStep {
     private WorkingMode workingMode = WorkingMode.NONE;
     private String credentialsId = null;
     private CleanupMethod cleanup = CleanupMethod.STANDARD;
-    @Deprecated
-    private transient boolean useUpdate;
 
     private String directory = "";
 
@@ -125,12 +123,6 @@ public class PlasticSCMStep extends SCMStep {
     @DataBoundSetter
     public void setCleanup(CleanupMethod cleanup) {
         this.cleanup = cleanup;
-    }
-
-    @Deprecated
-    public void setUseUpdate(boolean useUpdate) {
-        LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
-        this.cleanup = CleanupMethod.convertUseUpdate(useUpdate);
     }
 
     public String getDirectory() {

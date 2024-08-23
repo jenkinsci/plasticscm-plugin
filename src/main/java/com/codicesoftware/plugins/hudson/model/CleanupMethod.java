@@ -28,8 +28,4 @@ public enum CleanupMethod {
     public boolean removesIgnored() {
         return (this == FULL);
     }
-
-    public static CleanupMethod convertUseUpdate(boolean useUpdate) {
-        return useUpdate ? CleanupMethod.MINIMAL : CleanupMethod.DELETE;
-    }
 }

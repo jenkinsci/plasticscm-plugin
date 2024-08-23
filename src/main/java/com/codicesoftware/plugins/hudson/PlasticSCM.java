@@ -106,12 +106,10 @@ public class PlasticSCM extends SCM {
 
     private final String selector;
 
-    private CleanupMethod cleanup;
+    private final CleanupMethod cleanup;
     private final WorkingMode workingMode;
     @CheckForNull
     private final String credentialsId;
-    @Deprecated
-    private transient boolean useUpdate;
 
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
@@ -127,7 +125,7 @@ public class PlasticSCM extends SCM {
             String selector,
             CleanupMethod cleanup,
             WorkingMode workingMode,
-            String credentialsId,
+            @CheckForNull String credentialsId,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             boolean pollOnController,
@@ -158,8 +156,7 @@ public class PlasticSCM extends SCM {
 
     @Exported
     public CleanupMethod getCleanup() {
-        // Field might be null if deserialized from older class version.
-        return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
+        return cleanup;
     }
 
     @Exported
@@ -168,6 +165,7 @@ public class PlasticSCM extends SCM {
         return (workingMode != null) ? workingMode : WorkingMode.NONE;
     }
 
+    @CheckForNull
     @Exported
     public String getCredentialsId() {
         return credentialsId;
@@ -245,7 +243,6 @@ public class PlasticSCM extends SCM {
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
 
         Node node = BuildNode.getFromWorkspacePath(workspace);
-        adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
@@ -401,16 +398,6 @@ public class PlasticSCM extends SCM {
     // endregion
 
     // region Private methods
-
-    /**
-     * Backward compatibility for jobs using old configuration format.
-     */
-    private void adjustFieldsIfUsingOldConfigFormat() {
-        if (cleanup == null) {
-            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
-            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
-        }
-    }
 
     private static FilePath resolveWorkspacePath(
             FilePath jenkinsWorkspacePath,
@@ -718,8 +705,6 @@ public class PlasticSCM extends SCM {
         private final String selector;
 
         private final CleanupMethod cleanup;
-        @Deprecated
-        private transient boolean useUpdate;
 
         private final String directory;
 
@@ -742,8 +727,7 @@ public class PlasticSCM extends SCM {
 
         @Exported
         public CleanupMethod getCleanup() {
-            // Field might be null if deserialized from older class version.
-            return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
+            return cleanup;
         }
 
         @Exported

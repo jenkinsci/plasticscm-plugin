@@ -91,14 +91,10 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
         return home;
     }
 
-    private static CmTool[] getInstallations(DescriptorImpl descriptor) {
-        CmTool[] installations;
-        try {
-            installations = descriptor.getInstallations();
-        } catch (NullPointerException e) {
-            installations = new CmTool[0];
-        }
-        return installations;
+    @Nonnull
+    private static CmTool[] getInstallations(@Nonnull DescriptorImpl descriptor) {
+        CmTool[] installations = descriptor.getInstallations();
+        return installations == null ? new CmTool[0] : installations;
     }
 
     public static CmTool get(Node node, EnvVars envVars, TaskListener log) throws IOException, InterruptedException {

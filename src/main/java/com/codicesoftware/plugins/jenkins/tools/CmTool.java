@@ -24,6 +24,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.verb.POST;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
@@ -39,8 +40,8 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
     private static final String DEFAULT_CM = "cm";
 
     private final boolean useInvariantCulture;
-    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "This field is calculated")
-    private transient Platform platform;
+    @CheckForNull
+    private final Platform platform;
 
     @DataBoundConstructor
     public CmTool(String name, String home, boolean useInvariantCulture, List<? extends ToolProperty<?>> properties) {
@@ -52,7 +53,7 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
             String home,
             boolean useInvariantCulture,
             List<? extends ToolProperty<?>> properties,
-            Platform platform) {
+            @CheckForNull Platform platform) {
 
         super(name, home, properties);
         this.useInvariantCulture = useInvariantCulture;
@@ -107,8 +108,7 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
     }
 
     static CmTool getDefaultOrFirstInstallation() {
-        Jenkins jenkinsInstance = Jenkins.getInstance();
-        DescriptorImpl descriptor = jenkinsInstance.getDescriptorByType(CmTool.DescriptorImpl.class);
+        DescriptorImpl descriptor = Jenkins.get().getDescriptorByType(CmTool.DescriptorImpl.class);
         CmTool tool = descriptor.getInstallation(DEFAULT);
 
         if (tool != null) {
@@ -124,17 +124,20 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
         createDefaultInstallation(descriptor);
         onLoaded();
         return descriptor.getInstallations()[0];
-
     }
 
     @Override
     public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(getClass());
+        return (DescriptorImpl) Jenkins.get().getDescriptorOrDie(getClass());
     }
 
     @Initializer(after = EXTENSIONS_AUGMENTED)
     public static void onLoaded() {
-        DescriptorImpl descriptor = (DescriptorImpl) Jenkins.getInstance().getDescriptor(CmTool.class);
+        DescriptorImpl descriptor = (DescriptorImpl) Jenkins.get().getDescriptor(CmTool.class);
+        if (descriptor == null) {
+            throw new IllegalStateException("Descriptor is null");
+        }
+
         CmTool[] installations = getInstallations(descriptor);
 
         if (installations == null || installations.length == 0) {

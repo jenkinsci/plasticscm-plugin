@@ -224,7 +224,7 @@ public class WorkspaceManager {
         return fixedNestedPath.startsWith(fixedBasePath);
     }
 
-    private interface WorkspacePathMatcher {
+    protected interface WorkspacePathMatcher {
         boolean matches(String testPath);
     }
 }

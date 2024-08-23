@@ -16,7 +16,7 @@ public class MaskedArgumentListBuilder extends ArgumentListBuilder {
     @Override
     public ArgumentListBuilder prepend(String... args) {
         if (maskedArgumentIndex != null) {
-            Collection<Integer> newMaskedArgumentIndex = new HashSet<Integer>();
+            Collection<Integer> newMaskedArgumentIndex = new HashSet<>();
 
             for (Integer argIndex : maskedArgumentIndex) {
                 newMaskedArgumentIndex.add(argIndex + args.length);
@@ -48,7 +48,7 @@ public class MaskedArgumentListBuilder extends ArgumentListBuilder {
     @Override
     public void addMasked(String string) {
         if (maskedArgumentIndex == null) {
-            maskedArgumentIndex = new HashSet<Integer>();
+            maskedArgumentIndex = new HashSet<>();
         }
         maskedArgumentIndex.add(toCommandArray().length);
         add(string);

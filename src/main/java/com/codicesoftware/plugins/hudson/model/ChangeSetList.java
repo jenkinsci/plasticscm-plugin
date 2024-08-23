@@ -6,6 +6,7 @@ import hudson.scm.RepositoryBrowser;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +39,7 @@ public class ChangeSetList extends ChangeLogSet<ChangeSet> {
         return changesets.isEmpty();
     }
 
+    @Nonnull
     @Override
     public Iterator<ChangeSet> iterator() {
         return changesets.iterator();

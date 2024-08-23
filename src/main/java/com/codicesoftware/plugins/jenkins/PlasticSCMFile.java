@@ -137,7 +137,7 @@ public class PlasticSCMFile extends SCMFile {
     @Nonnull
     @Override
     public Iterable<SCMFile> children() {
-        return new ArrayList<SCMFile>();
+        return new ArrayList<>();
     }
 
     @Override
@@ -183,7 +183,7 @@ public class PlasticSCMFile extends SCMFile {
                 environment);
 
             PlasticTool tool = new PlasticTool(
-                CmTool.get(Jenkins.getInstance(), environment, listener),
+                CmTool.get(Jenkins.get(), environment, listener),
                 launcher,
                 listener,
                 null,

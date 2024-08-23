@@ -21,10 +21,14 @@ public class SelectorParametersResolverTest {
 
         EnvVars environment = new EnvVars();
 
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
-        assertEquals("sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
-        assertEquals("sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
+        assertEquals(
+            "sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
+        assertEquals(
+            "sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
     }
 
     @Test
@@ -32,10 +36,14 @@ public class SelectorParametersResolverTest {
         List<ParameterValue> parameters = new LinkedList<>();
         EnvVars environment = new EnvVars("PARAM", "VALUE", "BOOL", "true");
 
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
-        assertEquals("sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
-        assertEquals("sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
+        assertEquals(
+            "sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
+        assertEquals(
+            "sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
     }
 
     @Test
@@ -45,10 +53,14 @@ public class SelectorParametersResolverTest {
 
         EnvVars environment = new EnvVars("PARAM", "VALUE");
 
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
-        assertEquals("sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
-        assertEquals("sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample $PARAM text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} text", parameters, environment));
+        assertEquals(
+            "sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
+        assertEquals(
+            "sample true text", SelectorParametersResolver.resolve("sample $BOOL text", parameters, environment));
     }
 
     @Test
@@ -59,9 +71,12 @@ public class SelectorParametersResolverTest {
 
         EnvVars environment = new EnvVars();
 
-        assertEquals("sample VALUE text", SelectorParametersResolver.resolve("sample %PARAM% text", parameters, environment));
-        assertEquals("sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
-        assertEquals("sample true text", SelectorParametersResolver.resolve("sample %BOOL% text", parameters, environment));
+        assertEquals(
+            "sample VALUE text", SelectorParametersResolver.resolve("sample %PARAM% text", parameters, environment));
+        assertEquals(
+            "sample PARAM text", SelectorParametersResolver.resolve("sample PARAM text", parameters, environment));
+        assertEquals(
+            "sample true text", SelectorParametersResolver.resolve("sample %BOOL% text", parameters, environment));
     }
 
     @Test
@@ -72,8 +87,14 @@ public class SelectorParametersResolverTest {
 
         EnvVars environment = new EnvVars();
 
-        assertEquals("sample VALUE VALUE text", SelectorParametersResolver.resolve("sample %PARAM% $PARAM text", parameters, environment));
-        assertEquals("sample VALUE VALUE text", SelectorParametersResolver.resolve("sample ${PARAM} %PARAM% text", parameters, environment));
-        assertEquals("sample true true text", SelectorParametersResolver.resolve("sample $BOOL %BOOL% text", parameters, environment));
+        assertEquals(
+            "sample VALUE VALUE text",
+                SelectorParametersResolver.resolve("sample %PARAM% $PARAM text", parameters, environment));
+        assertEquals(
+            "sample VALUE VALUE text",
+                SelectorParametersResolver.resolve("sample ${PARAM} %PARAM% text", parameters, environment));
+        assertEquals(
+            "sample true true text",
+                SelectorParametersResolver.resolve("sample $BOOL %BOOL% text", parameters, environment));
     }
 }

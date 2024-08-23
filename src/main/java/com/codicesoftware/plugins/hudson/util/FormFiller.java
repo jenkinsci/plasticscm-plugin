@@ -19,7 +19,7 @@ public final class FormFiller {
     public static ListBoxModel doFillCredentialsIdItems(Item item, String credentialsId) {
         StandardListBoxModel result = new StandardListBoxModel();
         if (item == null) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return result.includeCurrentValue(credentialsId);
             }
         } else {
@@ -32,8 +32,8 @@ public final class FormFiller {
             .includeEmptyValue()
             .includeMatchingAs(
                 item instanceof Queue.Task
-                    ? Tasks.getAuthenticationOf((Queue.Task) item)
-                    : ACL.SYSTEM,
+                    ? Tasks.getAuthenticationOf2((Queue.Task) item)
+                    : ACL.SYSTEM2,
                 item,
                 StandardUsernamePasswordCredentials.class,
                 // No domain requirements

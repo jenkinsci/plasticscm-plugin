@@ -31,7 +31,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
     @Override
     public Installable getInstallable() throws IOException {
         Installable installable = super.getInstallable();
-        return installable != null ? new PlasticScmInstallable(installable) : installable;
+        return installable != null ? new PlasticScmInstallable(installable) : null;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
 
     @Override
     public ToolInstallerDescriptor<?> getDescriptor() {
-        return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(CmToolInstaller.class);
+        return (DescriptorImpl) Jenkins.get().getDescriptorOrDie(CmToolInstaller.class);
     }
 
     @Override
@@ -131,7 +131,7 @@ public class CmToolInstaller extends DownloadFromUrlInstaller {
         }
 
         @Override
-        public List<? extends Installable> getInstallables() throws IOException {
+        public List<? extends Installable> getInstallables() {
             Installable installable = new Installable() {
                 {
                     name = "Latest";

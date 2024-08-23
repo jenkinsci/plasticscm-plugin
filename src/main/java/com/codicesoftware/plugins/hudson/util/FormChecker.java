@@ -37,7 +37,7 @@ public class FormChecker {
         Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
     private static final Pattern NO_AT_CHAR_REGEX = Pattern.compile("^[^@]+$");
     private static final Pattern SERVER_REGEX = Pattern.compile("^.+:[0-9]+$");
-    private static final Pattern DIRECTORY_REGEX = Pattern.compile("^[A-Za-z0-9\\-\\_]+$");
+    private static final Pattern DIRECTORY_REGEX = Pattern.compile("^[A-Za-z0-9\\-_]+$");
 
     private FormChecker() { }
 
@@ -100,7 +100,7 @@ public class FormChecker {
             String server,
             WorkingMode workingMode) throws IOException, InterruptedException {
         if (item == null) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
         } else {
@@ -116,12 +116,12 @@ public class FormChecker {
             return FormValidation.error(workingMode.getLabel() + " requires credentials");
         }
         StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(
-            CredentialsProvider.lookupCredentials(
+            CredentialsProvider.lookupCredentialsInItem(
                 StandardUsernamePasswordCredentials.class,
                 item,
                 item instanceof Queue.Task
-                    ? Tasks.getAuthenticationOf((Queue.Task) item)
-                    : ACL.SYSTEM,
+                    ? Tasks.getAuthenticationOf2((Queue.Task) item)
+                    : ACL.SYSTEM2,
                 URIRequirementBuilder.create().build()),
             CredentialsMatchers.withId(value));
 
@@ -136,10 +136,10 @@ public class FormChecker {
         Launcher launcher = new Launcher.LocalLauncher(listener);
 
         PlasticTool tool = new PlasticTool(
-            CmTool.get(Jenkins.getInstance(), new EnvVars(EnvVars.masterEnvVars), listener),
+            CmTool.get(Jenkins.get(), new EnvVars(EnvVars.masterEnvVars), listener),
             launcher,
             listener,
-            Jenkins.getInstance().getRootPath(),
+            Jenkins.get().getRootPath(),
             clientConfArgs);
 
         try {

@@ -27,10 +27,10 @@ public class CredentialsFinder {
         }
 
         return CredentialsMatchers.firstOrNull(
-            CredentialsProvider.lookupCredentials(
+            CredentialsProvider.lookupCredentialsInItem(
                 StandardUsernamePasswordCredentials.class,
                 item,
-                item instanceof Queue.Task ? ((Queue.Task) item).getDefaultAuthentication() : ACL.SYSTEM,
+                item instanceof Queue.Task ? ((Queue.Task) item).getDefaultAuthentication2() : ACL.SYSTEM2,
                 URIRequirementBuilder.create().build()),
             CredentialsMatchers.withId(credentialsId));
     }

@@ -26,7 +26,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
@@ -298,21 +297,6 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    /**
-     * Jenkins older than 2.60
-     * {@inheritDoc}
-     *
-     */
-    @Override
-    public void buildEnvVars(@Nonnull AbstractBuild<?, ?> build, @Nonnull Map<String, String> env) {
-        super.buildEnvVars(build, env);
-        buildEnvironment(build, env);
-    }
-
-    /**
-     * Jenkins 2.60 and newer
-     * {@inheritDoc}
-     */
     @Override
     public void buildEnvironment(@Nonnull Run<?, ?> build, @Nonnull Map<String, String> env) {
         int index = 1;
@@ -514,7 +498,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final ChangeSet toCset) throws IOException, InterruptedException {
 
         if (fromCset == null) {
-            return new ArrayList<ChangeSet>() {{ add(toCset); }};
+            return new ArrayList<>() {{ add(toCset); }};
         }
 
         FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
@@ -561,7 +545,7 @@ public class PlasticSCM extends SCM {
         }
 
         if (workspacePath == null) {
-            workspacePath = new FilePath(new FilePath(Jenkins.getInstance().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
+            workspacePath = new FilePath(new FilePath(Jenkins.get().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
             workspacePath.mkdirs();
         }
 
@@ -581,7 +565,7 @@ public class PlasticSCM extends SCM {
                 repSpec,
                 lastCompletedBuildTimestamp,
                 Calendar.getInstance());
-            return changesetsFromBuild.size() > 0;
+            return !changesetsFromBuild.isEmpty();
         } catch (Exception e) {
             e.printStackTrace(listener.error(String.format(
                 "%s: Unable to retrieve workspace status.", workspacePath.getRemote())));

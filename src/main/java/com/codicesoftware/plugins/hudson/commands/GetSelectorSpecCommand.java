@@ -28,14 +28,11 @@ public class GetSelectorSpecCommand implements ParseableCommand<WorkspaceInfo>, 
     }
 
     public WorkspaceInfo parse(Reader r) throws IOException, ParseException {
-        BufferedReader reader = new BufferedReader(r);
-        try {
+        try (BufferedReader reader = new BufferedReader(r)) {
             String line = reader.readLine();
             return WorkspaceInfoParser.parse(line);
         } catch (Exception e) {
             throw new ParseException("Parse error: " + e.getMessage(), 0);
-        } finally {
-            reader.close();
         }
     }
 }

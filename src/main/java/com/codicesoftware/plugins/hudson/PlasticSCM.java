@@ -27,7 +27,6 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -47,7 +46,6 @@ import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import jenkins.security.MasterToSlaveCallable;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -777,19 +775,6 @@ public class PlasticSCM extends SCM {
             public String getDisplayName() {
                 return "Plastic SCM Workspace";
             }
-        }
-    }
-
-    private static class GetCurrentNode extends MasterToSlaveCallable<String, InterruptedException> {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public String call() {
-            Node node = Computer.currentComputer().getNode();
-            if (node == null) {
-                return null;
-            }
-            return node.getNodeName();
         }
     }
 }

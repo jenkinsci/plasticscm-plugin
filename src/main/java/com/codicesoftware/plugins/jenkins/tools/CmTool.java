@@ -1,6 +1,5 @@
 package com.codicesoftware.plugins.jenkins.tools;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
@@ -85,14 +84,13 @@ public class CmTool extends ToolInstallation implements NodeSpecific<CmTool>, En
     public String getCmPath() {
         String home = getHome();
 
-        if (Util.fixEmptyAndTrim(home) == null) {
+        if (platform != null && Util.fixEmptyAndTrim(home) == null) {
             return platform.getToolName();
         }
 
         return home;
     }
 
-    @SuppressFBWarnings(value = "DCN_NULLPOINTER_EXCEPTION", justification = "Paranoia check")
     private static CmTool[] getInstallations(DescriptorImpl descriptor) {
         CmTool[] installations;
         try {

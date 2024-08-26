@@ -16,7 +16,6 @@ import jenkins.scm.impl.SingleSCMSource;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,7 +53,7 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
     }
 
     @Override
-    public long lastModified() throws IOException, InterruptedException {
+    public long lastModified() {
         return 0;
     }
 
@@ -75,10 +74,6 @@ public class PlasticSCMFileSystem extends SCMFileSystem {
         public SCMFileSystem build(@Nonnull Item owner,
                 @Nonnull SCM scm,
                 @CheckForNull SCMRevision rev) {
-            if (scm == null) {
-                return null;
-            }
-
             if (!isPlasticSCM(scm)) {
                 return null;
             }

@@ -14,7 +14,7 @@ public class BuildNode {
 
     @Nonnull
     public static Node getFromWorkspacePath(@Nonnull final FilePath workspacePath) {
-        Jenkins jenkins = Jenkins.getInstance();
+        Jenkins jenkins = Jenkins.get();
 
         if (!workspacePath.isRemote()) {
             return jenkins;

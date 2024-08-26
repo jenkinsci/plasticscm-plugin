@@ -14,11 +14,11 @@ import java.io.Serializable;
 public class Workspace implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String name;
+    private final String name;
     @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-    private transient FilePath path;
-    private String pathStr;
-    private String guid;
+    private FilePath path;
+    private final String pathStr;
+    private final String guid;
 
     public Workspace(String name, String path, String guid) {
         this(name, path, guid, null);

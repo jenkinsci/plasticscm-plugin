@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class PlasticSCMTest {
 
     @Rule
-    public JenkinsRule rule = new JenkinsRule();
+    public final JenkinsRule rule = new JenkinsRule();
 
     @Test
     public void testProjectConfig() throws Exception {
@@ -65,7 +65,7 @@ public class PlasticSCMTest {
     @Test
     public void testServerConfiguration() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject();
-        String newLine = System.getProperty("line.separator");
+        String newLine = System.lineSeparator();
         String selector = String.join(
                 newLine,
                 "repository \"myRepo@my.plasticscm.server.com:8087\"",
@@ -81,6 +81,8 @@ public class PlasticSCMTest {
                 null,
                 true,
                 "");
-        assertEquals("--server=my.plasticscm.server.com:8087", scm.buildClientConfigurationArguments(project, selector).getServerParam());
+        assertEquals(
+                "--server=my.plasticscm.server.com:8087",
+                scm.buildClientConfigurationArguments(project, selector).getServerParam());
     }
 }

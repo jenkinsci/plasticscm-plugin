@@ -26,7 +26,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ChangeSet.class.getName());
 
-    private ObjectSpecType type = ObjectSpecType.Changeset;
+    private ObjectSpecType type;
     private String version;
     private String repoName;
     private String repoServer;
@@ -37,7 +37,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     private String dateTimeStr;
     private String comment;
     private String guid;
-    private ArrayList<Item> items;
+    private final ArrayList<Item> items;
     private String workspaceDir;
 
     @SuppressWarnings("unused")
@@ -76,7 +76,7 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
         this.version = o.version;
         this.repoName = o.repoName;
         this.repoServer = o.repoServer;
-        this.dateTime = (dateTime != null) ? OffsetDateTime.from(dateTime) : null;
+        this.dateTime = (o.dateTime != null) ? OffsetDateTime.from(o.dateTime) : null;
         this.dateTimeStr = o.dateTimeStr;
         this.comment = o.comment;
         this.branch = o.branch;
@@ -104,18 +104,13 @@ public class ChangeSet extends ChangeLogSet.Entry implements Serializable {
     }
 
     @Override
-    public ChangeLogSet getParent() {
-        return super.getParent();
-    }
-
-    @Override
     protected void setParent(ChangeLogSet parent) {
         super.setParent(parent);
     }
 
     @Override
     public User getAuthor() {
-        return User.get(user);
+        return User.getOrCreateByIdOrFullName(user);
     }
 
     @Override

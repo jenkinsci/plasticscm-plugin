@@ -15,7 +15,6 @@ import jenkins.scm.api.SCMSourceDescriptor;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,7 +40,7 @@ public class MergebotScmFileSystem extends SCMFileSystem {
     }
 
     @Override
-    public long lastModified() throws IOException, InterruptedException {
+    public long lastModified() {
         return 0;
     }
 

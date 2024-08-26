@@ -17,7 +17,6 @@ import com.codicesoftware.plugins.jenkins.ChangesetDetails;
 import com.codicesoftware.plugins.jenkins.CredentialsFinder;
 import com.codicesoftware.plugins.jenkins.UpdateToSpec;
 import com.codicesoftware.plugins.jenkins.tools.CmTool;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -38,7 +37,7 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -92,7 +91,7 @@ public class MergebotScm extends SCM {
         return specAttributeName;
     }
 
-    @NonNull
+    @Nonnull
     @Override
     public String getKey() {
         return String.format(
@@ -173,7 +172,7 @@ public class MergebotScm extends SCM {
             @Nonnull final Run<?, ?> run,
             @Nullable final FilePath wkPath,
             @Nullable final Launcher launcher,
-            @Nonnull final TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull final TaskListener listener) {
         return SCMRevisionState.NONE;
     }
 
@@ -190,12 +189,13 @@ public class MergebotScm extends SCM {
             @Nonnull final File changelogFile,
             @Nonnull final ChangeSet buildObject) throws AbortException {
         try {
-            ChangeSetWriter.write(new ArrayList<ChangeSet>() {{ add(buildObject); }}, changelogFile);
+            ChangeSetWriter.write(new ArrayList<>() {{ add(buildObject); }}, changelogFile);
         } catch (Exception e) {
             throw AbortExceptionBuilder.build(LOGGER, listener, e);
         }
     }
 
+    @SuppressWarnings("unused")
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<MergebotScm> {
         public DescriptorImpl() {
@@ -203,7 +203,7 @@ public class MergebotScm extends SCM {
             load();
         }
 
-        @NonNull
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "Mergebot - Plastic SCM";
@@ -218,12 +218,13 @@ public class MergebotScm extends SCM {
             return MergebotScm.UPDATE_TO_SPEC_PARAMETER_NAME;
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public static FormValidation doCheckSpeckAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null
                     ? FormValidation.error("The attribute name cannot be empty")

@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ChangeSetListTest {
 
-    ChangeSetList underTest = new ChangeSetList(null, null, new ArrayList<>());
+    private final ChangeSetList underTest = new ChangeSetList(null, null, new ArrayList<>());
 
     @Test
     public void testGetKind() {

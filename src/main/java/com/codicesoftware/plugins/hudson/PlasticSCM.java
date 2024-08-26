@@ -26,9 +26,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -48,13 +46,12 @@ import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import jenkins.security.MasterToSlaveCallable;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -109,12 +106,10 @@ public class PlasticSCM extends SCM {
 
     private final String selector;
 
-    private CleanupMethod cleanup;
+    private final CleanupMethod cleanup;
     private final WorkingMode workingMode;
     @CheckForNull
     private final String credentialsId;
-    @Deprecated
-    private transient boolean useUpdate;
 
     private final List<WorkspaceInfo> additionalWorkspaces;
     private final WorkspaceInfo firstWorkspace;
@@ -130,7 +125,7 @@ public class PlasticSCM extends SCM {
             String selector,
             CleanupMethod cleanup,
             WorkingMode workingMode,
-            String credentialsId,
+            @CheckForNull String credentialsId,
             boolean useMultipleWorkspaces,
             List<WorkspaceInfo> additionalWorkspaces,
             boolean pollOnController,
@@ -161,8 +156,7 @@ public class PlasticSCM extends SCM {
 
     @Exported
     public CleanupMethod getCleanup() {
-        // Field might be null if deserialized from older class version.
-        return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
+        return cleanup;
     }
 
     @Exported
@@ -171,6 +165,7 @@ public class PlasticSCM extends SCM {
         return (workingMode != null) ? workingMode : WorkingMode.NONE;
     }
 
+    @CheckForNull
     @Exported
     public String getCredentialsId() {
         return credentialsId;
@@ -182,6 +177,7 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
+    @SuppressWarnings("unused")
     public List<WorkspaceInfo> getAdditionalWorkspaces() {
         return additionalWorkspaces;
     }
@@ -197,6 +193,7 @@ public class PlasticSCM extends SCM {
     }
 
     @Exported
+    @SuppressWarnings("unused")
     public boolean isPollOnController() {
         return pollOnController;
     }
@@ -246,7 +243,6 @@ public class PlasticSCM extends SCM {
             @CheckForNull final SCMRevisionState baseline) throws IOException, InterruptedException {
 
         Node node = BuildNode.getFromWorkspacePath(workspace);
-        adjustFieldsIfUsingOldConfigFormat();
 
         List<ChangeSet> changeLogItems = new ArrayList<>();
 
@@ -298,21 +294,6 @@ public class PlasticSCM extends SCM {
         }
     }
 
-    /**
-     * Jenkins older than 2.60
-     * {@inheritDoc}
-     *
-     */
-    @Override
-    public void buildEnvVars(@Nonnull AbstractBuild<?, ?> build, @Nonnull Map<String, String> env) {
-        super.buildEnvVars(build, env);
-        buildEnvironment(build, env);
-    }
-
-    /**
-     * Jenkins 2.60 and newer
-     * {@inheritDoc}
-     */
     @Override
     public void buildEnvironment(@Nonnull Run<?, ?> build, @Nonnull Map<String, String> env) {
         int index = 1;
@@ -418,16 +399,6 @@ public class PlasticSCM extends SCM {
 
     // region Private methods
 
-    /**
-     * Backward compatibility for jobs using old configuration format.
-     */
-    private void adjustFieldsIfUsingOldConfigFormat() {
-        if (cleanup == null) {
-            LOGGER.warning("Missing 'cleanup' field. Update job configuration.");
-            cleanup = CleanupMethod.convertUseUpdate(useUpdate);
-        }
-    }
-
     private static FilePath resolveWorkspacePath(
             FilePath jenkinsWorkspacePath,
             WorkspaceInfo workspaceInfo) {
@@ -514,7 +485,7 @@ public class PlasticSCM extends SCM {
             @Nonnull final ChangeSet toCset) throws IOException, InterruptedException {
 
         if (fromCset == null) {
-            return new ArrayList<ChangeSet>() {{ add(toCset); }};
+            return new ArrayList<>() {{ add(toCset); }};
         }
 
         FilePath xmlOutputPath = OutputTempFile.getPathForXml(workspacePath);
@@ -561,7 +532,7 @@ public class PlasticSCM extends SCM {
         }
 
         if (workspacePath == null) {
-            workspacePath = new FilePath(new FilePath(Jenkins.getInstance().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
+            workspacePath = new FilePath(new FilePath(Jenkins.get().getRootDir()), CONTROLLER_WORKSPACE_FOLDER);
             workspacePath.mkdirs();
         }
 
@@ -581,7 +552,7 @@ public class PlasticSCM extends SCM {
                 repSpec,
                 lastCompletedBuildTimestamp,
                 Calendar.getInstance());
-            return changesetsFromBuild.size() > 0;
+            return !changesetsFromBuild.isEmpty();
         } catch (Exception e) {
             e.printStackTrace(listener.error(String.format(
                 "%s: Unable to retrieve workspace status.", workspacePath.getRemote())));
@@ -667,6 +638,7 @@ public class PlasticSCM extends SCM {
 
     // endregion
 
+    @SuppressWarnings("unused")
     @Extension
     public static class DescriptorImpl extends SCMDescriptor<PlasticSCM> {
         public DescriptorImpl() {
@@ -681,12 +653,12 @@ public class PlasticSCM extends SCM {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public static FormValidation doCheckSelector(@QueryParameter String value) {
             return FormChecker.doCheckSelector(value);
         }
 
-        @RequirePOST
+        @POST
         public static FormValidation doCheckDirectory(
                 @QueryParameter String value,
                 @QueryParameter boolean useMultipleWorkspaces,
@@ -701,11 +673,12 @@ public class PlasticSCM extends SCM {
             return SelectorTemplates.DEFAULT;
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
-        @RequirePOST
+        @POST
         public FormValidation doCheckCredentialsId(
             @AncestorInPath Item item,
             @QueryParameter String value,
@@ -732,8 +705,6 @@ public class PlasticSCM extends SCM {
         private final String selector;
 
         private final CleanupMethod cleanup;
-        @Deprecated
-        private transient boolean useUpdate;
 
         private final String directory;
 
@@ -756,8 +727,7 @@ public class PlasticSCM extends SCM {
 
         @Exported
         public CleanupMethod getCleanup() {
-            // Field might be null if deserialized from older class version.
-            return (cleanup != null) ? cleanup : CleanupMethod.convertUseUpdate(useUpdate);
+            return cleanup;
         }
 
         @Exported
@@ -765,16 +735,17 @@ public class PlasticSCM extends SCM {
             return directory;
         }
 
+        @SuppressWarnings("unused")
         @Extension
         public static class DescriptorImpl extends Descriptor<WorkspaceInfo> {
 
             @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-            @RequirePOST
+            @POST
             public static FormValidation doCheckSelector(@QueryParameter String value) {
                 return FormChecker.doCheckSelector(value);
             }
 
-            @RequirePOST
+            @POST
             public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
                 return FormChecker.doCheckDirectory(value, item);
             }
@@ -788,19 +759,6 @@ public class PlasticSCM extends SCM {
             public String getDisplayName() {
                 return "Plastic SCM Workspace";
             }
-        }
-    }
-
-    private static class GetCurrentNode extends MasterToSlaveCallable<String, InterruptedException> {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public String call() {
-            Node node = Computer.currentComputer().getNode();
-            if (node == null) {
-                return null;
-            }
-            return node.getNodeName();
         }
     }
 }

@@ -53,7 +53,7 @@ public class ChangeSetWriter {
         writer.println(String.format("\t\t<repname>%s</repname>", escapeForXml(changeSet.getRepoName())));
         writer.println(String.format("\t\t<repserver>%s</repserver>", escapeForXml(changeSet.getRepoServer())));
         writer.println(String.format("\t\t<guid>%s</guid>", escapeForXml(changeSet.getGuid())));
-        if (changeSet.getItems().size() > 0) {
+        if (!changeSet.getItems().isEmpty()) {
             writer.println("\t\t<items>");
             for (ChangeSet.Item item : changeSet.getItems()) {
                 writer.println(String.format("\t\t\t<item revId=\"%s\" parentRevId=\"%s\" status=\"%s\">%s</item>",

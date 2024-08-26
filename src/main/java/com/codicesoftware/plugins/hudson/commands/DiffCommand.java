@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -45,11 +44,11 @@ public class DiffCommand implements ParseableCommand<List<ChangeSet.Item>> {
 
     @Override
     @Nonnull
-    public List<ChangeSet.Item> parse(@Nonnull final Reader r) throws ParseException, IOException {
+    public List<ChangeSet.Item> parse(@Nonnull final Reader r) throws IOException {
         ArrayList<ChangeSet.Item> result = new ArrayList<>();
 
         BufferedReader reader = new BufferedReader(r);
-        String line = null;
+        String line;
         while ((line = reader.readLine()) != null) {
             Matcher matcher = linePattern.matcher(line);
             if (!matcher.matches()) {

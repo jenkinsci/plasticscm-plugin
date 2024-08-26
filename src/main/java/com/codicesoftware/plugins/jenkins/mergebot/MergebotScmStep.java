@@ -14,10 +14,11 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 
+@SuppressWarnings("unused")
 public class MergebotScmStep extends SCMStep {
 
     private WorkingMode workingMode = WorkingMode.NONE;
@@ -72,6 +73,7 @@ public class MergebotScmStep extends SCMStep {
     }
 
     @Extension
+    @SuppressWarnings("unused")
     public static final class MergebotScmStepDescriptor extends SCMStep.SCMStepDescriptor {
         @Override
         @Nonnull
@@ -85,6 +87,7 @@ public class MergebotScmStep extends SCMStep {
             return "Plastic SCM Mergebot Checkout";
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
@@ -94,7 +97,7 @@ public class MergebotScmStep extends SCMStep {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public static FormValidation doCheckSpecAttributeName(@QueryParameter String value) {
             return Util.fixEmpty(value) == null
                 ? FormValidation.error("The attribute name cannot be empty")

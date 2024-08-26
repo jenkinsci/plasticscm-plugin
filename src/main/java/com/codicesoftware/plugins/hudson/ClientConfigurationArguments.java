@@ -47,17 +47,17 @@ public class ClientConfigurationArguments {
 
     @Nonnull
     String getWorkingModeParam() {
-        return "--workingmode=" + workingMode.getPlasticWorkingMode();
+        return workingMode == null ? "" : "--workingmode=" + workingMode.getPlasticWorkingMode();
     }
 
     @Nonnull
     String getUserParam() {
-        return "--username=" + credentials.getUsername();
+        return credentials == null ? "" : "--username=" + credentials.getUsername();
     }
 
     @Nonnull
     String getPasswordParam() {
-        return "--password=" + Secret.toString(credentials.getPassword());
+        return credentials == null ? "" : "--password=" + Secret.toString(credentials.getPassword());
     }
 
     boolean hasWorkingModeManualValues() {

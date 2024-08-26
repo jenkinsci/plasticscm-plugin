@@ -31,25 +31,17 @@ public class BuildVariableResolver implements VariableResolver<String> {
 
     private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
     private final Computer computer;
-    private Map<String, LazyResolver> lazyResolvers = new HashMap<>();
-    private List<VariableResolver<String>> otherResolvers = new ArrayList<>();
+    private final Map<String, LazyResolver> lazyResolvers = new HashMap<>();
+    private final List<VariableResolver<String>> otherResolvers = new ArrayList<>();
 
     public BuildVariableResolver(final Job<?, ?> job) {
         computer = null;
-        lazyResolvers.put("JOB_NAME", new LazyResolver() {
-            public String getValue() {
-                return job.getName();
-            }
-        });
+        lazyResolvers.put("JOB_NAME", job::getName);
     }
 
     public BuildVariableResolver(final Job<?, ?> project, final Computer computer, final FilePath workspace) {
         this.computer = computer;
-        lazyResolvers.put("JOB_NAME", new LazyResolver() {
-            public String getValue() {
-                return project.getName();
-            }
-        });
+        lazyResolvers.put("JOB_NAME", project::getName);
         lazyResolvers.put("NODE_NAME", new LazyComputerResolver() {
             public String getValue(Computer computer) {
                 if (computer == null || Util.fixEmpty(computer.getName()) == null) {
@@ -67,7 +59,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
             }
         });
         lazyResolvers.put("EXECUTOR_NUMBER", new LazyComputerResolver() {
-            public String getValue(Computer computer) throws IOException, InterruptedException {
+            public String getValue(Computer computer) {
                 return ExecutorVariableHelper.getExecutorID(workspace);
             }
         });
@@ -98,8 +90,6 @@ public class BuildVariableResolver implements VariableResolver<String> {
 
     /**
      * Class to handle cases when a Launcher was not created from a computer.
-     *
-     * @see hudson.Launcher#getComputer()
      */
     private abstract class LazyComputerResolver implements LazyResolver {
         protected abstract String getValue(Computer computer) throws IOException, InterruptedException;

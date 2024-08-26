@@ -16,12 +16,13 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@SuppressWarnings("unused")
 public class PlasticSCMStep extends SCMStep {
 
     private static final Logger LOGGER = Logger.getLogger(PlasticSCMStep.class.getName());
@@ -36,8 +37,6 @@ public class PlasticSCMStep extends SCMStep {
     private WorkingMode workingMode = WorkingMode.NONE;
     private String credentialsId = null;
     private CleanupMethod cleanup = CleanupMethod.STANDARD;
-    @Deprecated
-    private transient boolean useUpdate;
 
     private String directory = "";
 
@@ -126,12 +125,6 @@ public class PlasticSCMStep extends SCMStep {
         this.cleanup = cleanup;
     }
 
-    @Deprecated
-    public void setUseUpdate(boolean useUpdate) {
-        LOGGER.warning("Using deprecated 'useUpdate' field. Update job configuration.");
-        this.cleanup = CleanupMethod.convertUseUpdate(useUpdate);
-    }
-
     public String getDirectory() {
         return directory;
     }
@@ -160,6 +153,7 @@ public class PlasticSCMStep extends SCMStep {
         }
     }
 
+    @SuppressWarnings("unused")
     @Extension
     public static final class DescriptorImpl extends SCMStepDescriptor {
         public static final String defaultBranch = PlasticSCM.DEFAULT_BRANCH;
@@ -176,24 +170,24 @@ public class PlasticSCMStep extends SCMStep {
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckBranch(@QueryParameter String value) {
             return FormChecker.doCheckBranch(value);
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckRepository(@QueryParameter String value) {
             return FormChecker.doCheckRepository(value);
         }
 
         @SuppressWarnings("lgtm[jenkins/no-permission-check]")
-        @RequirePOST
+        @POST
         public FormValidation doCheckServer(@QueryParameter String value) {
             return FormChecker.doCheckServer(value);
         }
 
-        @RequirePOST
+        @POST
         public static FormValidation doCheckDirectory(@QueryParameter String value, @AncestorInPath Item item) {
             if (Util.fixEmpty(value) == null) {
                 return FormValidation.ok();
@@ -201,11 +195,12 @@ public class PlasticSCMStep extends SCMStep {
             return FormChecker.doCheckDirectory(value, item);
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
             return FormFiller.doFillCredentialsIdItems(item, credentialsId);
         }
 
-        @RequirePOST
+        @POST
         public FormValidation doCheckCredentialsId(
             @AncestorInPath Item item,
             @QueryParameter String value,

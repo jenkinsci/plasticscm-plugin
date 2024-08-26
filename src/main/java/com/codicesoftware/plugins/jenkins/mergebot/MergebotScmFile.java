@@ -48,18 +48,18 @@ public class MergebotScmFile extends SCMFile {
 
     @Nonnull
     @Override
-    public Iterable<SCMFile> children() throws IOException, InterruptedException {
-        return new ArrayList<SCMFile>();
+    public Iterable<SCMFile> children() {
+        return new ArrayList<>();
     }
 
     @Override
-    public long lastModified() throws IOException, InterruptedException {
+    public long lastModified() {
         return 0;
     }
 
     @Nonnull
     @Override
-    protected Type type() throws IOException, InterruptedException {
+    protected Type type() {
         return isDir ? Type.DIRECTORY : Type.REGULAR_FILE;
     }
 
@@ -82,7 +82,7 @@ public class MergebotScmFile extends SCMFile {
 
         try {
             PlasticTool tool = new PlasticTool(
-                CmTool.get(Jenkins.getInstance(), environment, taskListener),
+                CmTool.get(Jenkins.get(), environment, taskListener),
                 launcher,
                 taskListener,
                 null,
